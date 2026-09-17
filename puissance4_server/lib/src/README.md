@@ -7,7 +7,7 @@ Un dossier par domaine fonctionnel, chacun avec ses endpoints et modèles
   adapter, cf. ticket T1.2.1).
 - `profile/`, `bot/`, `ranked/`, `multiplayer/`, `leaderboard/`, `history/`,
   `offline/` — un endpoint par epic du backlog (cf.
-  `03-Backlog-Epics-UserStories.md` à la racine du repo).
+  `doc/03-Backlog-Epics-UserStories.md`).
 - `generated/` — ne jamais éditer à la main (régénéré par `serverpod generate`).
 
 `greetings/` est l'exemple par défaut de Serverpod, à supprimer une fois le

@@ -11,5 +11,5 @@ entre Personne A et Personne B :
   état + logique de présentation, testable sans monter de widget.
 
 Features : `auth`, `offline`, `profile`, `game`, `bot`, `ranked`, `multiplayer`,
-`leaderboard`, `history`, `settings` — cf. `03-Backlog-Epics-UserStories.md` à la
-racine du repo pour le détail des tickets par feature.
+`leaderboard`, `history`, `settings` — cf. `doc/03-Backlog-Epics-UserStories.md`
+pour le détail des tickets par feature.
