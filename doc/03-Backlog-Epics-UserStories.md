@@ -313,7 +313,7 @@ Tickets :
 ---
 
 ## Récapitulatif
-14 epics, 28 user stories, ~76 tickets. E0 (mode invité local) et E7 (multijoueur en
+14 epics, 23 user stories, 64 tickets. E0 (mode invité local) et E7 (multijoueur en
 ligne) sont marqués `[optionnel]` : socle du cours d'abord (E1-E6, E8-E9, E11-E13),
 extensions ensuite pour la candidature au Serverpod Hackathon. Chaque ticket
 ci-dessus sera créé comme une issue GitHub individuelle (titre = ID + résumé,
