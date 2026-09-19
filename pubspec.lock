@@ -1055,6 +1055,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.1.0"
+  serverpod_offline_sync:
+    dependency: transitive
+    description:
+      name: serverpod_offline_sync
+      sha256: abf99fdc78dfe02e21960d4618acb3cbb71976262731b6f17c2c29f2782450c4
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.8"
+  serverpod_offline_sync_client:
+    dependency: transitive
+    description:
+      name: serverpod_offline_sync_client
+      sha256: e517b3161dc1a07f5bed4801aa971349a550774ae6f0b85472d0d273c88a3198
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.8"
+  serverpod_offline_sync_server:
+    dependency: transitive
+    description:
+      name: serverpod_offline_sync_server
+      sha256: fcb313b21a72b04602793de0719bca7aeaf929f97b90f5bfe77a82a91e5eaf36
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.8"
   serverpod_serialization:
     dependency: transitive
     description:

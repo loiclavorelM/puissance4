@@ -1,0 +1,5 @@
+enum: EnumMatchResult
+values:
+  - win
+  - loss
+  - draw

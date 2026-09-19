@@ -24,17 +24,21 @@ environment:
 resolution: workspace
 
 dependencies:
+  connectivity_plus: ^7.3.1
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.5
   flutter:
     sdk: flutter
   flutter_riverpod: ^2.6.1
+  flutter_secure_storage: ^10.0.0
   google_fonts: ^8.1.0
   puissance4_client:
     path: ../puissance4_client
   serverpod_auth_idp_flutter: 4.0.0
+  serverpod_client: 4.0.0
   serverpod_flutter: 4.0.0
+  serverpod_offline_sync_client: ^0.0.8
 
 dev_dependencies:
   # Used for agents to drive the app through the Dart MCP

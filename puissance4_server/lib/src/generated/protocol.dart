@@ -17,24 +17,33 @@ import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _iacs;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _iais;
+import 'package:serverpod_offline_sync_server/serverpod_offline_sync_server.dart'
+    as _izehhkf5;
 import 'bot/bot.dart' as _iij7x2jd;
+import 'bot/enum_bot_level.dart' as _i65o1ott;
+import 'game/enum_match_result.dart' as _iyr3fkva;
 import 'game/enum_player.dart' as _iugmtbin;
 import 'game/enum_statut.dart' as _ip6diune;
 import 'game/enum_type.dart' as _ig2x4mxg;
+import 'game/offline_match_result.dart' as _ir8nzxqr;
 import 'game/partie.dart' as _iuas6tq9;
 import 'game/player.dart' as _id5q07gg;
 import 'greetings/greeting.dart' as _izw8z7ou;
 import 'profile/user.dart' as _iytd8mlf;
 import 'ranked/elo_history.dart' as _i8na2re5;
 export 'bot/bot.dart';
+export 'bot/enum_bot_level.dart';
+export 'game/enum_match_result.dart';
 export 'game/enum_player.dart';
 export 'game/enum_statut.dart';
 export 'game/enum_type.dart';
+export 'game/offline_match_result.dart';
 export 'game/partie.dart';
 export 'game/player.dart';
 export 'greetings/greeting.dart';
 export 'profile/user.dart';
 export 'ranked/elo_history.dart';
+export 'sync_tables.dart';
 
 class Protocol extends _is.DatabaseSerializationManager {
   Protocol._();
@@ -163,6 +172,72 @@ class Protocol extends _is.DatabaseSerializationManager {
           referenceColumns: ['id'],
           onUpdate: _isp.ForeignKeyAction.noAction,
           onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
+      indexes: [],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'offline_match_result',
+      dartName: 'OfflineMatchResult',
+      schema: 'public',
+      module: 'puissance4',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'random_v7',
+        ),
+        _isp.ColumnDefinition(
+          name: 'spaceId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: true,
+          dartType: 'int?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'result',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'protocol:EnumMatchResult',
+        ),
+        _isp.ColumnDefinition(
+          name: 'botLevel',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'protocol:EnumBotLevel',
+        ),
+        _isp.ColumnDefinition(
+          name: 'moves',
+          columnType: _isp.ColumnType.json,
+          isNullable: false,
+          dartType: 'List<int>',
+        ),
+        _isp.ColumnDefinition(
+          name: 'playedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+        ),
+        _isp.ColumnDefinition(
+          name: 'reconciled',
+          columnType: _isp.ColumnType.boolean,
+          isNullable: false,
+          dartType: 'bool',
+          columnDefault: 'false',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'offline_match_result_fk_0',
+          columns: ['spaceId'],
+          referenceTable: 'offline_sync_spaces',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
           matchType: null,
         ),
       ],
@@ -395,8 +470,9 @@ class Protocol extends _is.DatabaseSerializationManager {
       ],
       managed: true,
     ),
-    ..._iais.Protocol.targetTableDefinitions,
     ..._iacs.Protocol.targetTableDefinitions,
+    ..._iais.Protocol.targetTableDefinitions,
+    ..._izehhkf5.Protocol.targetTableDefinitions,
     ..._isp.Protocol.targetTableDefinitions,
   ];
 
@@ -430,6 +506,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _iij7x2jd.Bot) {
       return _iij7x2jd.Bot.fromJson(data) as T;
     }
+    if (t == _i65o1ott.EnumBotLevel) {
+      return _i65o1ott.EnumBotLevel.fromJson(data) as T;
+    }
+    if (t == _iyr3fkva.EnumMatchResult) {
+      return _iyr3fkva.EnumMatchResult.fromJson(data) as T;
+    }
     if (t == _iugmtbin.EnumPlayer) {
       return _iugmtbin.EnumPlayer.fromJson(data) as T;
     }
@@ -438,6 +520,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _ig2x4mxg.EnumType) {
       return _ig2x4mxg.EnumType.fromJson(data) as T;
+    }
+    if (t == _ir8nzxqr.OfflineMatchResult) {
+      return _ir8nzxqr.OfflineMatchResult.fromJson(data) as T;
     }
     if (t == _iuas6tq9.Partie) {
       return _iuas6tq9.Partie.fromJson(data) as T;
@@ -457,6 +542,13 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_iij7x2jd.Bot?>()) {
       return (data != null ? _iij7x2jd.Bot.fromJson(data) : null) as T;
     }
+    if (t == _is.getType<_i65o1ott.EnumBotLevel?>()) {
+      return (data != null ? _i65o1ott.EnumBotLevel.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_iyr3fkva.EnumMatchResult?>()) {
+      return (data != null ? _iyr3fkva.EnumMatchResult.fromJson(data) : null)
+          as T;
+    }
     if (t == _is.getType<_iugmtbin.EnumPlayer?>()) {
       return (data != null ? _iugmtbin.EnumPlayer.fromJson(data) : null) as T;
     }
@@ -465,6 +557,10 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _is.getType<_ig2x4mxg.EnumType?>()) {
       return (data != null ? _ig2x4mxg.EnumType.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_ir8nzxqr.OfflineMatchResult?>()) {
+      return (data != null ? _ir8nzxqr.OfflineMatchResult.fromJson(data) : null)
+          as T;
     }
     if (t == _is.getType<_iuas6tq9.Partie?>()) {
       return (data != null ? _iuas6tq9.Partie.fromJson(data) : null) as T;
@@ -485,10 +581,13 @@ class Protocol extends _is.DatabaseSerializationManager {
       return (data as List).map((e) => deserialize<int>(e)).toList() as T;
     }
     try {
+      return _iacs.Protocol().deserialize<T>(data, t);
+    } on _is.DeserializationTypeNotFoundException catch (_) {}
+    try {
       return _iais.Protocol().deserialize<T>(data, t);
     } on _is.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _iacs.Protocol().deserialize<T>(data, t);
+      return _izehhkf5.Protocol().deserialize<T>(data, t);
     } on _is.DeserializationTypeNotFoundException catch (_) {}
     try {
       return _isp.Protocol().deserialize<T>(data, t);
@@ -499,9 +598,12 @@ class Protocol extends _is.DatabaseSerializationManager {
   static String? getClassNameForType(Type type) {
     return switch (type) {
       _iij7x2jd.Bot => 'Bot',
+      _i65o1ott.EnumBotLevel => 'EnumBotLevel',
+      _iyr3fkva.EnumMatchResult => 'EnumMatchResult',
       _iugmtbin.EnumPlayer => 'EnumPlayer',
       _ip6diune.EnumStatut => 'EnumStatut',
       _ig2x4mxg.EnumType => 'EnumType',
+      _ir8nzxqr.OfflineMatchResult => 'OfflineMatchResult',
       _iuas6tq9.Partie => 'Partie',
       _id5q07gg.Player => 'Player',
       _izw8z7ou.Greeting => 'Greeting',
@@ -523,12 +625,18 @@ class Protocol extends _is.DatabaseSerializationManager {
     switch (data) {
       case _iij7x2jd.Bot():
         return 'Bot';
+      case _i65o1ott.EnumBotLevel():
+        return 'EnumBotLevel';
+      case _iyr3fkva.EnumMatchResult():
+        return 'EnumMatchResult';
       case _iugmtbin.EnumPlayer():
         return 'EnumPlayer';
       case _ip6diune.EnumStatut():
         return 'EnumStatut';
       case _ig2x4mxg.EnumType():
         return 'EnumType';
+      case _ir8nzxqr.OfflineMatchResult():
+        return 'OfflineMatchResult';
       case _iuas6tq9.Partie():
         return 'Partie';
       case _id5q07gg.Player():
@@ -540,17 +648,23 @@ class Protocol extends _is.DatabaseSerializationManager {
       case _i8na2re5.EloHistory():
         return 'EloHistory';
     }
+    className = _iacs.Protocol().getClassNameForObject(data);
+    if (className != null) {
+      return className.contains('.')
+          ? className
+          : 'serverpod_auth_core.$className';
+    }
     className = _iais.Protocol().getClassNameForObject(data);
     if (className != null) {
       return className.contains('.')
           ? className
           : 'serverpod_auth_idp.$className';
     }
-    className = _iacs.Protocol().getClassNameForObject(data);
+    className = _izehhkf5.Protocol().getClassNameForObject(data);
     if (className != null) {
       return className.contains('.')
           ? className
-          : 'serverpod_auth_core.$className';
+          : 'serverpod_offline_sync.$className';
     }
     className = _isp.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -568,6 +682,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'Bot') {
       return deserialize<_iij7x2jd.Bot>(data['data']);
     }
+    if (dataClassName == 'EnumBotLevel') {
+      return deserialize<_i65o1ott.EnumBotLevel>(data['data']);
+    }
+    if (dataClassName == 'EnumMatchResult') {
+      return deserialize<_iyr3fkva.EnumMatchResult>(data['data']);
+    }
     if (dataClassName == 'EnumPlayer') {
       return deserialize<_iugmtbin.EnumPlayer>(data['data']);
     }
@@ -576,6 +696,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (dataClassName == 'EnumType') {
       return deserialize<_ig2x4mxg.EnumType>(data['data']);
+    }
+    if (dataClassName == 'OfflineMatchResult') {
+      return deserialize<_ir8nzxqr.OfflineMatchResult>(data['data']);
     }
     if (dataClassName == 'Partie') {
       return deserialize<_iuas6tq9.Partie>(data['data']);
@@ -592,13 +715,17 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'EloHistory') {
       return deserialize<_i8na2re5.EloHistory>(data['data']);
     }
+    if (dataClassName.startsWith('serverpod_auth_core.')) {
+      data['className'] = dataClassName.substring(20);
+      return _iacs.Protocol().deserializeByClassName(data);
+    }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
       return _iais.Protocol().deserializeByClassName(data);
     }
-    if (dataClassName.startsWith('serverpod_auth_core.')) {
-      data['className'] = dataClassName.substring(20);
-      return _iacs.Protocol().deserializeByClassName(data);
+    if (dataClassName.startsWith('serverpod_offline_sync.')) {
+      data['className'] = dataClassName.substring(23);
+      return _izehhkf5.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
@@ -608,12 +735,19 @@ class Protocol extends _is.DatabaseSerializationManager {
   }
 
   void _registerHostProtocols() {
-    _iais.Protocol().registerHostProtocol('puissance4', this);
     _iacs.Protocol().registerHostProtocol('puissance4', this);
+    _iais.Protocol().registerHostProtocol('puissance4', this);
+    _izehhkf5.Protocol().registerHostProtocol('puissance4', this);
   }
 
   @override
   _is.Table? getTableForType(Type t) {
+    {
+      var table = _iacs.Protocol().getTableForType(t);
+      if (table != null) {
+        return table;
+      }
+    }
     {
       var table = _iais.Protocol().getTableForType(t);
       if (table != null) {
@@ -621,7 +755,7 @@ class Protocol extends _is.DatabaseSerializationManager {
       }
     }
     {
-      var table = _iacs.Protocol().getTableForType(t);
+      var table = _izehhkf5.Protocol().getTableForType(t);
       if (table != null) {
         return table;
       }
@@ -635,6 +769,8 @@ class Protocol extends _is.DatabaseSerializationManager {
     switch (t) {
       case _iij7x2jd.Bot:
         return _iij7x2jd.Bot.t;
+      case _ir8nzxqr.OfflineMatchResult:
+        return _ir8nzxqr.OfflineMatchResult.t;
       case _iuas6tq9.Partie:
         return _iuas6tq9.Partie.t;
       case _id5q07gg.Player:
@@ -664,10 +800,13 @@ class Protocol extends _is.DatabaseSerializationManager {
       return null;
     }
     try {
+      return _iacs.Protocol().mapRecordToJson(record);
+    } catch (_) {}
+    try {
       return _iais.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
-      return _iacs.Protocol().mapRecordToJson(record);
+      return _izehhkf5.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }

@@ -1,0 +1,5 @@
+enum: EnumBotLevel
+values:
+  - beginner
+  - medium
+  - expert

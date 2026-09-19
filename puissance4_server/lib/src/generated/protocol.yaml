@@ -1,3 +1,5 @@
+anonymousIdp:
+  - login:
 emailIdp:
   - login:
   - startRegistration:
@@ -7,7 +9,13 @@ emailIdp:
   - verifyPasswordResetCode:
   - finishPasswordReset:
   - hasAccount:
+googleIdp:
+  - login:
+  - loginWithCode:
+  - hasAccount:
 jwtRefresh:
   - refreshAccessToken:
+connection:
+  - ping:
 greeting:
   - hello:

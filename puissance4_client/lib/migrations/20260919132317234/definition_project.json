@@ -1,0 +1,115 @@
+{
+  "__className__": "serverpod.DatabaseDefinition",
+  "schemaVersion": 2,
+  "moduleName": "puissance4",
+  "tables": [
+    {
+      "__className__": "serverpod.TableDefinition",
+      "name": "offline_match_result",
+      "dartName": "OfflineMatchResult",
+      "module": "puissance4",
+      "schema": "public",
+      "columns": [
+        {
+          "__className__": "serverpod.ColumnDefinition",
+          "name": "id",
+          "fieldName": "id",
+          "columnType": 7,
+          "isNullable": false,
+          "columnDefault": "random_v7",
+          "dartType": "UuidValue?"
+        },
+        {
+          "__className__": "serverpod.ColumnDefinition",
+          "name": "spaceId",
+          "fieldName": "spaceId",
+          "columnType": 6,
+          "isNullable": true,
+          "dartType": "int?"
+        },
+        {
+          "__className__": "serverpod.ColumnDefinition",
+          "name": "result",
+          "fieldName": "result",
+          "columnType": 0,
+          "isNullable": false,
+          "dartType": "protocol:EnumMatchResult"
+        },
+        {
+          "__className__": "serverpod.ColumnDefinition",
+          "name": "botLevel",
+          "fieldName": "botLevel",
+          "columnType": 0,
+          "isNullable": false,
+          "dartType": "protocol:EnumBotLevel"
+        },
+        {
+          "__className__": "serverpod.ColumnDefinition",
+          "name": "moves",
+          "fieldName": "moves",
+          "columnType": 8,
+          "isNullable": false,
+          "dartType": "List<int>"
+        },
+        {
+          "__className__": "serverpod.ColumnDefinition",
+          "name": "playedAt",
+          "fieldName": "playedAt",
+          "columnType": 4,
+          "isNullable": false,
+          "dartType": "DateTime"
+        },
+        {
+          "__className__": "serverpod.ColumnDefinition",
+          "name": "reconciled",
+          "fieldName": "reconciled",
+          "columnType": 1,
+          "isNullable": false,
+          "columnDefault": "false",
+          "dartType": "bool"
+        }
+      ],
+      "foreignKeys": [
+        {
+          "__className__": "serverpod.ForeignKeyDefinition",
+          "constraintName": "offline_match_result_fk_0",
+          "columns": [
+            "spaceId"
+          ],
+          "referenceTable": "offline_sync_spaces",
+          "referenceTableSchema": "public",
+          "referenceColumns": [
+            "id"
+          ],
+          "onUpdate": 3,
+          "onDelete": 4
+        }
+      ],
+      "indexes": [],
+      "managed": true
+    }
+  ],
+  "installedModules": [
+    {
+      "__className__": "serverpod.DatabaseMigrationVersion",
+      "module": "serverpod",
+      "version": "20260824182259319"
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationVersion",
+      "module": "serverpod_auth_core",
+      "version": "20260824182354731"
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationVersion",
+      "module": "serverpod_auth_idp",
+      "version": "20260910193913364-string-rate-limit-keys"
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationVersion",
+      "module": "serverpod_offline_sync",
+      "version": "20260914143806119"
+    }
+  ],
+  "migrationApiVersion": 1
+}

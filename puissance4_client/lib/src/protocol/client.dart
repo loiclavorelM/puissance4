@@ -19,7 +19,35 @@ import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
     as _iaic;
 import 'package:serverpod_client/serverpod_client.dart' as _isc;
+import 'package:serverpod_database/serverpod_database.dart' as _isd;
+import 'package:serverpod_offline_sync_client/serverpod_offline_sync_client.dart'
+    as _ipulbpi2;
 import 'protocol.dart' as _il2as5qe;
+import 'sync_tables.dart' as _ii3f3u05;
+import 'package:puissance4_client/migrations/migration_registry.dart';
+
+/// By extending [AnonymousIdpBaseEndpoint], the anonymous identity provider
+/// endpoint is made available on the server and enables the corresponding
+/// sign-in widget on the client.
+/// {@category Endpoint}
+class EndpointAnonymousIdp extends _iaic.EndpointAnonymousIdpBase {
+  EndpointAnonymousIdp(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'anonymousIdp';
+
+  /// Creates a new anonymous account and returns its session.
+  ///
+  /// Invokes the [AnonymousIdp.beforeAnonymousAccount] callback if configured,
+  /// which may prevent account creation if the endpoint is protected.
+  @override
+  _ida.Future<_iacc.AuthSuccess> login({String? token}) =>
+      caller.callServerEndpoint<_iacc.AuthSuccess>(
+        'anonymousIdp',
+        'login',
+        {'token': token},
+      );
+}
 
 /// By extending [EmailIdpBaseEndpoint], the email identity provider endpoints
 /// are made available on the server and enable the corresponding sign-in widget
@@ -204,6 +232,65 @@ class EndpointEmailIdp extends _iaic.EndpointEmailIdpBase {
   );
 }
 
+/// By extending [GoogleIdpBaseEndpoint], the Google identity provider
+/// endpoint is made available on the server and enables the corresponding
+/// sign-in widget on the client. Signing in will still fail until real
+/// OAuth credentials replace the placeholder `googleClientSecret` in
+/// `config/passwords.yaml` — see `server.dart`.
+/// {@category Endpoint}
+class EndpointGoogleIdp extends _iaic.EndpointGoogleIdpBase {
+  EndpointGoogleIdp(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'googleIdp';
+
+  /// Validates a Google ID token and either logs in the associated user or
+  /// creates a new user account if the Google account ID is not yet known.
+  ///
+  /// If a new user is created an associated [UserProfile] is also created.
+  @override
+  _ida.Future<_iacc.AuthSuccess> login({
+    required String idToken,
+    required String? accessToken,
+  }) => caller.callServerEndpoint<_iacc.AuthSuccess>(
+    'googleIdp',
+    'login',
+    {
+      'idToken': idToken,
+      'accessToken': accessToken,
+    },
+  );
+
+  /// Validates a Google authorization code from the web OAuth2 PKCE flow and
+  /// either logs in the associated user or creates a new account.
+  ///
+  /// This is the web counterpart of [login], which accepts an ID token directly
+  /// (used on native platforms via the `google_sign_in` package).
+  ///
+  /// If a new user is created an associated [UserProfile] is also created.
+  @override
+  _ida.Future<_iacc.AuthSuccess> loginWithCode({
+    required String code,
+    required String codeVerifier,
+    required String redirectUri,
+  }) => caller.callServerEndpoint<_iacc.AuthSuccess>(
+    'googleIdp',
+    'loginWithCode',
+    {
+      'code': code,
+      'codeVerifier': codeVerifier,
+      'redirectUri': redirectUri,
+    },
+  );
+
+  @override
+  _ida.Future<bool> hasAccount() => caller.callServerEndpoint<bool>(
+    'googleIdp',
+    'hasAccount',
+    {},
+  );
+}
+
 /// By extending [RefreshJwtTokensEndpoint], the JWT token refresh endpoint
 /// is made available on the server and enables automatic token refresh on the client.
 /// {@category Endpoint}
@@ -246,6 +333,24 @@ class EndpointJwtRefresh extends _iacc.EndpointRefreshJwtTokens {
       );
 }
 
+/// Endpoint volontairement vide : sert uniquement de sonde de joignabilité
+/// pour `ServerConnectionTracker` côté client. Le simple fait que l'appel
+/// réussisse ou échoue passe par les hooks globaux
+/// `onSucceededCall`/`onFailedCall` du client généré.
+/// {@category Endpoint}
+class EndpointConnection extends _isc.EndpointRef {
+  EndpointConnection(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'connection';
+
+  _ida.Future<void> ping() => caller.callServerEndpoint<void>(
+    'connection',
+    'ping',
+    {},
+  );
+}
+
 /// This is an example endpoint that returns a greeting message through
 /// its [hello] method.
 /// {@category Endpoint}
@@ -266,13 +371,16 @@ class EndpointGreeting extends _isc.EndpointRef {
 
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _iaic.Caller(client);
     serverpod_auth_core = _iacc.Caller(client);
+    serverpod_auth_idp = _iaic.Caller(client);
+    offline_sync = _ipulbpi2.Caller(client);
   }
+
+  late final _iacc.Caller serverpod_auth_core;
 
   late final _iaic.Caller serverpod_auth_idp;
 
-  late final _iacc.Caller serverpod_auth_core;
+  late final _ipulbpi2.Caller offline_sync;
 }
 
 class Client extends _isc.ServerpodClientShared {
@@ -302,15 +410,24 @@ class Client extends _isc.ServerpodClientShared {
              disconnectStreamsOnLostInternetConnection,
          httpClientOverride: httpClientOverride,
        ) {
+    anonymousIdp = EndpointAnonymousIdp(this);
     emailIdp = EndpointEmailIdp(this);
+    googleIdp = EndpointGoogleIdp(this);
     jwtRefresh = EndpointJwtRefresh(this);
+    connection = EndpointConnection(this);
     greeting = EndpointGreeting(this);
     modules = Modules(this);
   }
 
+  late final EndpointAnonymousIdp anonymousIdp;
+
   late final EndpointEmailIdp emailIdp;
 
+  late final EndpointGoogleIdp googleIdp;
+
   late final EndpointJwtRefresh jwtRefresh;
+
+  late final EndpointConnection connection;
 
   late final EndpointGreeting greeting;
 
@@ -318,14 +435,71 @@ class Client extends _isc.ServerpodClientShared {
 
   @override
   Map<String, _isc.EndpointRef> get endpointRefLookup => {
+    'anonymousIdp': anonymousIdp,
     'emailIdp': emailIdp,
+    'googleIdp': googleIdp,
     'jwtRefresh': jwtRefresh,
+    'connection': connection,
     'greeting': greeting,
   };
 
   @override
   Map<String, _isc.ModuleEndpointCaller> get moduleLookup => {
-    'serverpod_auth_idp': modules.serverpod_auth_idp,
     'serverpod_auth_core': modules.serverpod_auth_core,
+    'serverpod_auth_idp': modules.serverpod_auth_idp,
+    'offline_sync': modules.offline_sync,
   };
+
+  /// Creates a new client-side database session for the given path.
+  ///
+  /// The [path] is the file path to the SQLite database file. Since SQLite uses
+  /// WAL mode, note that `[path]-shm` and `[path]-wal` files might also exist
+  /// transiently for the database while the session is open.
+  ///
+  /// If [runMigrations] is true, pending migrations will be applied when
+  /// opening the database. Be careful when setting this to false, as it might
+  /// lead to inconsistencies between the models and the database.
+  ///
+  /// If [isDebugMode] is true, the database integrity will be verified after
+  /// the migrations are applied to provide feedback of possible issues. On a
+  /// Flutter application, this should be set to [kDebugMode].
+  _ida.Future<_isd.ClientDatabaseSession> createSession(
+    String path, {
+    bool runMigrations = true,
+    bool isDebugMode = false,
+  }) async {
+    return await _isd.ClientDatabaseSession.open(
+      path,
+      _il2as5qe.Protocol(),
+      clientMigrations: MigrationRegistry.migrations,
+      runMigrations: runMigrations,
+      isDebugMode: isDebugMode,
+    );
+  }
+
+  /// Creates a new client-side database session for the given path, wrapped
+  /// with the `serverpod_offline_sync` engine for the tables declared with
+  /// `database: sync`. See [createSession] for the [path], [runMigrations] and
+  /// [isDebugMode] parameters.
+  ///
+  /// The [persistentUserId] is the user all local operations belong to. When
+  /// omitted, the user must be passed through the transaction.
+  _ida.Future<_ipulbpi2.OfflineSyncDatabaseSession> createSyncSession(
+    String path, {
+    bool runMigrations = true,
+    bool isDebugMode = false,
+    _isc.UuidValue? persistentUserId,
+  }) async {
+    final session = _ipulbpi2.OfflineSyncDatabaseSession.wraps(
+      await createSession(
+        path,
+        runMigrations: runMigrations,
+        isDebugMode: isDebugMode,
+      ),
+      syncTables: _ii3f3u05.syncTables,
+      persistentUserId: persistentUserId,
+    );
+    await session.db.initialize();
+    return session;
+  }
 }

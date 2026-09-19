@@ -1,0 +1,15 @@
+# Spike T0.1.1 — valide `database: sync` (serverpod_offline_sync) sur un
+# modèle plat avant adoption sur les modèles réels (Partie/Player/User).
+# Volontairement sans aucune relation : un modèle `database: sync` ne peut
+# référencer qu'un autre modèle `database: sync` (à l'exception de
+# spaceId -> offline_sync_spaces.id), donc pas de FK possible ici vers
+# User/Player/Bot qui restent `database: server`.
+class: OfflineMatchResult
+table: offline_match_result
+database: sync
+fields:
+  result: EnumMatchResult
+  botLevel: EnumBotLevel
+  moves: List<int>
+  playedAt: DateTime
+  reconciled: bool, default=false

@@ -183,22 +183,18 @@ Tickets :
 
 ---
 
-## E6 — Mode Ligue / Classé & Système Elo
-`area:backend` `area:frontend`
+## E6 — *(retiré)* Mode Ligue / Classé vs bot
 
-### US6.1 — En tant que joueur, je veux qu'un bot adapté à mon Elo me soit proposé en mode Ligue, afin d'avoir un adversaire de mon niveau.
-Critères d'acceptation :
-- Seuils Elo → niveau de bot appliqués (cf. cahier des charges §5).
-- L'Elo est mis à jour après chaque partie classée.
-
-Tickets :
-- [ ] T6.1.1 — Écran "Mode Ligue" (matchmaking auto, sans choix manuel) — `owner:A`
-- [ ] T6.1.2 — Calcul Elo (formule + K-factor) côté serveur — `owner:B` `area:backend`
-- [ ] T6.1.3 — Endpoint `reportBotMatchResult` (calcule et persiste le nouvel Elo) — `owner:B` `area:backend`
+Abandonné : un mode "Ligue" séparé (bot choisi par le serveur selon l'Elo du
+joueur) n'a plus lieu d'être — l'Elo n'a de sens que pour comparer deux
+vrais joueurs, pas pour calibrer un adversaire IA à niveaux fixes. Un seul
+mode solo reste : **Solo** (ex-"Normal", `E5`/`US5.1`), sans Elo, choix du
+niveau de bot à la main, jouable hors-ligne. Le système d'Elo est déplacé
+dans `E7`, où il a vraiment sa place (comparer deux joueurs humains).
 
 ---
 
-## E7 — Multijoueur en ligne `[optionnel]`
+## E7 — Multijoueur en ligne & classement Elo `[optionnel]`
 `area:backend` `area:frontend` `priority:optional`
 
 ### US7.1 — En tant que joueur, je veux créer une partie et partager un code, afin qu'un ami me rejoigne.
@@ -218,6 +214,15 @@ Tickets :
 - [ ] T7.2.1 — Endpoint/stream `joinOnlineMatch` (Serverpod streams) — `owner:B` `area:backend`
 - [ ] T7.2.2 — UI "Rejoindre une partie" + branchement du plateau sur le stream — `owner:B`
 - [ ] T7.2.3 — Gestion déconnexion/abandon d'un joueur (y compris perte de connexion de son propre côté — pas de pause possible en Multijoueur, cf. E10) — `owner:B` `area:backend`
+
+### US7.3 — En tant que joueur, je veux que mon Elo soit mis à jour après une partie multijoueur, afin que mon classement reflète mon niveau face à d'autres humains.
+Critères d'acceptation :
+- L'Elo des deux joueurs est recalculé à la fin de chaque partie multijoueur (victoire/défaite/nul).
+- Reprend le principe de `US0.3` : si un résultat multijoueur a été enregistré hors-ligne (perte de connexion en cours de partie), le recalcul reste un traitement serveur séquentiel, trié par horodatage.
+
+Tickets :
+- [ ] T7.3.1 — Calcul Elo (formule + K-factor) côté serveur — `owner:B` `area:backend`
+- [ ] T7.3.2 — Câblage du recalcul Elo à la fin d'une partie multijoueur (`joinOnlineMatch`/fin de stream) — `owner:B` `area:backend`
 
 ---
 
@@ -356,9 +361,11 @@ Tickets :
 ---
 
 ## Récapitulatif
-15 epics, 26 user stories, 73 tickets. E0 (mode invité local), E7 (multijoueur en
-ligne) et E14 (revue de partie post-match avec IA) sont marqués `[optionnel]` :
-socle du cours d'abord (E1-E6, E8-E9, E11-E13), extensions ensuite (E0, E7, E14)
-pour la candidature au Serverpod Hackathon. Chaque ticket ci-dessus sera créé comme
+14 epics actifs (E6 retiré, sa mécanique d'Elo est reprise dans E7 — cf. plus
+haut), 26 user stories, 72 tickets. E0 (mode invité local), E7 (multijoueur
+en ligne, qui porte maintenant tout le système d'Elo) et E14 (revue de
+partie post-match avec IA) sont marqués `[optionnel]` : socle du cours
+d'abord (E1-E5, E8-E9, E11-E13), extensions ensuite (E0, E7, E14) pour la
+candidature au Serverpod Hackathon. Chaque ticket ci-dessus sera créé comme
 une issue GitHub individuelle (titre = ID + résumé, description = critère
 d'acceptation correspondant, labels = area/type/owner/priority indiqués).

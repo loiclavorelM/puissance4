@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import '../../../client.dart';
+import '../../offline/view/server_connection_indicator.dart';
+import '../viewmodel/auth_viewmodel.dart';
 
 /// Login screen (maquette "Connexion") — pure View: no ViewModel, no model.
 /// Wraps the native Serverpod [SignInWidget] (email + Google + Anonymous,
@@ -23,6 +26,12 @@ class LoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _background,
+      appBar: AppBar(
+        backgroundColor: _background,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        actions: const [ServerConnectionIndicator()],
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -117,46 +126,65 @@ class _Logo extends StatelessWidget {
 /// Applies the maquette's dark/coral palette to the native auth widget
 /// (input fields, buttons, links all read from the ambient [Theme] /
 /// [ColorScheme]) and translates its texts to French.
-class _ThemedSignIn extends StatelessWidget {
+class _ThemedSignIn extends ConsumerWidget {
   const _ThemedSignIn({this.onAuthenticated});
 
   final VoidCallback? onAuthenticated;
 
   @override
-  Widget build(BuildContext context) {
-    return Theme(
-      data: ThemeData(
-        brightness: Brightness.dark,
-        colorScheme: const ColorScheme.dark(
-          primary: LoginScreen._primary,
-          onPrimary: Colors.white,
-          surface: LoginScreen._card,
-          onSurface: Colors.white,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authViewModelProvider);
+    final isGuestLoading = authState.status == AuthStatus.loading;
+
+    final baseTheme = ThemeData(
+      brightness: Brightness.dark,
+      colorScheme: const ColorScheme.dark(
+        primary: LoginScreen._primary,
+        onPrimary: Colors.white,
+        surface: LoginScreen._card,
+        onSurface: Colors.white,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: LoginScreen._fieldFill,
+        labelStyle: const TextStyle(
+          color: Colors.white60,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+          letterSpacing: 0.8,
         ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: LoginScreen._fieldFill,
-          labelStyle: const TextStyle(
-            color: Colors.white60,
-            fontWeight: FontWeight.bold,
-            fontSize: 12,
-            letterSpacing: 0.8,
+        hintStyle: const TextStyle(color: Colors.white38),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(
+            color: LoginScreen._primary,
+            width: 1.5,
           ),
-          hintStyle: const TextStyle(color: Colors.white38),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide.none,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(
-              color: LoginScreen._primary,
-              width: 1.5,
-            ),
+        ),
+      ),
+    );
+
+    // Le package d'auth (SignInWidget) code en dur certaines Rows, comme
+    // "Pas de compte ? S'inscrire", sans possibilité d'y injecter un Wrap
+    // depuis l'extérieur — mais leur taille de police suit bien le
+    // `bodyMedium` ambiant. On la rend dépendante de la largeur d'écran
+    // pour rester lisible sans déborder sur les téléphones étroits.
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final bodyFontSize = screenWidth < 360 ? 12.0 : 14.0;
+
+    return Theme(
+      data: baseTheme.copyWith(
+        textTheme: baseTheme.textTheme.copyWith(
+          bodyMedium: baseTheme.textTheme.bodyMedium?.copyWith(
+            fontSize: bodyFontSize,
           ),
         ),
       ),
@@ -172,8 +200,8 @@ class _ThemedSignIn extends StatelessWidget {
           passwordLabel: 'MOT DE PASSE',
           signIn: 'Se connecter',
           forgotPassword: 'Mot de passe oublié ?',
-          dontHaveAnAccount: 'Pas encore de compte ? ',
-          signUp: 'Créer un compte',
+          dontHaveAnAccount: 'Pas de compte ? ',
+          signUp: "S'inscrire",
           signUpTitle: 'Créer un compte',
           continueAction: 'Continuer',
           alreadyHaveAnAccount: 'Déjà un compte ? ',
@@ -202,34 +230,54 @@ class _ThemedSignIn extends StatelessWidget {
         anonymous: const AnonymousSignInTexts(
           signInButton: 'Continuer sans compte',
         ),
-        child: SignInWidget(
-          client: client,
-          onAuthenticated: onAuthenticated,
-          onError: (error) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Erreur de connexion : $error')),
-            );
-          },
-          // The package defaults the email flow to the sign-up screen
-          // (email only, no password) — this screen is "Connexion", so it
-          // must start on the login form (email + password) instead.
-          emailSignInWidget: EmailSignInWidget(
-            client: client,
-            startScreen: EmailFlowScreen.login,
-            onAuthenticated: onAuthenticated,
-            onError: (error) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Erreur de connexion : $error')),
-              );
-            },
-          ),
-          // Shared look for every provider button (pill, coral) — matches
-          // the maquette's single-accent-color aesthetic.
-          buttonStyle: const SignInButtonStyle(
-            shape: SignInButtonShape.pill,
-            backgroundColor: LoginScreen._primary,
-            foregroundColor: Colors.white,
-          ),
+        google: const GoogleSignInTexts(signInButton: 'Continuer avec Google'),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SignInWidget(
+              client: client,
+              onAuthenticated: onAuthenticated,
+              onError: (error) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Erreur de connexion : $error')),
+                );
+              },
+              // The package defaults the email flow to the sign-up screen
+              // (email only, no password) — this screen is "Connexion", so
+              // it must start on the login form (email + password) instead.
+              emailSignInWidget: EmailSignInWidget(
+                client: client,
+                startScreen: EmailFlowScreen.login,
+                onAuthenticated: onAuthenticated,
+                onError: (error) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Erreur de connexion : $error')),
+                  );
+                },
+              ),
+              // The built-in anonymous button always surfaces a server
+              // error — replaced below by one that falls back to a local
+              // guest profile when the server is unreachable.
+              disableAnonymousSignInWidget: true,
+              // Shared look for every provider button (pill, coral) —
+              // matches the maquette's single-accent-color aesthetic.
+              buttonStyle: const SignInButtonStyle(
+                shape: SignInButtonShape.pill,
+                backgroundColor: LoginScreen._primary,
+                foregroundColor: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 12),
+            AnonymousSignInButton(
+              onPressed: isGuestLoading
+                  ? null
+                  : () => ref
+                        .read(authViewModelProvider.notifier)
+                        .continueAsGuest(),
+              isLoading: isGuestLoading,
+              isDisabled: isGuestLoading,
+            ),
+          ],
         ),
       ),
     );

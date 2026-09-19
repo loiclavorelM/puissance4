@@ -1,4 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- The app talks to the Serverpod backend, so these are needed in every
+         build variant, not just debug (where INTERNET is only granted for
+         Flutter tooling, cf. src/debug/AndroidManifest.xml). ACCESS_NETWORK_STATE
+         is required by connectivity_plus (client.connectivityMonitor) to emit
+         connectivity change events at all — without it, listeners never fire. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <application
         android:label="puissance4_flutter"
         android:name="${applicationName}"

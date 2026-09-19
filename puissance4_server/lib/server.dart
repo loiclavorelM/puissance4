@@ -9,6 +9,7 @@ import 'package:serverpod_cloud_storage/serverpod_cloud_storage.dart';
 import 'src/bot/bot_seed.dart';
 import 'src/cache_busting.dart';
 import 'src/generated/serverpod.dart';
+import 'src/profile/user_provisioning.dart';
 import 'src/web/routes/app_config_route.dart';
 
 /// The starting point of the Serverpod server.
@@ -46,6 +47,11 @@ void run(List<String> args) async {
       // replace it with real credentials before actually using Google sign-in.
       GoogleIdpConfigFromPasswords(),
     ],
+    // Creates the game-profile `User` row as soon as an `AuthUser` is
+    // created, for every provider — see US1.2 (`T1.2.1`/`T1.2.2`).
+    authUsersConfig: AuthUsersConfig(
+      onAfterAuthUserCreated: createUserForAuthUser,
+    ),
   );
 
   // Serve all files in the web/static relative directory under /web.
