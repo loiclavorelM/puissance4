@@ -1,9 +1,12 @@
 import 'dart:io';
 
 import 'package:serverpod_auth_idp_server/core.dart';
+import 'package:serverpod_auth_idp_server/providers/anonymous.dart';
 import 'package:serverpod_auth_idp_server/providers/email.dart';
+import 'package:serverpod_auth_idp_server/providers/google.dart';
 import 'package:serverpod_cloud_storage/serverpod_cloud_storage.dart';
 
+import 'src/bot/bot_seed.dart';
 import 'src/cache_busting.dart';
 import 'src/generated/serverpod.dart';
 import 'src/web/routes/app_config_route.dart';
@@ -32,6 +35,16 @@ void run(List<String> args) async {
       ServerpodCloudEmailIdpConfig(
         appDisplayName: 'puissance4',
       ),
+      // Anonymous sign-in: no external setup needed, works out of the box.
+      // Used to give guest players (E0) a real AuthUser as soon as they get a
+      // connection, before they create a permanent account.
+      AnonymousIdpConfig(),
+      // Google sign-in: reads `googleClientSecret` from config/passwords.yaml.
+      // Requires real OAuth credentials from the Google Cloud console — see
+      // https://docs.serverpod.dev/concepts/authentication/providers/google/setup
+      // A placeholder value is set in passwords.yaml so the server can start;
+      // replace it with real credentials before actually using Google sign-in.
+      GoogleIdpConfigFromPasswords(),
     ],
   );
 
@@ -102,4 +115,9 @@ void run(List<String> args) async {
 
   // Start the server.
   await pod.start();
+
+  // Seed/refresh reference data that isn't user-generated (cf. E5).
+  await pod.withSession((session) async {
+    await seedBots(session);
+  });
 }

@@ -1,0 +1,8 @@
+class: Player
+table: player
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  # Exactement un des deux doit être renseigné (un Player est soit un Bot, soit
+  # un User) — contrainte vérifiée dans le code applicatif, pas en base.
+  botId: UuidValue?, relation(parent=bot)
+  userId: UuidValue?, relation(parent=user)

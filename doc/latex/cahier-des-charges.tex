@@ -51,8 +51,9 @@ enrichir l'interaction.
 Le projet sert également de candidature au \textbf{Serverpod Hackathon}
 (15 septembre -- 14 octobre 2026, builderbase.com), un hackathon en ligne organisé
 autour du framework \textbf{Serverpod} (backend Dart full-stack). Ce double contexte
-explique le choix architectural : un backend Serverpod plutôt qu'une solution
-100\,\% Firebase, tout en conservant Firebase pour l'authentification.
+explique le choix architectural : un backend \textbf{100\,\% Serverpod}, y compris
+pour l'authentification (module natif \texttt{serverpod\_auth\_idp}), sans dépendance
+à un service tiers comme Firebase.
 
 \section{Objectifs du projet}
 
@@ -95,37 +96,54 @@ ne conditionnent pas la validation du cours si le temps venait à manquer.
 \label{sec:invite}
 \begin{itemize}[leftmargin=1.5em]
   \item Au tout premier lancement, sans réseau, l'app génère un
-        \textbf{identifiant local} (UUID sur l'appareil) --- aucun appel réseau, y
-        compris vers Firebase (même l'auth anonyme Firebase nécessite un appel
-        réseau pour créer l'utilisateur).
+        \textbf{identifiant local} (UUID sur l'appareil) --- aucun appel réseau, pas
+        même une tentative de connexion au serveur d'authentification (créer un
+        compte nécessite un appel réseau).
   \item Le joueur peut immédiatement jouer contre le \textbf{bot par défaut}
         (modèle embarqué dans les assets de l'app), et consulter ses stats/historique
-        \textbf{stockés en local} (SQLite/Hive) ; pas de classement global, pas de
-        mode Classé ni Multijoueur sans réseau.
-  \item Au premier login réussi, l'historique et les stats locaux sont
-        \textbf{migrés} vers le compte Serverpod via un endpoint dédié
-        (\texttt{migrateLocalData}). Le serveur devient ensuite la source de vérité.
-  \item Le même mécanisme de queue locale sert à un joueur \textbf{déjà connecté}
-        qui perd sa connexion en cours d'utilisation, pour une partie \textbf{Normale
-        ou Classée}. Mécanisme de rattrapage : (1) chaque résultat hors-ligne est mis
-        en queue avec un UUID client (idempotence) ; (2) un écouteur de connectivité
-        détecte le retour du réseau ; (3) la queue est envoyée à
-        \texttt{syncPendingResults} \textbf{dans l'ordre chronologique} (indispensable
-        pour recalculer l'Elo pas à pas si plusieurs parties classées se sont
-        enchaînées hors-ligne) ; (4) le serveur traite, déduplique via l'UUID, et
-        renvoie le profil à jour. On ne lance pas de \textbf{nouvelle} partie Classée
-        si l'absence de réseau est déjà détectée.
+        stockés en local (mécanisme détaillé ci-dessous) ; pas de classement global,
+        pas de mode Classé ni Multijoueur sans réseau.
+  \item Les stats/historique du joueur invité sont persistés localement via le
+        mécanisme \textbf{natif} de Serverpod 4.0 : l'annotation \texttt{database:
+        sync} sur un modèle \texttt{.spy.yaml}, associée au module
+        \texttt{serverpod\_offline\_sync}, génère automatiquement une base SQLite
+        locale côté client et une synchronisation bidirectionnelle vers PostgreSQL
+        via des \textbf{CRDT} (\textit{conflict-free replicated data types}) dès que
+        le réseau revient, y compris en temps réel via les streams Serverpod. Aucune
+        queue ni endpoint de synchronisation fait main (type \texttt{migrateLocalData}
+        / \texttt{syncPendingResults}) n'est nécessaire pour la persistance de base.
+  \item Au premier login réussi, les enregistrements locaux synchronisés sont
+        ré-associés au compte Serverpod authentifié ; le serveur devient ensuite la
+        source de vérité. Le même modèle \texttt{sync} sert à un joueur \textbf{déjà
+        connecté} qui perd sa connexion en cours de partie \textbf{Normale ou
+        Classée}.
+  \item \textit{Limite du CRDT pour l'Elo} : la réplication CRDT ne garantit pas
+        d'ordre applicatif entre plusieurs résultats. Le recalcul d'Elo restant un
+        traitement \textbf{séquentiel} dépendant de l'ordre chronologique, un
+        traitement serveur est déclenché à la réception des résultats synchronisés :
+        il les trie par horodatage avant de recalculer l'Elo pas à pas. On ne lance
+        pas de \textbf{nouvelle} partie Classée si l'absence de réseau est déjà
+        détectée.
+  \item Cette fonctionnalité étant marquée \textbf{expérimentale} par Serverpod en
+        version 4.0, un spike de validation technique (sur un modèle simple) est
+        prévu avant son adoption complète (cf. section~\ref{sec:risques}).
 \end{itemize}
 
-\subsection{Authentification --- Firebase Auth}
+\subsection{Authentification --- module natif Serverpod}
 \begin{itemize}[leftmargin=1.5em]
-  \item Connexion / inscription via Firebase Authentication (email / mot de passe,
-        éventuellement Google Sign-In).
-  \item Session persistante entre les lancements de l'application.
-  \item Le jeton d'identité Firebase est vérifié côté serveur (Serverpod) afin de
-        lier le compte Firebase à un compte de jeu (profil, Elo, historique). Ce pont
-        d'authentification est un point technique central du projet (cf.
-        section~\ref{sec:archi}).
+  \item Connexion / inscription via le module d'authentification natif de Serverpod
+        (\texttt{serverpod\_auth\_idp}, provider email/mot de passe), déjà configuré
+        par défaut dans le projet généré par \texttt{serverpod create}. Côté client,
+        l'écran de connexion utilise le \texttt{SignInWidget} fourni par
+        \texttt{serverpod\_auth\_idp\_flutter}.
+  \item Session persistante entre les lancements de l'application, gérée par
+        \texttt{client.auth} (jetons JWT rafraîchis automatiquement).
+  \item Le profil de jeu (username, photo, Elo, historique) est stocké dans notre
+        propre modèle \texttt{User}, lié à l'utilisateur authentifié
+        (\texttt{AuthUser} du module) par une relation nullable --- nullable pour
+        permettre l'existence d'un profil créé localement en mode invité, avant toute
+        authentification (cf. section~\ref{sec:invite}). Aucune donnée déjà gérée par
+        le module (email, mot de passe) n'est dupliquée.
 \end{itemize}
 
 \subsection{Profil utilisateur --- Caméra}
@@ -192,6 +210,26 @@ Chaque partie terminée (Multijoueur, Normal, Ligue) est enregistrée : date, mo
 adversaire (niveau de bot ou joueur distant), résultat, variation d'Elo le cas
 échéant. Écran dédié, parties les plus récentes en premier.
 
+\subsection{Revue de partie post-match avec IA --- optionnel}
+\label{sec:revue}
+\begin{itemize}[leftmargin=1.5em]
+  \item Après une partie terminée, le joueur peut la revoir \textbf{coup par coup} et
+        voir, pour chaque coup, celui que recommanderait le modèle \textbf{Expert}
+        (le modèle RL le plus fort, déjà embarqué localement pour le mode Bot, cf.
+        section~\ref{sec:archi}) --- le modèle est réexécuté \textbf{localement} sur
+        l'appareil pour cette recommandation, sans nouvel endpoint serveur.
+  \item Une \textbf{explication en langage naturel} de la recommandation peut être
+        demandée : elle est générée par un LLM via \textbf{Ollama cloud}, appelé
+        \textbf{depuis le serveur Serverpod} (clé API côté serveur uniquement, jamais
+        côté client). Les explications déjà générées sont mises en cache côté
+        serveur (par partie + index de coup) pour limiter les coûts d'appel au LLM.
+  \item Cette fonctionnalité nécessite une connexion réseau (appel au serveur pour
+        l'explication) ; elle est donc \textbf{indisponible en mode invité local /
+        hors-ligne} (section~\ref{sec:invite}).
+  \item Prérequis : la séquence complète des coups d'une partie doit être enregistrée
+        (extension de l'historique des parties, au-delà du seul résultat final).
+\end{itemize}
+
 \section{Système Elo}
 \label{sec:elo}
 
@@ -250,14 +288,12 @@ dans cette version.
 ]
 \node[box] (app) {Application Flutter\\(client mobile)};
 \node[box, left=of app] (onnx) {Inférence locale\\TFLite / ONNX};
-\node[box, right=of app] (firebase) {Firebase Auth};
-\node[box, below=of app] (serverpod) {Serverpod\\(backend Dart)};
+\node[box, below=of app] (serverpod) {Serverpod\\(backend Dart, auth incluse)};
 \node[box, below left=of serverpod] (postgres) {PostgreSQL};
 \node[box, below right=of serverpod] (model) {Stockage \& versioning\\des modèles RL};
 
 \draw[-{Latex}] (app) -- (onnx);
-\draw[-{Latex}] (app) -- node[draw=none,above,font=\scriptsize]{login / jeton} (firebase);
-\draw[-{Latex}] (app) -- node[draw=none,left,font=\scriptsize]{RPC / streams} (serverpod);
+\draw[-{Latex}] (app) -- node[draw=none,left,font=\scriptsize]{RPC / streams / auth} (serverpod);
 \draw[-{Latex}] (serverpod) -- (postgres);
 \draw[-{Latex}] (serverpod) -- (model);
 \draw[-{Latex}, dashed] (model.south) to[bend right=25] node[draw=none,below,font=\scriptsize]{téléchargement modèle} (onnx.south);
@@ -272,11 +308,13 @@ réel, avec un schéma PostgreSQL généré automatiquement à partir des modèl
 données Dart. Il gère : profils joueurs, Elo, leaderboard, historique des parties,
 sessions de multijoueur en ligne, et le stockage/versioning des modèles RL exportés.
 
-\subsection{Pont d'authentification Firebase~$\rightarrow$~Serverpod}
-Le client obtient un jeton d'identité Firebase après connexion. Ce jeton est transmis
-à un endpoint Serverpod dédié qui le vérifie (Firebase Admin SDK / vérification JWT)
-puis crée ou retrouve le compte de jeu correspondant. Toutes les requêtes
-authentifiées ultérieures passent par ce compte de jeu Serverpod.
+\subsection{Authentification côté serveur}
+L'authentification est entièrement gérée par le module natif
+\texttt{serverpod\_auth\_idp} (provider email, jetons JWT) --- aucun pont vers un
+service tiers à concevoir ni à maintenir. Le profil de jeu (\texttt{User}) est
+associé à l'\texttt{AuthUser} du module par une relation nullable, créée au premier
+appel authentifié qui en a besoin. Toutes les requêtes authentifiées passent par
+\texttt{session.authenticated}, fourni automatiquement par Serverpod.
 
 \subsection{Inférence IA locale}
 Le modèle entraîné sur Colab est exporté au format \texttt{.tflite} ou \texttt{.onnx}
@@ -284,7 +322,11 @@ et exécuté sur l'appareil via \texttt{tflite\_flutter} ou \texttt{onnxruntime}
 appel réseau n'est nécessaire pour jouer contre le bot une fois le modèle
 téléchargé --- ce qui garantit le fonctionnement hors-ligne. Un modèle par défaut
 (niveau Medium) est \textbf{embarqué dans les assets} de l'app, pour permettre une
-partie dès l'installation, avant tout téléchargement via Serverpod.
+partie dès l'installation, avant tout téléchargement via Serverpod. Le modèle
+Expert, une fois téléchargé et mis en cache comme les autres niveaux, est réutilisé
+localement (sans appel réseau) pour la fonction de revue de partie
+(section~\ref{sec:revue}) : seule la génération de l'explication textuelle associée
+sollicite le serveur.
 
 \subsection{Multijoueur temps réel}
 Le multijoueur utilise les \textbf{streams Serverpod} pour synchroniser l'état de la
@@ -324,23 +366,12 @@ class GameLaunchParams {
 
 \subsection{Endpoints Serverpod (aperçu du contrat)}
 
-\begin{lstlisting}
-Future<PlayerProfile> authenticateWithFirebase(Session s, String firebaseIdToken);
-Future<PlayerProfile> updateProfilePhoto(Session s, ByteData photo);
-Future<LeaderboardPage> getLeaderboard(Session s, {int limit, int offset});
-Future<MatchReceipt> reportBotMatchResult(Session s, BotMatchReport report);
-Future<ModelManifest> getLatestModel(Session s, BotLevel level);
-Future<String> createOnlineMatch(Session s);
-Stream<MatchState> joinOnlineMatch(Session s, String matchCode);
-Future<List<MatchHistoryEntry>> getMatchHistory(Session s, {int limit, int offset});
-Future<void> migrateLocalData(Session s, LocalDataSnapshot snapshot);
-Future<PlayerProfile> syncPendingResults(Session s, List<PendingMatchResult> results);
-\end{lstlisting}
-
-Ces signatures sont un point de départ : elles doivent être définies dans le projet
-Serverpod dès le début (même avec une implémentation vide ou mockée), afin que le
-package client généré (\texttt{serverpod generate}) soit disponible immédiatement
-pour le développement de l'interface, sans attendre la logique métier complète.
+Le détail des endpoints, de leurs signatures et des DTO associés est maintenu dans
+\texttt{doc/05-endpoints.md} (source unique, pour éviter toute divergence avec ce
+document). Ces signatures doivent être définies dans le projet Serverpod dès le
+début (même avec une implémentation vide ou mockée), afin que le package client
+généré (\texttt{serverpod generate}) soit disponible immédiatement pour le
+développement de l'interface, sans attendre la logique métier complète.
 
 \subsection{Stratégie Git}
 \begin{itemize}[leftmargin=1.5em]
@@ -428,12 +459,12 @@ niveaux de l'écran devront être ajustés en conséquence lors de l'implémenta
 
 \section{Répartition des tâches}
 
-\subsection{Personne A --- Firebase, UX hors-jeu \& Infra}
+\subsection{Personne A --- Compte joueur, UX hors-jeu \& Infra}
 \begin{itemize}[leftmargin=1.5em]
   \item UI des écrans hors-jeu (accueil, login, profil, leaderboard, paramètres,
         navigation, l10n).
-  \item Login/inscription (Firebase Auth) et intégration du pont vers le compte de
-        jeu Serverpod.
+  \item Intégration du \texttt{SignInWidget} (module d'auth natif Serverpod) et de
+        l'écran de complétion de profil (choix du username).
   \item Photo de profil (caméra + stockage Serverpod).
   \item Leaderboard et écran d'historique (consommation des endpoints Serverpod).
   \item Détection ``posé à plat'' $\rightarrow$ mise en pause automatique.
@@ -470,8 +501,6 @@ niveaux de l'écran devront être ajustés en conséquence lors de l'implémenta
 \label{sec:risques}
 
 \begin{itemize}[leftmargin=1.5em]
-  \item \textbf{Pont d'authentification} Firebase $\rightarrow$ Serverpod : à
-        concevoir et tester tôt, c'est un point critique d'intégration.
   \item \textbf{Confiance côté client en mode Classé} : un résultat de partie contre
         le bot est déclaré par le client ; risque de triche assumé pour ce projet.
   \item \textbf{Cohérence des niveaux de bot} entre le cahier des charges (3 niveaux
@@ -480,6 +509,16 @@ niveaux de l'écran devront être ajustés en conséquence lors de l'implémenta
   \item \textbf{Protocole temps réel} du multijoueur (reconnexion, abandon/timeout
         d'un joueur, validité du code de partie) à spécifier plus finement lors du
         développement du module Serverpod correspondant.
+  \item \textbf{Caractère expérimental de \texttt{serverpod\_offline\_sync}}
+        (Serverpod 4.0) : fonctionnalité native marquée expérimentale par l'éditeur ;
+        un spike de validation est prévu avant adoption complète pour le mode invité
+        local (cf. section~\ref{sec:invite}), avec un plan de repli (mécanisme fait
+        main) si elle s'avère instable.
+  \item \textbf{Dépendance réseau de la revue de partie avec IA} : l'explication
+        générée par LLM (Ollama cloud) nécessite une connexion et n'est pas
+        disponible en mode invité/hors-ligne ; prévoir une gestion explicite des
+        timeouts/erreurs et un contrôle des coûts (cache serveur des explications déjà
+        générées).
 \end{itemize}
 
 \end{document}

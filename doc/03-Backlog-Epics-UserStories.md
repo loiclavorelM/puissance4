@@ -22,39 +22,40 @@ et Tickets. Chaque **Ticket** ci-dessous deviendra une issue GitHub individuelle
 
 ### US0.1 — En tant que nouveau joueur sans réseau, je veux pouvoir jouer immédiatement contre un bot par défaut, afin d'utiliser l'app dès l'installation, sans connexion ni compte.
 Critères d'acceptation :
-- Aucun appel réseau au tout premier lancement (pas même Firebase Auth anonyme).
-- Génération d'un identifiant local (UUID) et stockage local des stats/historique.
+- Aucun appel réseau au tout premier lancement (pas même une tentative de connexion au module d'auth Serverpod).
+- Les stats/historique du joueur invité sont stockés localement via le mécanisme **natif** Serverpod 4.0 `database: sync` (module `serverpod_offline_sync`) : un modèle `.spy.yaml` annoté `sync` génère automatiquement une base SQLite locale côté client, sans queue ni endpoint fait main.
 - Un modèle de bot par défaut est embarqué dans les assets (pas de téléchargement requis).
 - Pas d'accès au classement global, à la Ligue/Classé ni au Multijoueur sans réseau.
+- Cette fonctionnalité étant **expérimentale** en Serverpod 4.0, elle doit être validée par un spike avant adoption complète (cf. T0.1.1).
 
 Tickets :
-- [ ] T0.1.1 — Génération et persistance d'un UUID local (sans réseau) — `owner:A`
-- [ ] T0.1.2 — Stockage local des stats/historique (SQLite/Hive) — `owner:A`
+- [ ] T0.1.1 — (spike) Valider `database: sync` / `serverpod_offline_sync` sur un modèle simple (PoC isolé) avant adoption sur les modèles réels — `owner:B` `area:backend`
+- [ ] T0.1.2 — Modèle `.spy.yaml` annoté `database: sync` pour les stats/historique invité (SQLite locale générée automatiquement côté client) — `owner:B` `area:backend`
 - [ ] T0.1.3 — Embarquer un modèle de bot par défaut dans les assets de l'app — `owner:B` `area:rl`
 - [ ] T0.1.4 — UI : indicateur "mode invité / hors-ligne", désactivation Classé/Multijoueur — `owner:A`
 
 ### US0.2 — En tant que joueur invité qui se connecte pour la première fois, je veux que mon historique et mes stats locaux soient migrés vers mon compte, afin de ne pas perdre ma progression.
 Critères d'acceptation :
-- Au premier login/inscription réussi, les données locales sont envoyées au serveur et fusionnées au compte.
-- Après migration, le serveur devient la source de vérité (le stockage local ne sert plus que de cache).
+- Au premier login/inscription réussi, les enregistrements locaux synchronisés (`database: sync`) sont ré-associés au compte Serverpod authentifié (userId) — pas d'endpoint `migrateLocalData` fait main.
+- La synchronisation bidirectionnelle CRDT (conflict-free replicated data types) envoie automatiquement les données locales vers PostgreSQL dès que la connexion est disponible.
+- Après la première synchronisation réussie, le serveur reste la source de vérité.
 
 Tickets :
-- [ ] T0.2.1 — Endpoint Serverpod `migrateLocalData` (fusion des stats/historique) — `owner:B` `area:backend`
-- [ ] T0.2.2 — Appel client de migration juste après le premier login réussi — `owner:A`
-- [ ] T0.2.3 — Gestion du cas où le compte a déjà des données côté serveur (fusion vs conflit) — `owner:B` `area:backend`
+- [ ] T0.2.1 — Association du userId invité au compte authentifié dans le(s) modèle(s) `sync` (stratégie de ré-attribution des enregistrements locaux) — `owner:B` `area:backend`
+- [ ] T0.2.2 — Déclenchement/contrôle de la synchronisation `serverpod_offline_sync` juste après le premier login réussi — `owner:A`
+- [ ] T0.2.3 — Gestion du cas où le compte a déjà un `User` côté serveur (l'index unique sur `authUserId` empêche un second lien direct) : **fusion de l'historique des deux comptes** (parties/stats du `User` invité rattachées au `User` déjà existant du compte, puis suppression du `User` invité devenu orphelin) — `owner:B` `area:backend`
 
 ### US0.3 — En tant que joueur déjà connecté qui perd sa connexion en cours d'utilisation, je veux que le résultat de ma partie (Normale ou Classée) ne soit pas perdu, afin que mes stats/Elo restent cohérents une fois reconnecté.
 Critères d'acceptation :
-- Réutilise la même queue locale que US0.1/US0.2 (pas de mécanisme séparé), pour Normal comme pour Classé.
-- Chaque résultat en queue porte un UUID client (idempotence) et un horodatage.
-- Au retour du réseau, la queue est envoyée à `syncPendingResults` **dans l'ordre chronologique** (obligatoire pour recalculer l'Elo pas à pas si plusieurs parties classées se sont enchaînées hors-ligne).
-- Le serveur déduplique via l'UUID et renvoie le profil à jour (Elo, stats).
+- Les résultats de partie sont persistés localement via un modèle `.spy.yaml` `database: sync` (pas de queue applicative faite main), pour Normal comme pour Classé.
+- La réplication CRDT ne garantissant pas d'ordre applicatif, le recalcul d'Elo reste un traitement **serveur séquentiel** : à la réception de résultats synchronisés, ils sont triés par horodatage avant recalcul pas à pas (nécessaire si plusieurs parties classées se sont enchaînées hors-ligne).
+- Le client est notifié (stream Serverpod) une fois la synchronisation et le recalcul d'Elo terminés.
 - Le lancement d'une **nouvelle** partie Classée est bloqué si l'absence de réseau est déjà détectée (le matchmaking a besoin de l'Elo serveur à jour).
 
 Tickets :
-- [ ] T0.3.1 — Détection de connectivité + file d'attente générique des résultats non synchronisés (UUID + horodatage) — `owner:A`
-- [ ] T0.3.2 — Endpoint `syncPendingResults` (traitement séquentiel, recalcul Elo, dédup par UUID) — `owner:B` `area:backend`
-- [ ] T0.3.3 — Synchronisation automatique de la queue au retour du réseau (écouteur de connectivité + retry) — `owner:A`
+- [ ] T0.3.1 — Modèle `.spy.yaml` `database: sync` pour les résultats de partie (Normale/Classée) — `owner:B` `area:backend`
+- [ ] T0.3.2 — Traitement serveur déclenché à la synchronisation : tri chronologique des résultats reçus + recalcul Elo séquentiel — `owner:B` `area:backend`
+- [ ] T0.3.3 — Notification client (stream) une fois le recalcul Elo terminé après reconnexion — `owner:A`
 - [ ] T0.3.4 — Désactiver le lancement d'une partie Classée si hors-ligne détecté — `owner:A`
 
 ---
@@ -64,23 +65,24 @@ Tickets :
 
 ### US1.1 — En tant que joueur, je veux créer un compte et me connecter, afin d'accéder à mon profil et à mes stats.
 Critères d'acceptation :
-- Écran login/inscription (email + mot de passe) fonctionnel.
-- Session persistante entre relances de l'app.
+- Écran login/inscription fonctionnel, construit avec le `SignInWidget` fourni par le module d'auth natif Serverpod (`serverpod_auth_idp_flutter`) — pas d'écran custom à coder de zéro.
+- Session persistante entre relances de l'app (gérée par `client.auth`, déjà fourni par le module).
 
 Tickets :
-- [ ] T1.1.1 — UI écrans Login / Sign up (Flutter) — `owner:A`
-- [ ] T1.1.2 — Intégration Firebase Auth (email/password) côté client — `owner:A`
-- [ ] T1.1.3 — Persistance de session (auto-login au démarrage) — `owner:A`
+- [ ] T1.1.1 — Intégration de `SignInWidget` dans l'écran login/inscription (Flutter) — `owner:A`
+- [ ] T1.1.2 — Vérifier/adapter la configuration du provider email déjà présente dans `server.dart` (`ServerpodCloudEmailIdpConfig`) — `owner:B` `area:backend`
+- [ ] T1.1.3 — Écoute de `client.auth.authInfoListenable` pour réagir à l'état connecté/déconnecté (navigation, auto-login au démarrage) — `owner:A`
 
-### US1.2 — En tant que backend, je veux lier un utilisateur Firebase à un compte de jeu Serverpod, afin de stocker Elo/historique/profil côté serveur.
+### US1.2 — En tant que backend, je veux associer un profil de jeu (username, photo, Elo) à chaque utilisateur authentifié, afin de stocker Elo/historique/profil côté serveur sans dupliquer ce que le module d'auth gère déjà (email, mot de passe).
 Critères d'acceptation :
-- Endpoint Serverpod qui vérifie un jeton Firebase et crée/retrouve le compte de jeu.
-- Le client appelle cet endpoint juste après le login Firebase.
+- Modèle `User` (`.spy.yaml`) avec un champ `authUser: module:serverpod_auth_core:AuthUser?, relation(onDelete=Cascade)` **nullable** (nullable pour permettre un profil créé localement en mode invité avant toute authentification, cf. E0).
+- Le profil de jeu (`User`) est créé/complété au premier appel authentifié qui en a besoin (pas d'endpoint `authenticateWithFirebase` : le module d'auth gère déjà la vérification de session).
+- Aucune donnée déjà fournie par le module d'auth (email, mot de passe) n'est dupliquée dans `User`.
 
 Tickets :
-- [ ] T1.2.1 — Endpoint `authenticateWithFirebase` (vérification JWT Firebase côté serveur) — `owner:B` `area:backend`
-- [ ] T1.2.2 — Modèle `PlayerProfile` (schéma Postgres généré par Serverpod) — `owner:B` `area:backend`
-- [ ] T1.2.3 — Appel client post-login vers cet endpoint + stockage local de la session Serverpod — `owner:A`
+- [ ] T1.2.1 — Modèle `User` (`.spy.yaml`) lié à `AuthUser` par relation nullable (schéma Postgres généré par Serverpod) — `owner:B` `area:backend`
+- [ ] T1.2.2 — Création paresseuse du profil `User` au premier appel authentifié sans profil existant (ex. dans `getMyProfile`) — `owner:B` `area:backend`
+- [ ] T1.2.3 — Écran de complétion de profil (choix du username) juste après la première inscription réussie — `owner:A`
 
 ---
 
@@ -312,10 +314,51 @@ Tickets :
 
 ---
 
+## E14 — Revue de partie post-match avec IA `[optionnel]`
+`area:frontend` `area:backend` `area:rl` `priority:optional`
+
+### US14.1 — En tant que joueur, je veux que la séquence complète des coups de mes parties soit enregistrée, afin de pouvoir les rejouer coup par coup lors d'une revue post-match.
+Critères d'acceptation :
+- La séquence ordonnée des coups (colonne jouée à chaque coup) est stockée pour toute partie terminée, en complément du résultat déjà enregistré par T9.1.1 — **dépend de E9/T9.1.1** sans le modifier. Pas d'horodatage par coup : l'ordre de la liste suffit pour rejouer la partie, et la couleur qui a joué se déduit de la parité de l'index (les couleurs alternent).
+- Aucune régression sur l'enregistrement existant du résultat final (E9) : cette extension ajoute une donnée, elle ne remplace rien.
+- Fonctionnalité de revue avec IA non disponible en mode invité local hors-ligne (E0) : elle nécessite une connexion réseau (cf. US14.3).
+
+Tickets :
+- [ ] T14.1.1 — Étendre le modèle de partie (`.spy.yaml`, dépend de E9/T9.1.1) pour stocker la séquence ordonnée des coups — `owner:B` `area:backend`
+- [ ] T14.1.2 — Adapter l'enregistrement en fin de partie pour capturer chaque coup au fil de la partie (pas seulement le résultat final) — `owner:B` `area:backend`
+
+### US14.2 — En tant que joueur, je veux revoir une partie terminée coup par coup et voir le coup que le modèle Expert aurait recommandé à chaque position, afin de comprendre mes erreurs.
+Critères d'acceptation :
+- Écran "Revue de partie" accessible depuis l'Historique (E9), navigation coup par coup sur un plateau reconstruit à partir de la séquence enregistrée (US14.1).
+- Pour chaque position, le modèle Expert (TFLite/ONNX, déjà embarqué localement pour le bot, cf. E5/T5.1.3) est **réexécuté localement** sur l'appareil pour déterminer le coup recommandé — pas de nouvel endpoint serveur pour cette étape.
+- Le coup recommandé est mis en évidence visuellement sur le plateau.
+- Fonctionnalité masquée/désactivée si le modèle Expert n'est pas disponible localement.
+
+Tickets :
+- [ ] T14.2.1 — UI écran "Revue de partie" (navigation coup par coup, reconstruction du plateau) — `owner:A`
+- [ ] T14.2.2 — Réexécution du modèle Expert local sur chaque position historique pour obtenir le coup recommandé (réutilise T5.1.3) — `owner:B`
+- [ ] T14.2.3 — Endpoint Serverpod pour récupérer la séquence de coups d'une partie donnée (extension de `getMatchHistory`) — `owner:B` `area:backend`
+
+### US14.3 — En tant que joueur, je veux obtenir une explication en langage naturel de pourquoi le coup recommandé était préférable, afin de mieux comprendre la stratégie du jeu.
+Critères d'acceptation :
+- Depuis l'écran de revue, un bouton "Expliquer" déclenche un appel serveur vers un LLM via **Ollama cloud** (clé API stockée côté serveur uniquement, jamais côté client), avec en contexte la position, le coup joué et le coup recommandé.
+- L'explication reçue est affichée sous forme de texte dans l'écran de revue.
+- L'explication déjà générée pour un coup donné (clé : id de partie + index du coup) est mise en cache/persistée côté serveur pour éviter un nouvel appel Ollama lors d'une consultation ultérieure (maîtrise des coûts).
+- Fonctionnalité indisponible en mode invité local/hors-ligne (E0) : nécessite une connexion réseau et un compte synchronisé.
+- Message d'erreur clair si le service Ollama est indisponible/en timeout (pas de blocage de l'écran de revue).
+
+Tickets :
+- [ ] T14.3.1 — Endpoint Serverpod `explainMove` (appel Ollama cloud côté serveur) — `owner:B` `area:backend`
+- [ ] T14.3.2 — Modèle `.spy.yaml` de cache des explications (clé : idPartie + index coup) + logique "cache hit avant appel LLM" — `owner:B` `area:backend`
+- [ ] T14.3.3 — UI bouton "Expliquer ce coup" + affichage du texte + gestion des erreurs/timeout — `owner:A`
+- [ ] T14.3.4 — Configuration sécurisée de la clé API Ollama (variable d'environnement serveur, jamais commitée) — `owner:A` `area:infra`
+
+---
+
 ## Récapitulatif
-14 epics, 23 user stories, 64 tickets. E0 (mode invité local) et E7 (multijoueur en
-ligne) sont marqués `[optionnel]` : socle du cours d'abord (E1-E6, E8-E9, E11-E13),
-extensions ensuite pour la candidature au Serverpod Hackathon. Chaque ticket
-ci-dessus sera créé comme une issue GitHub individuelle (titre = ID + résumé,
-description = critère d'acceptation correspondant, labels = area/type/owner/priority
-indiqués).
+15 epics, 26 user stories, 73 tickets. E0 (mode invité local), E7 (multijoueur en
+ligne) et E14 (revue de partie post-match avec IA) sont marqués `[optionnel]` :
+socle du cours d'abord (E1-E6, E8-E9, E11-E13), extensions ensuite (E0, E7, E14)
+pour la candidature au Serverpod Hackathon. Chaque ticket ci-dessus sera créé comme
+une issue GitHub individuelle (titre = ID + résumé, description = critère
+d'acceptation correspondant, labels = area/type/owner/priority indiqués).

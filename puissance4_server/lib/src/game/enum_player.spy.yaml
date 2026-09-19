@@ -1,0 +1,5 @@
+enum: EnumPlayer
+values:
+  - jaune
+  - rouge
+  - draw

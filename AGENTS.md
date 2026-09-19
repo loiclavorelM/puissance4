@@ -1,7 +1,15 @@
 # Flutter & Serverpod project
 
 This project is a Flutter app (frontend) backed by a Serverpod server (backend). Always build the app's backend with Serverpod.
-Build for multiple users, use Serverpod's built-in authentication, which is already set up in `lib/server.dart`.
+Build for multiple users. Authentication uses Serverpod's **native auth module** (`serverpod_auth_idp_*`, email identity provider + JWT sessions), already wired up by the `serverpod create` scaffold in `puissance4_server/lib/server.dart` and the generated `email_idp_endpoint.dart`/`jwt_refresh_endpoint.dart` — do NOT bridge to Firebase Auth. On the Flutter side, sign-in/sign-up/sign-out go through `SignInWidget` and `client.auth.*` (see the `serverpod-auth` skill), never custom endpoints. Game-specific profile data (username, thumbnail, Elo) lives in our own `User` model, linked to the module's `AuthUser` via a nullable `authUser` relation (nullable so a local guest — E0 — can exist before ever signing in).
+
+## Architecture
+
+Follow **MVVM, feature-first**, in both packages — see `doc/03-Backlog-Epics-UserStories.md` for the feature list and `doc/latex/cahier-des-charges.tex` for the full rationale:
+
+- `puissance4_flutter/lib/features/<feature>/{model,view,viewmodel}` — required folder names for the course. `model` = plain business models/rules **and** repositories (Serverpod client calls, local storage), `view` = widgets, `viewmodel` = Riverpod Notifiers/Providers (state + presentation logic, testable without mounting a widget). No separate `UseCase` class per action, no full Clean Architecture ceremony.
+- `puissance4_server/lib/src/<feature>/` — one endpoint group per feature/epic.
+- New code must be added inside the matching feature folder, not in shared/global `screens/`, `models/`, `services/` folders — this is what keeps the two developers' work from conflicting on merge.
 
 The user starts the server and Flutter app with `serverpod start`. There is no need to check if the server is running: make the changes and call the `serverpod` MCP tools as needed. If the server is not running, an informative error message will be received from the MCP server. Then STOP and ask the user to start it. NEVER start the server yourself. The Flutter app is started along with it, or can be launched from the MCP tool `spawn_flutter_app`.
 

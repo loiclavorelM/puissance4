@@ -1,0 +1,10 @@
+class: Bot
+table: bot
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  botName: String
+  elo: int
+  pathModel: String
+  description: String
+  createdAt: DateTime, default=now
+  updatedAt: DateTime?

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'client.dart';
-import 'screens/greetings_screen.dart';
+import 'features/auth/view/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,12 +38,12 @@ class MyHomePage extends StatelessWidget {
   const MyHomePage({super.key, required this.title});
 
   final String title;
+  static const _background = Color(0xFF0D0E1F);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: const GreetingsScreen(),
+      body: const LoginScreen(),
       // To test authentication in this example app, uncomment the line below
       // and comment out the line above. This wraps the GreetingsScreen with a
       // SignInScreen, which automatically shows a sign-in UI when the user is

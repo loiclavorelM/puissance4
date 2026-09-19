@@ -17,8 +17,24 @@ import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _iacs;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _iais;
+import 'bot/bot.dart' as _iij7x2jd;
+import 'game/enum_player.dart' as _iugmtbin;
+import 'game/enum_statut.dart' as _ip6diune;
+import 'game/enum_type.dart' as _ig2x4mxg;
+import 'game/partie.dart' as _iuas6tq9;
+import 'game/player.dart' as _id5q07gg;
 import 'greetings/greeting.dart' as _izw8z7ou;
+import 'profile/user.dart' as _iytd8mlf;
+import 'ranked/elo_history.dart' as _i8na2re5;
+export 'bot/bot.dart';
+export 'game/enum_player.dart';
+export 'game/enum_statut.dart';
+export 'game/enum_type.dart';
+export 'game/partie.dart';
+export 'game/player.dart';
 export 'greetings/greeting.dart';
+export 'profile/user.dart';
+export 'ranked/elo_history.dart';
 
 class Protocol extends _is.DatabaseSerializationManager {
   Protocol._();
@@ -28,6 +44,357 @@ class Protocol extends _is.DatabaseSerializationManager {
   static final Protocol _instance = Protocol._().._registerHostProtocols();
 
   static List<_isp.TableDefinition> get targetTableDefinitions => [
+    _isp.TableDefinition(
+      name: 'bot',
+      dartName: 'Bot',
+      schema: 'public',
+      module: 'puissance4',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'random_v7',
+        ),
+        _isp.ColumnDefinition(
+          name: 'botName',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'elo',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'pathModel',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'description',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'now',
+        ),
+        _isp.ColumnDefinition(
+          name: 'updatedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'elo_history',
+      dartName: 'EloHistory',
+      schema: 'public',
+      module: 'puissance4',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'random_v7',
+        ),
+        _isp.ColumnDefinition(
+          name: 'userId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'partieId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'eloVariation',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'newElo',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'now',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'elo_history_fk_0',
+          columns: ['userId'],
+          referenceTable: 'user',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+        _isp.ForeignKeyDefinition(
+          constraintName: 'elo_history_fk_1',
+          columns: ['partieId'],
+          referenceTable: 'partie',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
+      indexes: [],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'partie',
+      dartName: 'Partie',
+      schema: 'public',
+      module: 'puissance4',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'random_v7',
+        ),
+        _isp.ColumnDefinition(
+          name: 'code',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'typePartie',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'protocol:EnumType',
+        ),
+        _isp.ColumnDefinition(
+          name: 'playerRougeId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'playerJauneId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'winner',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'protocol:EnumPlayer?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'status',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'protocol:EnumStatut',
+        ),
+        _isp.ColumnDefinition(
+          name: 'moves',
+          columnType: _isp.ColumnType.json,
+          isNullable: false,
+          dartType: 'List<int>',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'now',
+        ),
+        _isp.ColumnDefinition(
+          name: 'updatedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'partie_fk_0',
+          columns: ['playerRougeId'],
+          referenceTable: 'player',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+        _isp.ForeignKeyDefinition(
+          constraintName: 'partie_fk_1',
+          columns: ['playerJauneId'],
+          referenceTable: 'player',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
+      indexes: [],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'player',
+      dartName: 'Player',
+      schema: 'public',
+      module: 'puissance4',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'random_v7',
+        ),
+        _isp.ColumnDefinition(
+          name: 'botId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: true,
+          dartType: 'UuidValue?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'userId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: true,
+          dartType: 'UuidValue?',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'player_fk_0',
+          columns: ['botId'],
+          referenceTable: 'bot',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+        _isp.ForeignKeyDefinition(
+          constraintName: 'player_fk_1',
+          columns: ['userId'],
+          referenceTable: 'user',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.noAction,
+          matchType: null,
+        ),
+      ],
+      indexes: [],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'user',
+      dartName: 'User',
+      schema: 'public',
+      module: 'puissance4',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'random_v7',
+        ),
+        _isp.ColumnDefinition(
+          name: 'authUserId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: true,
+          dartType: 'UuidValue?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'username',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'thumbnailPath',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'elo',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+          columnDefault: '1000',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'now',
+        ),
+        _isp.ColumnDefinition(
+          name: 'updatedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'user_fk_0',
+          columns: ['authUserId'],
+          referenceTable: 'serverpod_auth_core_user',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'user_auth_user_id_unique_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'authUserId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
     ..._iais.Protocol.targetTableDefinitions,
     ..._iacs.Protocol.targetTableDefinitions,
     ..._isp.Protocol.targetTableDefinitions,
@@ -60,11 +427,62 @@ class Protocol extends _is.DatabaseSerializationManager {
       }
     }
 
+    if (t == _iij7x2jd.Bot) {
+      return _iij7x2jd.Bot.fromJson(data) as T;
+    }
+    if (t == _iugmtbin.EnumPlayer) {
+      return _iugmtbin.EnumPlayer.fromJson(data) as T;
+    }
+    if (t == _ip6diune.EnumStatut) {
+      return _ip6diune.EnumStatut.fromJson(data) as T;
+    }
+    if (t == _ig2x4mxg.EnumType) {
+      return _ig2x4mxg.EnumType.fromJson(data) as T;
+    }
+    if (t == _iuas6tq9.Partie) {
+      return _iuas6tq9.Partie.fromJson(data) as T;
+    }
+    if (t == _id5q07gg.Player) {
+      return _id5q07gg.Player.fromJson(data) as T;
+    }
     if (t == _izw8z7ou.Greeting) {
       return _izw8z7ou.Greeting.fromJson(data) as T;
     }
+    if (t == _iytd8mlf.User) {
+      return _iytd8mlf.User.fromJson(data) as T;
+    }
+    if (t == _i8na2re5.EloHistory) {
+      return _i8na2re5.EloHistory.fromJson(data) as T;
+    }
+    if (t == _is.getType<_iij7x2jd.Bot?>()) {
+      return (data != null ? _iij7x2jd.Bot.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_iugmtbin.EnumPlayer?>()) {
+      return (data != null ? _iugmtbin.EnumPlayer.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_ip6diune.EnumStatut?>()) {
+      return (data != null ? _ip6diune.EnumStatut.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_ig2x4mxg.EnumType?>()) {
+      return (data != null ? _ig2x4mxg.EnumType.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_iuas6tq9.Partie?>()) {
+      return (data != null ? _iuas6tq9.Partie.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_id5q07gg.Player?>()) {
+      return (data != null ? _id5q07gg.Player.fromJson(data) : null) as T;
+    }
     if (t == _is.getType<_izw8z7ou.Greeting?>()) {
       return (data != null ? _izw8z7ou.Greeting.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_iytd8mlf.User?>()) {
+      return (data != null ? _iytd8mlf.User.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_i8na2re5.EloHistory?>()) {
+      return (data != null ? _i8na2re5.EloHistory.fromJson(data) : null) as T;
+    }
+    if (t == List<int>) {
+      return (data as List).map((e) => deserialize<int>(e)).toList() as T;
     }
     try {
       return _iais.Protocol().deserialize<T>(data, t);
@@ -80,7 +498,15 @@ class Protocol extends _is.DatabaseSerializationManager {
 
   static String? getClassNameForType(Type type) {
     return switch (type) {
+      _iij7x2jd.Bot => 'Bot',
+      _iugmtbin.EnumPlayer => 'EnumPlayer',
+      _ip6diune.EnumStatut => 'EnumStatut',
+      _ig2x4mxg.EnumType => 'EnumType',
+      _iuas6tq9.Partie => 'Partie',
+      _id5q07gg.Player => 'Player',
       _izw8z7ou.Greeting => 'Greeting',
+      _iytd8mlf.User => 'User',
+      _i8na2re5.EloHistory => 'EloHistory',
       _ => null,
     };
   }
@@ -95,8 +521,24 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
 
     switch (data) {
+      case _iij7x2jd.Bot():
+        return 'Bot';
+      case _iugmtbin.EnumPlayer():
+        return 'EnumPlayer';
+      case _ip6diune.EnumStatut():
+        return 'EnumStatut';
+      case _ig2x4mxg.EnumType():
+        return 'EnumType';
+      case _iuas6tq9.Partie():
+        return 'Partie';
+      case _id5q07gg.Player():
+        return 'Player';
       case _izw8z7ou.Greeting():
         return 'Greeting';
+      case _iytd8mlf.User():
+        return 'User';
+      case _i8na2re5.EloHistory():
+        return 'EloHistory';
     }
     className = _iais.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -123,8 +565,32 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName is! String) {
       return super.deserializeByClassName(data);
     }
+    if (dataClassName == 'Bot') {
+      return deserialize<_iij7x2jd.Bot>(data['data']);
+    }
+    if (dataClassName == 'EnumPlayer') {
+      return deserialize<_iugmtbin.EnumPlayer>(data['data']);
+    }
+    if (dataClassName == 'EnumStatut') {
+      return deserialize<_ip6diune.EnumStatut>(data['data']);
+    }
+    if (dataClassName == 'EnumType') {
+      return deserialize<_ig2x4mxg.EnumType>(data['data']);
+    }
+    if (dataClassName == 'Partie') {
+      return deserialize<_iuas6tq9.Partie>(data['data']);
+    }
+    if (dataClassName == 'Player') {
+      return deserialize<_id5q07gg.Player>(data['data']);
+    }
     if (dataClassName == 'Greeting') {
       return deserialize<_izw8z7ou.Greeting>(data['data']);
+    }
+    if (dataClassName == 'User') {
+      return deserialize<_iytd8mlf.User>(data['data']);
+    }
+    if (dataClassName == 'EloHistory') {
+      return deserialize<_i8na2re5.EloHistory>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
@@ -165,6 +631,18 @@ class Protocol extends _is.DatabaseSerializationManager {
       if (table != null) {
         return table;
       }
+    }
+    switch (t) {
+      case _iij7x2jd.Bot:
+        return _iij7x2jd.Bot.t;
+      case _iuas6tq9.Partie:
+        return _iuas6tq9.Partie.t;
+      case _id5q07gg.Player:
+        return _id5q07gg.Player.t;
+      case _iytd8mlf.User:
+        return _iytd8mlf.User.t;
+      case _i8na2re5.EloHistory:
+        return _i8na2re5.EloHistory.t;
     }
     return null;
   }

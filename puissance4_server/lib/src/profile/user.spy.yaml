@@ -1,0 +1,17 @@
+class: User
+table: user
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  # Nullable : un User peut exister localement (mode invité, E0) avant toute
+  # authentification. Rempli au premier login (cf. E1/US1.2).
+  authUser: module:serverpod_auth_core:AuthUser?, relation(onDelete=Cascade, optional)
+  username: String
+  thumbnailPath: String?
+  elo: int, default=1000
+  createdAt: DateTime, default=now
+  updatedAt: DateTime?
+
+indexes:
+  user_auth_user_id_unique_idx:
+    fields: authUserId
+    unique: true

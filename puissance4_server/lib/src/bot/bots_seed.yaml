@@ -1,0 +1,15 @@
+# Source de vérité pour les 3 niveaux de bot (E5). Ré-appliqué (upsert) à
+# chaque démarrage du serveur — modifier ce fichier suffit, pas besoin de
+# migration ni d'accès direct à la base.
+- name: Débutant
+  elo: 800
+  pathModel: assets/models/beginner.tflite
+  description: "Un bot qui débute au Puissance 4."
+- name: Medium
+  elo: 1200
+  pathModel: assets/models/medium.tflite
+  description: "Un bot de niveau intermédiaire."
+- name: Expert
+  elo: 1600
+  pathModel: assets/models/expert.tflite
+  description: "Le bot le plus fort, entraîné par apprentissage par renforcement."

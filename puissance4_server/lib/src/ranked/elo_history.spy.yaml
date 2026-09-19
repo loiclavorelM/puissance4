@@ -1,0 +1,9 @@
+class: EloHistory
+table: elo_history
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  userId: UuidValue, relation(parent=user)
+  partieId: UuidValue, relation(parent=partie)
+  eloVariation: int
+  newElo: int
+  createdAt: DateTime, default=now

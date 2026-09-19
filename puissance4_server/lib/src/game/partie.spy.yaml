@@ -1,0 +1,14 @@
+class: Partie
+table: partie
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  # Rempli uniquement pour typePartie == multi.
+  code: String?
+  typePartie: EnumType
+  playerRougeId: UuidValue, relation(parent=player)
+  playerJauneId: UuidValue, relation(parent=player)
+  winner: EnumPlayer?
+  status: EnumStatut
+  moves: List<int>
+  createdAt: DateTime, default=now
+  updatedAt: DateTime?
