@@ -1,17 +1,16 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:puissance4_client/puissance4_client.dart';
-import 'package:serverpod_offline_sync_client/serverpod_offline_sync_client.dart';
 
+import 'app_theme.dart';
 import 'client.dart';
 import 'features/auth/view/login_screen.dart';
 import 'features/auth/viewmodel/auth_viewmodel.dart';
+import 'features/game/view/game_home_screen.dart';
+import 'features/history/view/history_screen.dart';
+import 'features/leaderboard/view/leaderboard_screen.dart';
 import 'features/offline/model/server_connection_pinger.dart';
 import 'features/offline/model/server_connection_tracker.dart';
-import 'features/offline/view/server_connection_indicator.dart';
-import 'features/offline/viewmodel/offline_sync_provider.dart';
+import 'features/settings/view/settings_screen.dart';
 
 late final ServerConnectionPinger serverConnectionPinger;
 
@@ -80,146 +79,100 @@ class MyHomePage extends StatelessWidget {
   }
 }
 
-/// Switches between the login screen and the (placeholder) main menu based
+/// Switches between the login screen and the main navigation shell based
 /// on [authViewModelProvider] — covers a real Serverpod session and a
 /// device-local guest profile alike.
 class _AuthGate extends ConsumerWidget {
   const _AuthGate();
 
-  static const _background = Color(0xFF0D0E1F);
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final status = ref.watch(authViewModelProvider).status;
     return switch (status) {
-      AuthStatus.loading => const ColoredBox(color: _background),
+      AuthStatus.loading => const ColoredBox(color: AppColors.background),
       AuthStatus.unauthenticated => const LoginScreen(),
       AuthStatus.serverAuthenticated ||
-      AuthStatus.localGuest => const _MainMenuPlaceholder(),
+      AuthStatus.localGuest => const _MainShell(),
     };
   }
 }
 
-/// Placeholder landing screen after sign-in — just the app's background.
-/// The real main menu is a separate, still-to-build feature (T4.2.2).
-class _MainMenuPlaceholder extends ConsumerStatefulWidget {
-  const _MainMenuPlaceholder();
+/// Coquille de navigation principale (post connexion) — 4 onglets : Jouer,
+/// Classement, Historique, Réglages (`doc/latex/figures/maquette-2.png` et
+/// suivantes). `IndexedStack` garde l'état de chaque onglet en mémoire
+/// (ex. le bouton de test en cours sur Jouer) quand on change d'onglet.
+class _MainShell extends ConsumerStatefulWidget {
+  const _MainShell();
 
   @override
-  ConsumerState<_MainMenuPlaceholder> createState() =>
-      _MainMenuPlaceholderState();
+  ConsumerState<_MainShell> createState() => _MainShellState();
 }
 
-class _MainMenuPlaceholderState extends ConsumerState<_MainMenuPlaceholder> {
-  static const _background = Color(0xFF0D0E1F);
+class _MainShellState extends ConsumerState<_MainShell> {
+  int _selectedIndex = 0;
 
-  bool _isSimulating = false;
+  void _openTab(int index) => setState(() => _selectedIndex = index);
 
   @override
   Widget build(BuildContext context) {
-    // serverpod_offline_sync ne synchronise que les spaces liés à un
-    // authUserId reconnu par le serveur (vérifié empiriquement) : pas de
-    // session possible en AuthStatus.localGuest (pas d'authUserId du tout).
-    // Limitation acceptée pour l'instant — voir le plan.
-    final isAuthenticated =
-        ref.watch(authViewModelProvider).status ==
-        AuthStatus.serverAuthenticated;
+    final screens = [
+      GameHomeScreen(onOpenSettings: () => _openTab(3)),
+      const LeaderboardScreen(),
+      const HistoryScreen(),
+      const SettingsScreen(),
+    ];
 
     return Scaffold(
-      backgroundColor: _background,
-      appBar: AppBar(
-        backgroundColor: _background,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          const ServerConnectionIndicator(),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Déconnexion',
-            onPressed: () => ref.read(authViewModelProvider.notifier).signOut(),
-          ),
-        ],
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: IndexedStack(index: _selectedIndex, children: screens),
       ),
-      body: Center(
-        // Outil de dev temporaire : pas encore de moteur de jeu (E4) pour
-        // générer de vraies OfflineMatchResult, donc ce bouton permet de
-        // tester le flux complet (création -> sync) depuis l'app plutôt
-        // qu'avec un script. À retirer une fois E4 fait.
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ElevatedButton(
-              onPressed: (_isSimulating || !isAuthenticated)
-                  ? null
-                  : _simulateMatch,
-              child: const Text('Simuler une partie'),
+      bottomNavigationBar: NavigationBarTheme(
+        data: NavigationBarThemeData(
+          indicatorColor: AppColors.primary.withValues(alpha: 0.15),
+          iconTheme: WidgetStateProperty.resolveWith(
+            (states) => IconThemeData(
+              color: states.contains(WidgetState.selected)
+                  ? AppColors.primary
+                  : Colors.white38,
             ),
-            if (!isAuthenticated)
-              const Padding(
-                padding: EdgeInsets.only(top: 12),
-                child: Text(
-                  'Connecte-toi (même en invité, en ligne) pour tester la '
-                  'synchro.',
-                  style: TextStyle(color: Colors.white54, fontSize: 12),
-                  textAlign: TextAlign.center,
-                ),
-              ),
+          ),
+          labelTextStyle: WidgetStateProperty.resolveWith(
+            (states) => TextStyle(
+              fontSize: 12,
+              color: states.contains(WidgetState.selected)
+                  ? AppColors.primary
+                  : Colors.white38,
+            ),
+          ),
+        ),
+        child: NavigationBar(
+          backgroundColor: AppColors.card,
+          selectedIndex: _selectedIndex,
+          onDestinationSelected: _openTab,
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home),
+              label: 'Jouer',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.emoji_events_outlined),
+              selectedIcon: Icon(Icons.emoji_events),
+              label: 'Classement',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.history),
+              label: 'Historique',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.settings_outlined),
+              selectedIcon: Icon(Icons.settings),
+              label: 'Réglages',
+            ),
           ],
         ),
       ),
     );
-  }
-
-  Future<void> _simulateMatch() async {
-    setState(() => _isSimulating = true);
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      final session = await ref
-          .read(offlineSyncSessionHolderProvider)
-          .getOrCreate();
-      final random = Random();
-      await OfflineMatchResult.db.insertRow(
-        session,
-        OfflineMatchResult(
-          result:
-              EnumMatchResult.values[random.nextInt(
-                EnumMatchResult.values.length,
-              )],
-          botLevel:
-              EnumBotLevel.values[random.nextInt(
-                EnumBotLevel.values.length,
-              )],
-          moves: const [1, 4, 2, 5],
-          playedAt: DateTime.now(),
-        ),
-      );
-      // La ligne est déjà sauvegardée localement à ce stade (insertRow ne
-      // fait aucun appel réseau) — une panne réseau ici ne doit pas être
-      // affichée comme une erreur, juste comme "en attente de sync".
-      // syncOnce ouvre un method stream (WebSocket), pas un appel RPC
-      // classique : ses échecs réseau remontent en MethodStreamException
-      // (ex. WebSocketConnectException), pas en ServerpodClientNetworkException.
-      String message;
-      try {
-        await client.offlineSync.syncOnce(session);
-        message = 'Partie simulée, créée et synchronisée';
-      } on ServerpodClientNetworkException {
-        message =
-            'Partie simulée créée localement (pas de réseau, sera '
-            'synchronisée au retour de la connexion)';
-      } on MethodStreamException {
-        message =
-            'Partie simulée créée localement (pas de réseau, sera '
-            'synchronisée au retour de la connexion)';
-      }
-      if (!context.mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text(message)));
-    } catch (error) {
-      if (context.mounted) {
-        messenger.showSnackBar(SnackBar(content: Text('Erreur : $error')));
-      }
-    } finally {
-      if (mounted) setState(() => _isSimulating = false);
-    }
   }
 }
