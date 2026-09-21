@@ -22,7 +22,9 @@ import '../auth/email_idp_endpoint.dart' as _iuc1hd5t;
 import '../auth/google_idp_endpoint.dart' as _i71axiz0;
 import '../auth/jwt_refresh_endpoint.dart' as _inwq3ztq;
 import '../connection/connection_endpoint.dart' as _in8dx5ef;
+import '../game/dev_simulate_endpoint.dart' as _iqkago6i;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
+import '../profile/profile_endpoint.dart' as _i6ky944g;
 
 class Endpoints extends _is.EndpointDispatch {
   @override
@@ -58,10 +60,22 @@ class Endpoints extends _is.EndpointDispatch {
           'connection',
           null,
         ),
+      'devSimulate': _iqkago6i.DevSimulateEndpoint()
+        ..initialize(
+          server,
+          'devSimulate',
+          null,
+        ),
       'greeting': _il624ik7.GreetingEndpoint()
         ..initialize(
           server,
           'greeting',
+          null,
+        ),
+      'profile': _i6ky944g.ProfileEndpoint()
+        ..initialize(
+          server,
+          'profile',
           null,
         ),
     };
@@ -386,6 +400,23 @@ class Endpoints extends _is.EndpointDispatch {
         ),
       },
     );
+    connectors['devSimulate'] = _is.EndpointConnector(
+      name: 'devSimulate',
+      endpoint: endpoints['devSimulate']!,
+      methodConnectors: {
+        'simulatePartie': _is.MethodConnector(
+          name: 'simulatePartie',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['devSimulate'] as _iqkago6i.DevSimulateEndpoint)
+                      .simulatePartie(session),
+        ),
+      },
+    );
     connectors['greeting'] = _is.EndpointConnector(
       name: 'greeting',
       endpoint: endpoints['greeting']!,
@@ -408,6 +439,22 @@ class Endpoints extends _is.EndpointDispatch {
                     session,
                     params['name'],
                   ),
+        ),
+      },
+    );
+    connectors['profile'] = _is.EndpointConnector(
+      name: 'profile',
+      endpoint: endpoints['profile']!,
+      methodConnectors: {
+        'getMyProfile': _is.MethodConnector(
+          name: 'getMyProfile',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6ky944g.ProfileEndpoint)
+                  .getMyProfile(session),
         ),
       },
     );

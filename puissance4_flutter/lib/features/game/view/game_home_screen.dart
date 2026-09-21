@@ -5,10 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 import 'package:serverpod_offline_sync_client/serverpod_offline_sync_client.dart';
 
-import '../../../app_theme.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../client.dart';
 import '../../auth/viewmodel/auth_viewmodel.dart';
 import '../../offline/viewmodel/offline_sync_provider.dart';
+import '../../profile/viewmodel/profile_provider.dart';
 import '../viewmodel/game_home_viewmodel.dart';
 
 /// Écran "Jouer" (onglet par défaut) — reprend `maquette-2.png` : résumé du
@@ -28,6 +29,7 @@ class GameHomeScreen extends ConsumerStatefulWidget {
 
 class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
   bool _isSimulating = false;
+  bool _isSimulatingPartie = false;
 
   @override
   Widget build(BuildContext context) {
@@ -176,6 +178,17 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
                 style: TextStyle(color: Colors.white54, fontSize: 12),
               ),
             ),
+          const SizedBox(height: 8),
+          // Outil de dev temporaire : pas de vrai moteur de jeu (E4) pour
+          // générer de vraies Partie, donc ce bouton permet de tester
+          // nbParties/nbVictoires (ProfileEndpoint.getMyProfile) depuis
+          // l'app. À retirer une fois E4 fait.
+          ElevatedButton(
+            onPressed: (_isSimulatingPartie || !isAuthenticated)
+                ? null
+                : _simulatePartie,
+            child: const Text('Simuler une partie classée/multi (stats)'),
+          ),
         ],
       ),
     );
@@ -248,6 +261,25 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
       }
     } finally {
       if (mounted) setState(() => _isSimulating = false);
+    }
+  }
+
+  Future<void> _simulatePartie() async {
+    setState(() => _isSimulatingPartie = true);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await client.devSimulate.simulatePartie();
+      ref.invalidate(myProfileProvider);
+      if (!context.mounted) return;
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Partie simulée — stats mises à jour')),
+      );
+    } catch (error) {
+      if (context.mounted) {
+        messenger.showSnackBar(SnackBar(content: Text('Erreur : $error')));
+      }
+    } finally {
+      if (mounted) setState(() => _isSimulatingPartie = false);
     }
   }
 }

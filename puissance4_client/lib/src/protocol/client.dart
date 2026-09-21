@@ -14,6 +14,8 @@ import 'dart:async' as _ida;
 import 'package:http/http.dart' as _i85jenna;
 import 'package:puissance4_client/src/protocol/greetings/greeting.dart'
     as _i45e1izr;
+import 'package:puissance4_client/src/protocol/profile/user_profile_dto.dart'
+    as _i5lufru8;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _iacc;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
@@ -351,6 +353,24 @@ class EndpointConnection extends _isc.EndpointRef {
   );
 }
 
+/// Outil de dev temporaire — insère une partie Classé/Multi terminée
+/// (issue et couleur aléatoires) pour l'utilisateur authentifié, pour
+/// tester `nbParties`/`nbVictoires` (`ProfileEndpoint.getMyProfile`) sans
+/// vrai moteur de jeu (E4). À retirer une fois E4 fait.
+/// {@category Endpoint}
+class EndpointDevSimulate extends _isc.EndpointRef {
+  EndpointDevSimulate(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'devSimulate';
+
+  _ida.Future<void> simulatePartie() => caller.callServerEndpoint<void>(
+    'devSimulate',
+    'simulatePartie',
+    {},
+  );
+}
+
 /// This is an example endpoint that returns a greeting message through
 /// its [hello] method.
 /// {@category Endpoint}
@@ -366,6 +386,21 @@ class EndpointGreeting extends _isc.EndpointRef {
         'greeting',
         'hello',
         {'name': name},
+      );
+}
+
+/// {@category Endpoint}
+class EndpointProfile extends _isc.EndpointRef {
+  EndpointProfile(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'profile';
+
+  _ida.Future<_i5lufru8.UserProfileDto> getMyProfile() =>
+      caller.callServerEndpoint<_i5lufru8.UserProfileDto>(
+        'profile',
+        'getMyProfile',
+        {},
       );
 }
 
@@ -415,7 +450,9 @@ class Client extends _isc.ServerpodClientShared {
     googleIdp = EndpointGoogleIdp(this);
     jwtRefresh = EndpointJwtRefresh(this);
     connection = EndpointConnection(this);
+    devSimulate = EndpointDevSimulate(this);
     greeting = EndpointGreeting(this);
+    profile = EndpointProfile(this);
     modules = Modules(this);
   }
 
@@ -429,7 +466,11 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointConnection connection;
 
+  late final EndpointDevSimulate devSimulate;
+
   late final EndpointGreeting greeting;
+
+  late final EndpointProfile profile;
 
   late final Modules modules;
 
@@ -440,7 +481,9 @@ class Client extends _isc.ServerpodClientShared {
     'googleIdp': googleIdp,
     'jwtRefresh': jwtRefresh,
     'connection': connection,
+    'devSimulate': devSimulate,
     'greeting': greeting,
+    'profile': profile,
   };
 
   @override

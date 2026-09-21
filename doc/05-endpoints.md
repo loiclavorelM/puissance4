@@ -85,8 +85,8 @@ UserProfileDto
   string username
   string? thumbnailUrl
   int elo
-  int nbParties        // classé + multi
-  int nbVictoires       // classé + multi
+  int nbParties  
+  int nbVictoires    
   // pas d'email ici : géré par le module d'auth natif (AuthUser), pas dupliqué
 
 BotDto

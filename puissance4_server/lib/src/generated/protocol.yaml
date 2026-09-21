@@ -17,5 +17,9 @@ jwtRefresh:
   - refreshAccessToken:
 connection:
   - ping:
+devSimulate:
+  - simulatePartie:
 greeting:
   - hello:
+profile:
+  - getMyProfile:

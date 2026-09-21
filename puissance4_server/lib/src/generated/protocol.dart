@@ -30,6 +30,7 @@ import 'game/partie.dart' as _iuas6tq9;
 import 'game/player.dart' as _id5q07gg;
 import 'greetings/greeting.dart' as _izw8z7ou;
 import 'profile/user.dart' as _iytd8mlf;
+import 'profile/user_profile_dto.dart' as _ivqmpbel;
 import 'ranked/elo_history.dart' as _i8na2re5;
 export 'bot/bot.dart';
 export 'bot/enum_bot_level.dart';
@@ -42,6 +43,7 @@ export 'game/partie.dart';
 export 'game/player.dart';
 export 'greetings/greeting.dart';
 export 'profile/user.dart';
+export 'profile/user_profile_dto.dart';
 export 'ranked/elo_history.dart';
 export 'sync_tables.dart';
 
@@ -536,6 +538,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _iytd8mlf.User) {
       return _iytd8mlf.User.fromJson(data) as T;
     }
+    if (t == _ivqmpbel.UserProfileDto) {
+      return _ivqmpbel.UserProfileDto.fromJson(data) as T;
+    }
     if (t == _i8na2re5.EloHistory) {
       return _i8na2re5.EloHistory.fromJson(data) as T;
     }
@@ -574,6 +579,10 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_iytd8mlf.User?>()) {
       return (data != null ? _iytd8mlf.User.fromJson(data) : null) as T;
     }
+    if (t == _is.getType<_ivqmpbel.UserProfileDto?>()) {
+      return (data != null ? _ivqmpbel.UserProfileDto.fromJson(data) : null)
+          as T;
+    }
     if (t == _is.getType<_i8na2re5.EloHistory?>()) {
       return (data != null ? _i8na2re5.EloHistory.fromJson(data) : null) as T;
     }
@@ -608,6 +617,7 @@ class Protocol extends _is.DatabaseSerializationManager {
       _id5q07gg.Player => 'Player',
       _izw8z7ou.Greeting => 'Greeting',
       _iytd8mlf.User => 'User',
+      _ivqmpbel.UserProfileDto => 'UserProfileDto',
       _i8na2re5.EloHistory => 'EloHistory',
       _ => null,
     };
@@ -645,6 +655,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'Greeting';
       case _iytd8mlf.User():
         return 'User';
+      case _ivqmpbel.UserProfileDto():
+        return 'UserProfileDto';
       case _i8na2re5.EloHistory():
         return 'EloHistory';
     }
@@ -711,6 +723,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (dataClassName == 'User') {
       return deserialize<_iytd8mlf.User>(data['data']);
+    }
+    if (dataClassName == 'UserProfileDto') {
+      return deserialize<_ivqmpbel.UserProfileDto>(data['data']);
     }
     if (dataClassName == 'EloHistory') {
       return deserialize<_i8na2re5.EloHistory>(data['data']);

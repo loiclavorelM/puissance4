@@ -1,0 +1,10 @@
+# DTO renvoyé par ProfileEndpoint.getMyProfile() (doc/05-endpoints.md) —
+# pas de `table:` : simple modèle sérialisable, pas persisté.
+class: UserProfileDto
+fields:
+  id: UuidValue
+  username: String
+  thumbnailUrl: String?
+  elo: int
+  nbParties: int
+  nbVictoires: int

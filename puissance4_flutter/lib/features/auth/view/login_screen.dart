@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import '../../../client.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../offline/view/server_connection_indicator.dart';
 import '../../offline/viewmodel/server_connection_provider.dart';
 import '../viewmodel/auth_viewmodel.dart';
@@ -17,18 +18,12 @@ class LoginScreen extends StatelessWidget {
   /// Called once the user is signed in (by any provider).
   final VoidCallback? onAuthenticated;
 
-  static const _background = Color(0xFF0D0E1F);
-  static const _card = Color(0xFF171A38);
-  static const _fieldFill = Color(0xFF1E2247);
-  static const _primary = Color(0xFFE8543F);
-  static const _yellow = Color(0xFFF4B740);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _background,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: _background,
+        backgroundColor: AppColors.background,
         elevation: 0,
         automaticallyImplyLeading: false,
         actions: const [ServerConnectionIndicator()],
@@ -56,7 +51,7 @@ class LoginScreen extends StatelessWidget {
                         TextSpan(text: 'PUISSANCE '),
                         TextSpan(
                           text: '4',
-                          style: TextStyle(color: _primary),
+                          style: TextStyle(color: AppColors.primary),
                         ),
                       ],
                     ),
@@ -71,7 +66,7 @@ class LoginScreen extends StatelessWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: _card,
+                      color: AppColors.card,
                       borderRadius: BorderRadius.circular(28),
                     ),
                     child: _ThemedSignIn(onAuthenticated: onAuthenticated),
@@ -105,12 +100,12 @@ class _Logo extends StatelessWidget {
           Positioned(
             left: 0,
             top: 0,
-            child: _dot(LoginScreen._yellow, 52),
+            child: _dot(AppColors.yellow, 52),
           ),
           Positioned(
             right: 0,
             bottom: 0,
-            child: _dot(LoginScreen._primary, 52),
+            child: _dot(AppColors.primary, 52),
           ),
         ],
       ),
@@ -144,14 +139,14 @@ class _ThemedSignIn extends ConsumerWidget {
     final baseTheme = ThemeData(
       brightness: Brightness.dark,
       colorScheme: const ColorScheme.dark(
-        primary: LoginScreen._primary,
+        primary: AppColors.primary,
         onPrimary: Colors.white,
-        surface: LoginScreen._card,
+        surface: AppColors.card,
         onSurface: Colors.white,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: LoginScreen._fieldFill,
+        fillColor: AppColors.fieldFill,
         labelStyle: const TextStyle(
           color: Colors.white60,
           fontWeight: FontWeight.bold,
@@ -170,7 +165,7 @@ class _ThemedSignIn extends ConsumerWidget {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(
-            color: LoginScreen._primary,
+            color: AppColors.primary,
             width: 1.5,
           ),
         ),
@@ -274,7 +269,7 @@ class _ThemedSignIn extends ConsumerWidget {
                   // matches the maquette's single-accent-color aesthetic.
                   buttonStyle: const SignInButtonStyle(
                     shape: SignInButtonShape.pill,
-                    backgroundColor: LoginScreen._primary,
+                    backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                   ),
                 ),
