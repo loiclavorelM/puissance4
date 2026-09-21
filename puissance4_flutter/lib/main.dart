@@ -1,5 +1,9 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:puissance4_client/puissance4_client.dart';
+import 'package:serverpod_offline_sync_client/serverpod_offline_sync_client.dart';
 
 import 'client.dart';
 import 'features/auth/view/login_screen.dart';
@@ -7,6 +11,7 @@ import 'features/auth/viewmodel/auth_viewmodel.dart';
 import 'features/offline/model/server_connection_pinger.dart';
 import 'features/offline/model/server_connection_tracker.dart';
 import 'features/offline/view/server_connection_indicator.dart';
+import 'features/offline/viewmodel/offline_sync_provider.dart';
 
 late final ServerConnectionPinger serverConnectionPinger;
 
@@ -97,13 +102,29 @@ class _AuthGate extends ConsumerWidget {
 
 /// Placeholder landing screen after sign-in — just the app's background.
 /// The real main menu is a separate, still-to-build feature (T4.2.2).
-class _MainMenuPlaceholder extends ConsumerWidget {
+class _MainMenuPlaceholder extends ConsumerStatefulWidget {
   const _MainMenuPlaceholder();
 
+  @override
+  ConsumerState<_MainMenuPlaceholder> createState() =>
+      _MainMenuPlaceholderState();
+}
+
+class _MainMenuPlaceholderState extends ConsumerState<_MainMenuPlaceholder> {
   static const _background = Color(0xFF0D0E1F);
 
+  bool _isSimulating = false;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
+    // serverpod_offline_sync ne synchronise que les spaces liés à un
+    // authUserId reconnu par le serveur (vérifié empiriquement) : pas de
+    // session possible en AuthStatus.localGuest (pas d'authUserId du tout).
+    // Limitation acceptée pour l'instant — voir le plan.
+    final isAuthenticated =
+        ref.watch(authViewModelProvider).status ==
+        AuthStatus.serverAuthenticated;
+
     return Scaffold(
       backgroundColor: _background,
       appBar: AppBar(
@@ -119,6 +140,86 @@ class _MainMenuPlaceholder extends ConsumerWidget {
           ),
         ],
       ),
+      body: Center(
+        // Outil de dev temporaire : pas encore de moteur de jeu (E4) pour
+        // générer de vraies OfflineMatchResult, donc ce bouton permet de
+        // tester le flux complet (création -> sync) depuis l'app plutôt
+        // qu'avec un script. À retirer une fois E4 fait.
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ElevatedButton(
+              onPressed: (_isSimulating || !isAuthenticated)
+                  ? null
+                  : _simulateMatch,
+              child: const Text('Simuler une partie'),
+            ),
+            if (!isAuthenticated)
+              const Padding(
+                padding: EdgeInsets.only(top: 12),
+                child: Text(
+                  'Connecte-toi (même en invité, en ligne) pour tester la '
+                  'synchro.',
+                  style: TextStyle(color: Colors.white54, fontSize: 12),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+          ],
+        ),
+      ),
     );
+  }
+
+  Future<void> _simulateMatch() async {
+    setState(() => _isSimulating = true);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final session = await ref
+          .read(offlineSyncSessionHolderProvider)
+          .getOrCreate();
+      final random = Random();
+      await OfflineMatchResult.db.insertRow(
+        session,
+        OfflineMatchResult(
+          result:
+              EnumMatchResult.values[random.nextInt(
+                EnumMatchResult.values.length,
+              )],
+          botLevel:
+              EnumBotLevel.values[random.nextInt(
+                EnumBotLevel.values.length,
+              )],
+          moves: const [1, 4, 2, 5],
+          playedAt: DateTime.now(),
+        ),
+      );
+      // La ligne est déjà sauvegardée localement à ce stade (insertRow ne
+      // fait aucun appel réseau) — une panne réseau ici ne doit pas être
+      // affichée comme une erreur, juste comme "en attente de sync".
+      // syncOnce ouvre un method stream (WebSocket), pas un appel RPC
+      // classique : ses échecs réseau remontent en MethodStreamException
+      // (ex. WebSocketConnectException), pas en ServerpodClientNetworkException.
+      String message;
+      try {
+        await client.offlineSync.syncOnce(session);
+        message = 'Partie simulée, créée et synchronisée';
+      } on ServerpodClientNetworkException {
+        message =
+            'Partie simulée créée localement (pas de réseau, sera '
+            'synchronisée au retour de la connexion)';
+      } on MethodStreamException {
+        message =
+            'Partie simulée créée localement (pas de réseau, sera '
+            'synchronisée au retour de la connexion)';
+      }
+      if (!context.mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text(message)));
+    } catch (error) {
+      if (context.mounted) {
+        messenger.showSnackBar(SnackBar(content: Text('Erreur : $error')));
+      }
+    } finally {
+      if (mounted) setState(() => _isSimulating = false);
+    }
   }
 }

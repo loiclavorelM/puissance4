@@ -33,6 +33,8 @@ dependencies:
   flutter_riverpod: ^2.6.1
   flutter_secure_storage: ^10.0.0
   google_fonts: ^8.1.0
+  path: ^1.9.1
+  path_provider: ^2.1.5
   puissance4_client:
     path: ../puissance4_client
   serverpod_auth_idp_flutter: 4.0.0

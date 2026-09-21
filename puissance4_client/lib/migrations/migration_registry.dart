@@ -5,6 +5,8 @@ library;
 import 'package:serverpod_database/serverpod_database.dart';
 
 part '20260919132317234/migration.dart';
+part '20260921083724523-offline_match_result_user_id/migration.dart';
+part '20260921093603438-drop_offline_match_result_user_id/migration.dart';
 
 /// Migration registry for the client-side database.
 class MigrationRegistry {
@@ -12,6 +14,8 @@ class MigrationRegistry {
   /// New migrations are always appended at the end.
   static final List<MigrationVersionSql> migrations = [
     _Migration20260919132317234(),
+    _Migration20260921083724523_offline_match_result_user_id(),
+    _Migration20260921093603438_drop_offline_match_result_user_id(),
   ];
 
   /// List of all client-side database migration versions.

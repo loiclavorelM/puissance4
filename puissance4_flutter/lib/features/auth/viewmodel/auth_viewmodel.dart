@@ -5,6 +5,7 @@ import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import '../../../client.dart';
 import '../../offline/model/server_connection_tracker.dart';
+import '../../offline/viewmodel/offline_sync_provider.dart';
 import '../../offline/viewmodel/server_connection_provider.dart';
 import '../model/guest_profile.dart';
 import '../model/guest_repository.dart';
@@ -129,6 +130,7 @@ class AuthViewModel extends Notifier<AuthState> {
         // background either way.
         state = const AuthState(status: AuthStatus.unauthenticated);
         unawaited(client.auth.signOutDevice());
+        unawaited(ref.read(offlineSyncSessionHolderProvider).closeAndWipe());
       case AuthStatus.localGuest:
         // Don't block on storage I/O: sign-out should feel instant, and the
         // guest profile no longer matters once we're unauthenticated even

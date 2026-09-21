@@ -4,6 +4,7 @@ import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import '../../../client.dart';
 import '../../offline/view/server_connection_indicator.dart';
+import '../../offline/viewmodel/server_connection_provider.dart';
 import '../viewmodel/auth_viewmodel.dart';
 
 /// Login screen (maquette "Connexion") — pure View: no ViewModel, no model.
@@ -135,6 +136,10 @@ class _ThemedSignIn extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authViewModelProvider);
     final isGuestLoading = authState.status == AuthStatus.loading;
+    // Email/mot de passe et Google ont besoin du serveur — inutile de les
+    // laisser actifs hors-ligne, ça échouerait de toute façon. "Continuer
+    // sans compte" reste actif : il a son propre repli local hors-ligne.
+    final hasNetwork = ref.watch(serverConnectionTrackerProvider).hasNetwork;
 
     final baseTheme = ThemeData(
       brightness: Brightness.dark,
@@ -234,39 +239,56 @@ class _ThemedSignIn extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SignInWidget(
-              client: client,
-              onAuthenticated: onAuthenticated,
-              onError: (error) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Erreur de connexion : $error')),
-                );
-              },
-              // The package defaults the email flow to the sign-up screen
-              // (email only, no password) — this screen is "Connexion", so
-              // it must start on the login form (email + password) instead.
-              emailSignInWidget: EmailSignInWidget(
-                client: client,
-                startScreen: EmailFlowScreen.login,
-                onAuthenticated: onAuthenticated,
-                onError: (error) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Erreur de connexion : $error')),
-                  );
-                },
-              ),
-              // The built-in anonymous button always surfaces a server
-              // error — replaced below by one that falls back to a local
-              // guest profile when the server is unreachable.
-              disableAnonymousSignInWidget: true,
-              // Shared look for every provider button (pill, coral) —
-              // matches the maquette's single-accent-color aesthetic.
-              buttonStyle: const SignInButtonStyle(
-                shape: SignInButtonShape.pill,
-                backgroundColor: LoginScreen._primary,
-                foregroundColor: Colors.white,
+            IgnorePointer(
+              ignoring: !hasNetwork,
+              child: AnimatedOpacity(
+                opacity: hasNetwork ? 1 : 0.4,
+                duration: const Duration(milliseconds: 200),
+                child: SignInWidget(
+                  client: client,
+                  onAuthenticated: onAuthenticated,
+                  onError: (error) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Erreur de connexion : $error')),
+                    );
+                  },
+                  // The package defaults the email flow to the sign-up
+                  // screen (email only, no password) — this screen is
+                  // "Connexion", so it must start on the login form (email +
+                  // password) instead.
+                  emailSignInWidget: EmailSignInWidget(
+                    client: client,
+                    startScreen: EmailFlowScreen.login,
+                    onAuthenticated: onAuthenticated,
+                    onError: (error) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Erreur de connexion : $error')),
+                      );
+                    },
+                  ),
+                  // The built-in anonymous button always surfaces a server
+                  // error — replaced below by one that falls back to a
+                  // local guest profile when the server is unreachable.
+                  disableAnonymousSignInWidget: true,
+                  // Shared look for every provider button (pill, coral) —
+                  // matches the maquette's single-accent-color aesthetic.
+                  buttonStyle: const SignInButtonStyle(
+                    shape: SignInButtonShape.pill,
+                    backgroundColor: LoginScreen._primary,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
               ),
             ),
+            if (!hasNetwork)
+              const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Text(
+                  'Pas de connexion internet : indisponible hors-ligne.',
+                  style: TextStyle(color: Colors.white38, fontSize: 12),
+                  textAlign: TextAlign.center,
+                ),
+              ),
             const SizedBox(height: 12),
             AnonymousSignInButton(
               onPressed: isGuestLoading

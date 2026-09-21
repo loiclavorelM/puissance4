@@ -4,6 +4,14 @@
 # référencer qu'un autre modèle `database: sync` (à l'exception de
 # spaceId -> offline_sync_spaces.id), donc pas de FK possible ici vers
 # User/Player/Bot qui restent `database: server`.
+#
+# Pas de champ userId : le rattachement au bon utilisateur se fait via le
+# `spaceId` géré par le moteur CRDT lui-même — la session client est ouverte
+# avec `persistentUserId: authUserId` (vérifié empiriquement : le serveur ne
+# synchronise que les spaces qu'il reconnaît comme appartenant à
+# l'utilisateur authentifié), donc chaque ligne est déjà dans le bon space
+# dès sa création. Un vrai mode 100% hors-ligne (sans authUserId du tout)
+# n'est donc pas synchronisable avec ce mécanisme — limitation acceptée.
 class: OfflineMatchResult
 table: offline_match_result
 database: sync
