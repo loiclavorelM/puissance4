@@ -29,6 +29,28 @@ class OfflineSyncSessionHolder {
   // (observé en test).
   Future<OfflineSyncDatabaseSession>? _sessionFuture;
 
+  /// Resynchronise la session déjà ouverte, si elle existe — ne la crée
+  /// jamais elle-même (voir [getOrCreate] pour ses pré-requis) : rien à
+  /// synchroniser tant que rien ne l'a ouverte. Pensé pour être appelé sur
+  /// chaque retour de connexion serveur (voir `offlineSyncOnReconnectProvider`)
+  /// plutôt que de compter sur une action utilisateur (ex. le bouton dev
+  /// "Simuler une partie") pour remonter des écritures faites hors-ligne.
+  Future<void> syncIfOpen() async {
+    final pending = _sessionFuture;
+    if (pending == null) return;
+    try {
+      final session = await pending;
+      await client.offlineSync.syncOnce(session);
+    } on ServerpodClientNetworkException {
+      // Le serveur vient d'annoncer "connected" mais peut redevenir
+      // injoignable entre-temps — pas grave, on retentera au prochain
+      // signal de reconnexion.
+    } on MethodStreamException {
+      // Idem — syncOnce ouvre un method stream (WebSocket), ses échecs
+      // réseau remontent ainsi, pas en ServerpodClientNetworkException.
+    }
+  }
+
   Future<OfflineSyncDatabaseSession> getOrCreate() {
     final authUserId = client.auth.authInfo?.authUserId;
     if (authUserId == null) {

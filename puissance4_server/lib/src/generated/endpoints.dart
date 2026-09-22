@@ -10,6 +10,8 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:puissance4_server/src/generated/game/enum_type.dart'
+    as _ijl03sjm;
 import 'package:serverpod/serverpod.dart' as _is;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _iacs;
@@ -24,6 +26,7 @@ import '../auth/jwt_refresh_endpoint.dart' as _inwq3ztq;
 import '../connection/connection_endpoint.dart' as _in8dx5ef;
 import '../game/dev_simulate_endpoint.dart' as _iqkago6i;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
+import '../history/history_endpoint.dart' as _iqb2o93i;
 import '../profile/profile_endpoint.dart' as _i6ky944g;
 
 class Endpoints extends _is.EndpointDispatch {
@@ -70,6 +73,12 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'greeting',
+          null,
+        ),
+      'history': _iqb2o93i.HistoryEndpoint()
+        ..initialize(
+          server,
+          'history',
           null,
         ),
       'profile': _i6ky944g.ProfileEndpoint()
@@ -438,6 +447,62 @@ class Endpoints extends _is.EndpointDispatch {
                   (endpoints['greeting'] as _il624ik7.GreetingEndpoint).hello(
                     session,
                     params['name'],
+                  ),
+        ),
+      },
+    );
+    connectors['history'] = _is.EndpointConnector(
+      name: 'history',
+      endpoint: endpoints['history']!,
+      methodConnectors: {
+        'getListHistories': _is.MethodConnector(
+          name: 'getListHistories',
+          params: {
+            'typePartie': _is.ParameterDescription(
+              name: 'typePartie',
+              type: _is.getType<_ijl03sjm.EnumType?>(),
+              nullable: true,
+            ),
+            'limit': _is.ParameterDescription(
+              name: 'limit',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'offset': _is.ParameterDescription(
+              name: 'offset',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['history'] as _iqb2o93i.HistoryEndpoint)
+                  .getListHistories(
+                    session,
+                    typePartie: params['typePartie'],
+                    limit: params['limit'],
+                    offset: params['offset'],
+                  ),
+        ),
+        'getHistory': _is.MethodConnector(
+          name: 'getHistory',
+          params: {
+            'idPartie': _is.ParameterDescription(
+              name: 'idPartie',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['history'] as _iqb2o93i.HistoryEndpoint)
+                  .getHistory(
+                    session,
+                    idPartie: params['idPartie'],
                   ),
         ),
       },

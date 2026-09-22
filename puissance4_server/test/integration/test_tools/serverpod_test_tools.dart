@@ -13,8 +13,12 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _ida;
 import 'dart:io' as _idi;
+import 'package:puissance4_server/src/generated/game/enum_type.dart'
+    as _ijl03sjm;
 import 'package:puissance4_server/src/generated/greetings/greeting.dart'
     as _ic4bze0k;
+import 'package:puissance4_server/src/generated/history/history_dto.dart'
+    as _islja9se;
 import 'package:puissance4_server/src/generated/profile/user_profile_dto.dart'
     as _is7wjsnn;
 import 'package:serverpod/serverpod.dart' as _is;
@@ -163,6 +167,8 @@ class TestEndpoints {
 
   late final _GreetingEndpoint greeting;
 
+  late final _HistoryEndpoint history;
+
   late final _ProfileEndpoint profile;
 }
 
@@ -198,6 +204,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     greeting = _GreetingEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    history = _HistoryEndpoint(
       endpoints,
       serializationManager,
     );
@@ -793,6 +803,85 @@ class _GreetingEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<_ic4bze0k.Greeting>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _HistoryEndpoint {
+  _HistoryEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<List<_islja9se.HistoryDto>> getListHistories(
+    _ist.TestSessionBuilder sessionBuilder, {
+    _ijl03sjm.EnumType? typePartie,
+    required int limit,
+    required int offset,
+  }) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'history',
+            method: 'getListHistories',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'history',
+          methodName: 'getListHistories',
+          parameters: _ist.testObjectToJson({
+            'typePartie': typePartie,
+            'limit': limit,
+            'offset': offset,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_islja9se.HistoryDto>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<_islja9se.HistoryDto> getHistory(
+    _ist.TestSessionBuilder sessionBuilder, {
+    required _is.UuidValue idPartie,
+  }) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'history',
+            method: 'getHistory',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'history',
+          methodName: 'getHistory',
+          parameters: _ist.testObjectToJson({'idPartie': idPartie}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_islja9se.HistoryDto>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

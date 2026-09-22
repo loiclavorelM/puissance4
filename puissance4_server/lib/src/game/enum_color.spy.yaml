@@ -1,0 +1,9 @@
+# La couleur/place qu'un joueur occupe dans une partie — jamais "draw"
+# (contrairement à EnumOutcome, qui est le résultat de la partie : jaune,
+# rouge, ou match nul). Deux enums distincts précisément pour ça : rien
+# n'empêchait avant qu'un champ "quelle couleur ai-je jouée" accepte "draw"
+# au niveau du typage.
+enum: EnumColor
+values:
+  - jaune
+  - rouge

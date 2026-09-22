@@ -1,6 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart';
 
+import '../game/enum_color_extensions.dart';
 import '../generated/protocol.dart';
 
 class ProfileEndpoint extends Endpoint {
@@ -48,9 +49,9 @@ class ProfileEndpoint extends Endpoint {
 
     final victoires = parties.where((partie) {
       final mine = myPlayerIds.contains(partie.playerRougeId)
-          ? EnumPlayer.rouge
-          : EnumPlayer.jaune;
-      return partie.winner == mine;
+          ? EnumColor.rouge
+          : EnumColor.jaune;
+      return partie.winner == mine.asOutcome;
     }).length;
 
     return UserProfileDto(

@@ -7,7 +7,7 @@ fields:
   typePartie: EnumType
   playerRougeId: UuidValue, relation(parent=player)
   playerJauneId: UuidValue, relation(parent=player)
-  winner: EnumPlayer?
+  winner: EnumOutcome?
   status: EnumStatut
   moves: List<int>
   createdAt: DateTime, default=now

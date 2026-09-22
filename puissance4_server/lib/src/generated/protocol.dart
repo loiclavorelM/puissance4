@@ -11,6 +11,8 @@
 // ignore_for_file: dead_code, unnecessary_type_check
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:puissance4_server/src/generated/history/history_dto.dart'
+    as _islja9se;
 import 'package:serverpod/protocol.dart' as _isp;
 import 'package:serverpod/serverpod.dart' as _is;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
@@ -21,27 +23,31 @@ import 'package:serverpod_offline_sync_server/serverpod_offline_sync_server.dart
     as _izehhkf5;
 import 'bot/bot.dart' as _iij7x2jd;
 import 'bot/enum_bot_level.dart' as _i65o1ott;
+import 'game/enum_color.dart' as _im0plaxm;
 import 'game/enum_match_result.dart' as _iyr3fkva;
-import 'game/enum_player.dart' as _iugmtbin;
+import 'game/enum_outcome.dart' as _imvh44pi;
 import 'game/enum_statut.dart' as _ip6diune;
 import 'game/enum_type.dart' as _ig2x4mxg;
 import 'game/offline_match_result.dart' as _ir8nzxqr;
 import 'game/partie.dart' as _iuas6tq9;
 import 'game/player.dart' as _id5q07gg;
 import 'greetings/greeting.dart' as _izw8z7ou;
+import 'history/history_dto.dart' as _inn2tdi6;
 import 'profile/user.dart' as _iytd8mlf;
 import 'profile/user_profile_dto.dart' as _ivqmpbel;
 import 'ranked/elo_history.dart' as _i8na2re5;
 export 'bot/bot.dart';
 export 'bot/enum_bot_level.dart';
+export 'game/enum_color.dart';
 export 'game/enum_match_result.dart';
-export 'game/enum_player.dart';
+export 'game/enum_outcome.dart';
 export 'game/enum_statut.dart';
 export 'game/enum_type.dart';
 export 'game/offline_match_result.dart';
 export 'game/partie.dart';
 export 'game/player.dart';
 export 'greetings/greeting.dart';
+export 'history/history_dto.dart';
 export 'profile/user.dart';
 export 'profile/user_profile_dto.dart';
 export 'ranked/elo_history.dart';
@@ -287,7 +293,7 @@ class Protocol extends _is.DatabaseSerializationManager {
           name: 'winner',
           columnType: _isp.ColumnType.text,
           isNullable: true,
-          dartType: 'protocol:EnumPlayer?',
+          dartType: 'protocol:EnumOutcome?',
         ),
         _isp.ColumnDefinition(
           name: 'status',
@@ -511,11 +517,14 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _i65o1ott.EnumBotLevel) {
       return _i65o1ott.EnumBotLevel.fromJson(data) as T;
     }
+    if (t == _im0plaxm.EnumColor) {
+      return _im0plaxm.EnumColor.fromJson(data) as T;
+    }
     if (t == _iyr3fkva.EnumMatchResult) {
       return _iyr3fkva.EnumMatchResult.fromJson(data) as T;
     }
-    if (t == _iugmtbin.EnumPlayer) {
-      return _iugmtbin.EnumPlayer.fromJson(data) as T;
+    if (t == _imvh44pi.EnumOutcome) {
+      return _imvh44pi.EnumOutcome.fromJson(data) as T;
     }
     if (t == _ip6diune.EnumStatut) {
       return _ip6diune.EnumStatut.fromJson(data) as T;
@@ -535,6 +544,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _izw8z7ou.Greeting) {
       return _izw8z7ou.Greeting.fromJson(data) as T;
     }
+    if (t == _inn2tdi6.HistoryDto) {
+      return _inn2tdi6.HistoryDto.fromJson(data) as T;
+    }
     if (t == _iytd8mlf.User) {
       return _iytd8mlf.User.fromJson(data) as T;
     }
@@ -550,12 +562,15 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_i65o1ott.EnumBotLevel?>()) {
       return (data != null ? _i65o1ott.EnumBotLevel.fromJson(data) : null) as T;
     }
+    if (t == _is.getType<_im0plaxm.EnumColor?>()) {
+      return (data != null ? _im0plaxm.EnumColor.fromJson(data) : null) as T;
+    }
     if (t == _is.getType<_iyr3fkva.EnumMatchResult?>()) {
       return (data != null ? _iyr3fkva.EnumMatchResult.fromJson(data) : null)
           as T;
     }
-    if (t == _is.getType<_iugmtbin.EnumPlayer?>()) {
-      return (data != null ? _iugmtbin.EnumPlayer.fromJson(data) : null) as T;
+    if (t == _is.getType<_imvh44pi.EnumOutcome?>()) {
+      return (data != null ? _imvh44pi.EnumOutcome.fromJson(data) : null) as T;
     }
     if (t == _is.getType<_ip6diune.EnumStatut?>()) {
       return (data != null ? _ip6diune.EnumStatut.fromJson(data) : null) as T;
@@ -576,6 +591,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_izw8z7ou.Greeting?>()) {
       return (data != null ? _izw8z7ou.Greeting.fromJson(data) : null) as T;
     }
+    if (t == _is.getType<_inn2tdi6.HistoryDto?>()) {
+      return (data != null ? _inn2tdi6.HistoryDto.fromJson(data) : null) as T;
+    }
     if (t == _is.getType<_iytd8mlf.User?>()) {
       return (data != null ? _iytd8mlf.User.fromJson(data) : null) as T;
     }
@@ -588,6 +606,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == List<int>) {
       return (data as List).map((e) => deserialize<int>(e)).toList() as T;
+    }
+    if (t == List<_islja9se.HistoryDto>) {
+      return (data as List)
+              .map((e) => deserialize<_islja9se.HistoryDto>(e))
+              .toList()
+          as T;
     }
     try {
       return _iacs.Protocol().deserialize<T>(data, t);
@@ -608,14 +632,16 @@ class Protocol extends _is.DatabaseSerializationManager {
     return switch (type) {
       _iij7x2jd.Bot => 'Bot',
       _i65o1ott.EnumBotLevel => 'EnumBotLevel',
+      _im0plaxm.EnumColor => 'EnumColor',
       _iyr3fkva.EnumMatchResult => 'EnumMatchResult',
-      _iugmtbin.EnumPlayer => 'EnumPlayer',
+      _imvh44pi.EnumOutcome => 'EnumOutcome',
       _ip6diune.EnumStatut => 'EnumStatut',
       _ig2x4mxg.EnumType => 'EnumType',
       _ir8nzxqr.OfflineMatchResult => 'OfflineMatchResult',
       _iuas6tq9.Partie => 'Partie',
       _id5q07gg.Player => 'Player',
       _izw8z7ou.Greeting => 'Greeting',
+      _inn2tdi6.HistoryDto => 'HistoryDto',
       _iytd8mlf.User => 'User',
       _ivqmpbel.UserProfileDto => 'UserProfileDto',
       _i8na2re5.EloHistory => 'EloHistory',
@@ -637,10 +663,12 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'Bot';
       case _i65o1ott.EnumBotLevel():
         return 'EnumBotLevel';
+      case _im0plaxm.EnumColor():
+        return 'EnumColor';
       case _iyr3fkva.EnumMatchResult():
         return 'EnumMatchResult';
-      case _iugmtbin.EnumPlayer():
-        return 'EnumPlayer';
+      case _imvh44pi.EnumOutcome():
+        return 'EnumOutcome';
       case _ip6diune.EnumStatut():
         return 'EnumStatut';
       case _ig2x4mxg.EnumType():
@@ -653,6 +681,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'Player';
       case _izw8z7ou.Greeting():
         return 'Greeting';
+      case _inn2tdi6.HistoryDto():
+        return 'HistoryDto';
       case _iytd8mlf.User():
         return 'User';
       case _ivqmpbel.UserProfileDto():
@@ -697,11 +727,14 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'EnumBotLevel') {
       return deserialize<_i65o1ott.EnumBotLevel>(data['data']);
     }
+    if (dataClassName == 'EnumColor') {
+      return deserialize<_im0plaxm.EnumColor>(data['data']);
+    }
     if (dataClassName == 'EnumMatchResult') {
       return deserialize<_iyr3fkva.EnumMatchResult>(data['data']);
     }
-    if (dataClassName == 'EnumPlayer') {
-      return deserialize<_iugmtbin.EnumPlayer>(data['data']);
+    if (dataClassName == 'EnumOutcome') {
+      return deserialize<_imvh44pi.EnumOutcome>(data['data']);
     }
     if (dataClassName == 'EnumStatut') {
       return deserialize<_ip6diune.EnumStatut>(data['data']);
@@ -720,6 +753,9 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (dataClassName == 'Greeting') {
       return deserialize<_izw8z7ou.Greeting>(data['data']);
+    }
+    if (dataClassName == 'HistoryDto') {
+      return deserialize<_inn2tdi6.HistoryDto>(data['data']);
     }
     if (dataClassName == 'User') {
       return deserialize<_iytd8mlf.User>(data['data']);

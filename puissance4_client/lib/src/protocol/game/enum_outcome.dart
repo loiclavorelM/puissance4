@@ -12,22 +12,22 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _isc;
 
-enum EnumPlayer implements _isc.SerializableModel {
+enum EnumOutcome implements _isc.SerializableModel {
   jaune,
   rouge,
   draw;
 
-  static EnumPlayer fromJson(String name) {
+  static EnumOutcome fromJson(String name) {
     switch (name) {
       case 'jaune':
-        return EnumPlayer.jaune;
+        return EnumOutcome.jaune;
       case 'rouge':
-        return EnumPlayer.rouge;
+        return EnumOutcome.rouge;
       case 'draw':
-        return EnumPlayer.draw;
+        return EnumOutcome.draw;
       default:
         throw ArgumentError(
-          'Value "$name" cannot be converted to "EnumPlayer"',
+          'Value "$name" cannot be converted to "EnumOutcome"',
         );
     }
   }

@@ -6,6 +6,7 @@ import 'package:puissance4_client/puissance4_client.dart';
 import 'package:serverpod_offline_sync_client/serverpod_offline_sync_client.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/coming_soon_tab.dart';
 import '../../../client.dart';
 import '../../auth/viewmodel/auth_viewmodel.dart';
 import '../../offline/viewmodel/offline_sync_provider.dart';
@@ -98,11 +99,20 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
             ],
           ),
           const SizedBox(height: 20),
+          if (state.hasProfileError)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 12),
+              child: Text(
+                "Impossible de charger tes stats à jour — "
+                "valeurs par défaut affichées.",
+                style: TextStyle(color: AppColors.yellow, fontSize: 12),
+              ),
+            ),
           Row(
             children: [
               Expanded(
                 child: _StatTile(
-                  value: '${state.parties}',
+                  value: state.isProfileLoading ? '…' : '${state.parties}',
                   label: 'Parties',
                   color: Colors.white,
                 ),
@@ -110,7 +120,7 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: _StatTile(
-                  value: '${state.victoires}',
+                  value: state.isProfileLoading ? '…' : '${state.victoires}',
                   label: 'Victoires',
                   color: AppColors.green,
                 ),
@@ -118,7 +128,7 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: _StatTile(
-                  value: '${state.elo}',
+                  value: state.isProfileLoading ? '…' : '${state.elo}',
                   label: 'ELO',
                   color: AppColors.yellow,
                 ),
@@ -141,7 +151,7 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
             color: AppColors.primary,
             title: 'Normal',
             subtitle: 'Choisis la difficulté du bot',
-            onTap: () => _showComingSoon(context),
+            onTap: () => showComingSoonSnackBar(context),
           ),
           const SizedBox(height: 12),
           _ModeCard(
@@ -149,7 +159,7 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
             color: AppColors.green,
             title: 'Multijoueur',
             subtitle: 'Défie un ami en 1v1',
-            onTap: () => _showComingSoon(context),
+            onTap: () => showComingSoonSnackBar(context),
           ),
           const SizedBox(height: 32),
           const Divider(color: Colors.white12),
@@ -192,12 +202,6 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
         ],
       ),
     );
-  }
-
-  void _showComingSoon(BuildContext context) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Bientôt disponible')));
   }
 
   String _initialsOf(String username) {

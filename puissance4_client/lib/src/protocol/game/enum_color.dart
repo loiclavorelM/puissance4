@@ -10,25 +10,20 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:serverpod/serverpod.dart' as _is;
+import 'package:serverpod_client/serverpod_client.dart' as _isc;
 
-enum EnumPlayer implements _is.SerializableModel {
+enum EnumColor implements _isc.SerializableModel {
   jaune,
-  rouge,
-  draw;
+  rouge;
 
-  static EnumPlayer fromJson(String name) {
+  static EnumColor fromJson(String name) {
     switch (name) {
       case 'jaune':
-        return EnumPlayer.jaune;
+        return EnumColor.jaune;
       case 'rouge':
-        return EnumPlayer.rouge;
-      case 'draw':
-        return EnumPlayer.draw;
+        return EnumColor.rouge;
       default:
-        throw ArgumentError(
-          'Value "$name" cannot be converted to "EnumPlayer"',
-        );
+        throw ArgumentError('Value "$name" cannot be converted to "EnumColor"');
     }
   }
 

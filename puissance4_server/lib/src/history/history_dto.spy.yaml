@@ -1,0 +1,16 @@
+# DTO renvoyé par HistoryEndpoint (doc/05-endpoints.md) — pas de `table:` :
+# simple modèle sérialisable, pas persisté. Unifie Partie (Multi/Classé) et
+# OfflineMatchResult (Normal) à la lecture — voir history_endpoint.dart.
+class: HistoryDto
+fields:
+  id: UuidValue
+  date: DateTime
+  typePartie: EnumType
+  adversaire: String
+  # Résultat relatif à l'appelant (pas EnumOutcome — jaune/rouge n'a pas de
+  # notion de victoire/défaite en soi, il faudrait comparer côté client).
+  resultat: EnumMatchResult
+  # Couleur jouée par l'appelant. Pilote le point coloré du mockup
+  # (maquette-6.png) quand il n'y a pas d'Elo.
+  playedAs: EnumColor
+  eloVariation: int?

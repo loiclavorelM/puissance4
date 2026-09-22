@@ -2,6 +2,15 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 
+/// SnackBar générique pour une action pas encore construite — partagé pour
+/// éviter de recopier le même `ScaffoldMessenger.showSnackBar` dans chaque
+/// écran qui a des affordances en attendant leur epic.
+void showComingSoonSnackBar(BuildContext context) {
+  ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(const SnackBar(content: Text('Bientôt disponible')));
+}
+
 /// Corps d'un onglet de la coquille principale pas encore implémenté —
 /// titre + "Pas encore implémenté" sur fond sombre. Partagé pour éviter de
 /// recopier ce même bloc dans chaque nouvel onglet en attendant son epic.

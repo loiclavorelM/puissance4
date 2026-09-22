@@ -12,7 +12,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:puissance4_server/src/generated/protocol.dart' as _irho11n9;
 import 'package:serverpod/serverpod.dart' as _is;
-import '../game/enum_player.dart' as _i90y028l;
+import '../game/enum_outcome.dart' as _ilk7rg3u;
 import '../game/enum_statut.dart' as _irc493lf;
 import '../game/enum_type.dart' as _iu5mz6ho;
 
@@ -37,7 +37,7 @@ abstract class Partie
     required _iu5mz6ho.EnumType typePartie,
     required _is.UuidValue playerRougeId,
     required _is.UuidValue playerJauneId,
-    _i90y028l.EnumPlayer? winner,
+    _ilk7rg3u.EnumOutcome? winner,
     required _irc493lf.EnumStatut status,
     required List<int> moves,
     DateTime? createdAt,
@@ -61,7 +61,7 @@ abstract class Partie
       ),
       winner: jsonSerialization['winner'] == null
           ? null
-          : _i90y028l.EnumPlayer.fromJson(
+          : _ilk7rg3u.EnumOutcome.fromJson(
               (jsonSerialization['winner'] as String),
             ),
       status: _irc493lf.EnumStatut.fromJson(
@@ -94,7 +94,7 @@ abstract class Partie
 
   _is.UuidValue playerJauneId;
 
-  _i90y028l.EnumPlayer? winner;
+  _ilk7rg3u.EnumOutcome? winner;
 
   _irc493lf.EnumStatut status;
 
@@ -116,7 +116,7 @@ abstract class Partie
     _iu5mz6ho.EnumType? typePartie,
     _is.UuidValue? playerRougeId,
     _is.UuidValue? playerJauneId,
-    _i90y028l.EnumPlayer? winner,
+    _ilk7rg3u.EnumOutcome? winner,
     _irc493lf.EnumStatut? status,
     List<int>? moves,
     DateTime? createdAt,
@@ -193,7 +193,7 @@ class _PartieImpl extends Partie {
     required _iu5mz6ho.EnumType typePartie,
     required _is.UuidValue playerRougeId,
     required _is.UuidValue playerJauneId,
-    _i90y028l.EnumPlayer? winner,
+    _ilk7rg3u.EnumOutcome? winner,
     required _irc493lf.EnumStatut status,
     required List<int> moves,
     DateTime? createdAt,
@@ -233,7 +233,7 @@ class _PartieImpl extends Partie {
       typePartie: typePartie ?? this.typePartie,
       playerRougeId: playerRougeId ?? this.playerRougeId,
       playerJauneId: playerJauneId ?? this.playerJauneId,
-      winner: winner is _i90y028l.EnumPlayer? ? winner : this.winner,
+      winner: winner is _ilk7rg3u.EnumOutcome? ? winner : this.winner,
       status: status ?? this.status,
       moves: moves ?? this.moves.map((e0) => e0).toList(),
       createdAt: createdAt ?? this.createdAt,
@@ -271,8 +271,8 @@ class PartieUpdateTable extends _is.UpdateTable<PartieTable> {
     value,
   );
 
-  _is.ColumnValue<_i90y028l.EnumPlayer, _i90y028l.EnumPlayer> winner(
-    _i90y028l.EnumPlayer? value,
+  _is.ColumnValue<_ilk7rg3u.EnumOutcome, _ilk7rg3u.EnumOutcome> winner(
+    _ilk7rg3u.EnumOutcome? value,
   ) => _is.ColumnValue(
     table.winner,
     value,
@@ -359,7 +359,7 @@ class PartieTable extends _is.Table<_is.UuidValue?> {
 
   late final _is.ColumnUuid playerJauneId;
 
-  late final _is.ColumnEnum<_i90y028l.EnumPlayer> winner;
+  late final _is.ColumnEnum<_ilk7rg3u.EnumOutcome> winner;
 
   late final _is.ColumnEnum<_irc493lf.EnumStatut> status;
 

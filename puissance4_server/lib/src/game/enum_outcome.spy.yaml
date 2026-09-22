@@ -1,4 +1,4 @@
-enum: EnumPlayer
+enum: EnumOutcome
 values:
   - jaune
   - rouge

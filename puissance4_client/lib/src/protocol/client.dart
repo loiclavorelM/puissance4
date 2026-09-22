@@ -12,8 +12,12 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _ida;
 import 'package:http/http.dart' as _i85jenna;
+import 'package:puissance4_client/src/protocol/game/enum_type.dart'
+    as _i6ui2hi8;
 import 'package:puissance4_client/src/protocol/greetings/greeting.dart'
     as _i45e1izr;
+import 'package:puissance4_client/src/protocol/history/history_dto.dart'
+    as _igkkg43x;
 import 'package:puissance4_client/src/protocol/profile/user_profile_dto.dart'
     as _i5lufru8;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
@@ -389,6 +393,41 @@ class EndpointGreeting extends _isc.EndpointRef {
       );
 }
 
+/// Historique des parties de l'appelant (E9) — ne couvre que Multi/Classé
+/// (`Partie`). Normal (`OfflineMatchResult`) est une table `database: sync`
+/// sans FK vers `User` : elle est lue côté client depuis la session de
+/// synchro locale déjà ouverte, pas via cet endpoint. Voir le plan Historique
+/// pour le détail de cette séparation volontaire.
+/// {@category Endpoint}
+class EndpointHistory extends _isc.EndpointRef {
+  EndpointHistory(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'history';
+
+  _ida.Future<List<_igkkg43x.HistoryDto>> getListHistories({
+    _i6ui2hi8.EnumType? typePartie,
+    required int limit,
+    required int offset,
+  }) => caller.callServerEndpoint<List<_igkkg43x.HistoryDto>>(
+    'history',
+    'getListHistories',
+    {
+      'typePartie': typePartie,
+      'limit': limit,
+      'offset': offset,
+    },
+  );
+
+  _ida.Future<_igkkg43x.HistoryDto> getHistory({
+    required _isc.UuidValue idPartie,
+  }) => caller.callServerEndpoint<_igkkg43x.HistoryDto>(
+    'history',
+    'getHistory',
+    {'idPartie': idPartie},
+  );
+}
+
 /// {@category Endpoint}
 class EndpointProfile extends _isc.EndpointRef {
   EndpointProfile(_isc.EndpointCaller caller) : super(caller);
@@ -452,6 +491,7 @@ class Client extends _isc.ServerpodClientShared {
     connection = EndpointConnection(this);
     devSimulate = EndpointDevSimulate(this);
     greeting = EndpointGreeting(this);
+    history = EndpointHistory(this);
     profile = EndpointProfile(this);
     modules = Modules(this);
   }
@@ -470,6 +510,8 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointGreeting greeting;
 
+  late final EndpointHistory history;
+
   late final EndpointProfile profile;
 
   late final Modules modules;
@@ -483,6 +525,7 @@ class Client extends _isc.ServerpodClientShared {
     'connection': connection,
     'devSimulate': devSimulate,
     'greeting': greeting,
+    'history': history,
     'profile': profile,
   };
 

@@ -21,5 +21,8 @@ devSimulate:
   - simulatePartie:
 greeting:
   - hello:
+history:
+  - getListHistories:
+  - getHistory:
 profile:
   - getMyProfile:

@@ -7,9 +7,11 @@ import 'features/auth/view/login_screen.dart';
 import 'features/auth/viewmodel/auth_viewmodel.dart';
 import 'features/game/view/game_home_screen.dart';
 import 'features/history/view/history_screen.dart';
+import 'features/history/viewmodel/history_viewmodel.dart';
 import 'features/leaderboard/view/leaderboard_screen.dart';
 import 'features/offline/model/server_connection_pinger.dart';
 import 'features/offline/model/server_connection_tracker.dart';
+import 'features/offline/viewmodel/offline_sync_provider.dart';
 import 'features/settings/view/settings_screen.dart';
 
 late final ServerConnectionPinger serverConnectionPinger;
@@ -97,10 +99,12 @@ class _AuthGate extends ConsumerWidget {
   }
 }
 
-/// Coquille de navigation principale (post connexion) — 4 onglets : Jouer,
-/// Classement, Historique, Réglages (`doc/latex/figures/maquette-2.png` et
-/// suivantes). `IndexedStack` garde l'état de chaque onglet en mémoire
-/// (ex. le bouton de test en cours sur Jouer) quand on change d'onglet.
+/// Coquille de navigation principale (post connexion) — 3 onglets : Jouer,
+/// Classement, Historique (`doc/latex/figures/maquette-2.png` et
+/// suivantes). Réglages n'a pas son propre onglet : l'icône engrenage de
+/// l'écran Jouer le pousse en route à part (pas besoin des deux accès).
+/// `IndexedStack` garde l'état de chaque onglet en mémoire (ex. le bouton de
+/// test en cours sur Jouer) quand on change d'onglet.
 class _MainShell extends ConsumerStatefulWidget {
   const _MainShell();
 
@@ -109,17 +113,40 @@ class _MainShell extends ConsumerStatefulWidget {
 }
 
 class _MainShellState extends ConsumerState<_MainShell> {
+  static const _historyTabIndex = 2;
+
   int _selectedIndex = 0;
 
-  void _openTab(int index) => setState(() => _selectedIndex = index);
+  void _openTab(int index) {
+    setState(() => _selectedIndex = index);
+    // `historyListProvider` reste vivant en permanence (l'IndexedStack ne
+    // démonte jamais HistoryScreen), donc rien ne le refait tourner tout
+    // seul quand une partie est simulée pendant qu'on est sur un autre
+    // onglet — on force un refetch à chaque fois qu'on y revient plutôt que
+    // de disperser des `ref.invalidate` dans chaque action qui crée une
+    // partie (dev aujourd'hui, vrai moteur de jeu plus tard).
+    if (index == _historyTabIndex) {
+      ref.invalidate(historyListProvider);
+    }
+  }
+
+  void _openSettings() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const SettingsScreen()));
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Garde `offlineSyncOnReconnectProvider` vivant tant que l'app est
+    // connectée/en invité — sans ça, rien ne le construit puisqu'aucune
+    // vue n'a besoin de sa valeur (`void`), seulement de son effet de bord.
+    ref.watch(offlineSyncOnReconnectProvider);
+
     final screens = [
-      GameHomeScreen(onOpenSettings: () => _openTab(3)),
+      GameHomeScreen(onOpenSettings: _openSettings),
       const LeaderboardScreen(),
       const HistoryScreen(),
-      const SettingsScreen(),
     ];
 
     return Scaffold(
@@ -164,11 +191,6 @@ class _MainShellState extends ConsumerState<_MainShell> {
             NavigationDestination(
               icon: Icon(Icons.history),
               label: 'Historique',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.settings_outlined),
-              selectedIcon: Icon(Icons.settings),
-              label: 'Réglages',
             ),
           ],
         ),

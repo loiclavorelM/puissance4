@@ -43,8 +43,8 @@ class DevSimulateEndpoint extends Endpoint {
     );
 
     final winner = userWins
-        ? (userIsRouge ? EnumPlayer.rouge : EnumPlayer.jaune)
-        : (userIsRouge ? EnumPlayer.jaune : EnumPlayer.rouge);
+        ? (userIsRouge ? EnumOutcome.rouge : EnumOutcome.jaune)
+        : (userIsRouge ? EnumOutcome.jaune : EnumOutcome.rouge);
 
     await Partie.db.insertRow(
       session,
