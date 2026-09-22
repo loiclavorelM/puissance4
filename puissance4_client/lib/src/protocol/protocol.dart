@@ -13,6 +13,8 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:puissance4_client/src/protocol/history/history_dto.dart'
     as _igkkg43x;
+import 'package:puissance4_client/src/protocol/leaderboard/leaderboard_dto.dart'
+    as _ihkbd7x6;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _iacc;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
@@ -33,6 +35,7 @@ import 'game/partie.dart' as _iuas6tq9;
 import 'game/player.dart' as _id5q07gg;
 import 'greetings/greeting.dart' as _izw8z7ou;
 import 'history/history_dto.dart' as _inn2tdi6;
+import 'leaderboard/leaderboard_dto.dart' as _i6lckwy9;
 import 'profile/user.dart' as _iytd8mlf;
 import 'profile/user_profile_dto.dart' as _ivqmpbel;
 import 'ranked/elo_history.dart' as _i8na2re5;
@@ -48,6 +51,7 @@ export 'game/partie.dart';
 export 'game/player.dart';
 export 'greetings/greeting.dart';
 export 'history/history_dto.dart';
+export 'leaderboard/leaderboard_dto.dart';
 export 'profile/user.dart';
 export 'profile/user_profile_dto.dart';
 export 'ranked/elo_history.dart';
@@ -205,6 +209,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _inn2tdi6.HistoryDto) {
       return _inn2tdi6.HistoryDto.fromJson(data) as T;
     }
+    if (t == _i6lckwy9.LeaderboardEntryDto) {
+      return _i6lckwy9.LeaderboardEntryDto.fromJson(data) as T;
+    }
     if (t == _iytd8mlf.User) {
       return _iytd8mlf.User.fromJson(data) as T;
     }
@@ -252,6 +259,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _isc.getType<_inn2tdi6.HistoryDto?>()) {
       return (data != null ? _inn2tdi6.HistoryDto.fromJson(data) : null) as T;
     }
+    if (t == _isc.getType<_i6lckwy9.LeaderboardEntryDto?>()) {
+      return (data != null
+              ? _i6lckwy9.LeaderboardEntryDto.fromJson(data)
+              : null)
+          as T;
+    }
     if (t == _isc.getType<_iytd8mlf.User?>()) {
       return (data != null ? _iytd8mlf.User.fromJson(data) : null) as T;
     }
@@ -268,6 +281,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == List<_igkkg43x.HistoryDto>) {
       return (data as List)
               .map((e) => deserialize<_igkkg43x.HistoryDto>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_ihkbd7x6.LeaderboardEntryDto>) {
+      return (data as List)
+              .map((e) => deserialize<_ihkbd7x6.LeaderboardEntryDto>(e))
               .toList()
           as T;
     }
@@ -297,6 +316,7 @@ class Protocol extends _isd.DatabaseSerializationManager {
       _id5q07gg.Player => 'Player',
       _izw8z7ou.Greeting => 'Greeting',
       _inn2tdi6.HistoryDto => 'HistoryDto',
+      _i6lckwy9.LeaderboardEntryDto => 'LeaderboardEntryDto',
       _iytd8mlf.User => 'User',
       _ivqmpbel.UserProfileDto => 'UserProfileDto',
       _i8na2re5.EloHistory => 'EloHistory',
@@ -338,6 +358,8 @@ class Protocol extends _isd.DatabaseSerializationManager {
         return 'Greeting';
       case _inn2tdi6.HistoryDto():
         return 'HistoryDto';
+      case _i6lckwy9.LeaderboardEntryDto():
+        return 'LeaderboardEntryDto';
       case _iytd8mlf.User():
         return 'User';
       case _ivqmpbel.UserProfileDto():
@@ -407,6 +429,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (dataClassName == 'HistoryDto') {
       return deserialize<_inn2tdi6.HistoryDto>(data['data']);
+    }
+    if (dataClassName == 'LeaderboardEntryDto') {
+      return deserialize<_i6lckwy9.LeaderboardEntryDto>(data['data']);
     }
     if (dataClassName == 'User') {
       return deserialize<_iytd8mlf.User>(data['data']);

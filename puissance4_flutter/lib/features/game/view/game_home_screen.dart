@@ -6,6 +6,7 @@ import 'package:puissance4_client/puissance4_client.dart';
 import 'package:serverpod_offline_sync_client/serverpod_offline_sync_client.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/initials.dart';
 import '../../../core/widgets/coming_soon_tab.dart';
 import '../../../client.dart';
 import '../../auth/viewmodel/auth_viewmodel.dart';
@@ -54,7 +55,7 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
                 radius: 26,
                 backgroundColor: AppColors.card,
                 child: Text(
-                  _initialsOf(state.username),
+                  initialsOf(state.username),
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -202,17 +203,6 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
         ],
       ),
     );
-  }
-
-  String _initialsOf(String username) {
-    final letters = username
-        .trim()
-        .split(RegExp(r'[\s-]+'))
-        .where((word) => word.isNotEmpty)
-        .map((word) => word[0].toUpperCase())
-        .take(2);
-    final result = letters.join();
-    return result.isEmpty ? '?' : result;
   }
 
   Future<void> _simulateMatch() async {

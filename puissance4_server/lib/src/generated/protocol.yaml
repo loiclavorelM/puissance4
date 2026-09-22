@@ -24,5 +24,8 @@ greeting:
 history:
   - getListHistories:
   - getHistory:
+leaderboard:
+  - getLeaderboard:
+  - getMyRank:
 profile:
   - getMyProfile:

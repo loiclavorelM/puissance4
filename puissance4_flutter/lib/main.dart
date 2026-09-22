@@ -9,6 +9,7 @@ import 'features/game/view/game_home_screen.dart';
 import 'features/history/view/history_screen.dart';
 import 'features/history/viewmodel/history_viewmodel.dart';
 import 'features/leaderboard/view/leaderboard_screen.dart';
+import 'features/leaderboard/viewmodel/leaderboard_viewmodel.dart';
 import 'features/offline/model/server_connection_pinger.dart';
 import 'features/offline/model/server_connection_tracker.dart';
 import 'features/offline/viewmodel/offline_sync_provider.dart';
@@ -113,18 +114,23 @@ class _MainShell extends ConsumerStatefulWidget {
 }
 
 class _MainShellState extends ConsumerState<_MainShell> {
+  static const _leaderboardTabIndex = 1;
   static const _historyTabIndex = 2;
 
   int _selectedIndex = 0;
 
   void _openTab(int index) {
     setState(() => _selectedIndex = index);
-    // `historyListProvider` reste vivant en permanence (l'IndexedStack ne
-    // démonte jamais HistoryScreen), donc rien ne le refait tourner tout
-    // seul quand une partie est simulée pendant qu'on est sur un autre
-    // onglet — on force un refetch à chaque fois qu'on y revient plutôt que
-    // de disperser des `ref.invalidate` dans chaque action qui crée une
-    // partie (dev aujourd'hui, vrai moteur de jeu plus tard).
+    // `historyListProvider`/`leaderboardProvider` restent vivants en
+    // permanence (l'IndexedStack ne démonte jamais leur écran), donc rien ne
+    // les refait tourner tout seuls quand une partie est simulée pendant
+    // qu'on est sur un autre onglet — on force un refetch à chaque fois
+    // qu'on y revient plutôt que de disperser des `ref.invalidate` dans
+    // chaque action qui crée une partie (dev aujourd'hui, vrai moteur de jeu
+    // plus tard).
+    if (index == _leaderboardTabIndex) {
+      ref.invalidate(leaderboardProvider);
+    }
     if (index == _historyTabIndex) {
       ref.invalidate(historyListProvider);
     }

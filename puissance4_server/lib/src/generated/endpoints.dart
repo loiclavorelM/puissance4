@@ -27,6 +27,7 @@ import '../connection/connection_endpoint.dart' as _in8dx5ef;
 import '../game/dev_simulate_endpoint.dart' as _iqkago6i;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
 import '../history/history_endpoint.dart' as _iqb2o93i;
+import '../leaderboard/leaderboard_endpoint.dart' as _io6aq3ur;
 import '../profile/profile_endpoint.dart' as _i6ky944g;
 
 class Endpoints extends _is.EndpointDispatch {
@@ -79,6 +80,12 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'history',
+          null,
+        ),
+      'leaderboard': _io6aq3ur.LeaderboardEndpoint()
+        ..initialize(
+          server,
+          'leaderboard',
           null,
         ),
       'profile': _i6ky944g.ProfileEndpoint()
@@ -504,6 +511,49 @@ class Endpoints extends _is.EndpointDispatch {
                     session,
                     idPartie: params['idPartie'],
                   ),
+        ),
+      },
+    );
+    connectors['leaderboard'] = _is.EndpointConnector(
+      name: 'leaderboard',
+      endpoint: endpoints['leaderboard']!,
+      methodConnectors: {
+        'getLeaderboard': _is.MethodConnector(
+          name: 'getLeaderboard',
+          params: {
+            'limit': _is.ParameterDescription(
+              name: 'limit',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'offset': _is.ParameterDescription(
+              name: 'offset',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['leaderboard'] as _io6aq3ur.LeaderboardEndpoint)
+                      .getLeaderboard(
+                        session,
+                        limit: params['limit'],
+                        offset: params['offset'],
+                      ),
+        ),
+        'getMyRank': _is.MethodConnector(
+          name: 'getMyRank',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['leaderboard'] as _io6aq3ur.LeaderboardEndpoint)
+                      .getMyRank(session),
         ),
       },
     );

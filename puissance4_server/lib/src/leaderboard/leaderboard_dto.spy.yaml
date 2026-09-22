@@ -1,0 +1,11 @@
+# DTO renvoyé par LeaderboardEndpoint (doc/05-endpoints.md) — pas de `table:` :
+# simple modèle sérialisable, pas persisté. Remplace `UserSummaryDto` (jamais
+# implémenté) : ajoute `rank`, nécessaire pour la ligne épinglée du joueur
+# courant quand elle est hors page (voir plan Classement).
+class: LeaderboardEntryDto
+fields:
+  id: UuidValue
+  rank: int
+  username: String
+  thumbnailUrl: String?
+  elo: int

@@ -19,6 +19,8 @@ import 'package:puissance4_server/src/generated/greetings/greeting.dart'
     as _ic4bze0k;
 import 'package:puissance4_server/src/generated/history/history_dto.dart'
     as _islja9se;
+import 'package:puissance4_server/src/generated/leaderboard/leaderboard_dto.dart'
+    as _i5549tex;
 import 'package:puissance4_server/src/generated/profile/user_profile_dto.dart'
     as _is7wjsnn;
 import 'package:serverpod/serverpod.dart' as _is;
@@ -169,6 +171,8 @@ class TestEndpoints {
 
   late final _HistoryEndpoint history;
 
+  late final _LeaderboardEndpoint leaderboard;
+
   late final _ProfileEndpoint profile;
 }
 
@@ -208,6 +212,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     history = _HistoryEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    leaderboard = _LeaderboardEndpoint(
       endpoints,
       serializationManager,
     );
@@ -882,6 +890,82 @@ class _HistoryEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<_islja9se.HistoryDto>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _LeaderboardEndpoint {
+  _LeaderboardEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<List<_i5549tex.LeaderboardEntryDto>> getLeaderboard(
+    _ist.TestSessionBuilder sessionBuilder, {
+    required int limit,
+    required int offset,
+  }) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'leaderboard',
+            method: 'getLeaderboard',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'leaderboard',
+          methodName: 'getLeaderboard',
+          parameters: _ist.testObjectToJson({
+            'limit': limit,
+            'offset': offset,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_i5549tex.LeaderboardEntryDto>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<_i5549tex.LeaderboardEntryDto> getMyRank(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'leaderboard',
+            method: 'getMyRank',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'leaderboard',
+          methodName: 'getMyRank',
+          parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_i5549tex.LeaderboardEntryDto>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

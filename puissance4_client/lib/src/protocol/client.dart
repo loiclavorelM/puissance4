@@ -18,6 +18,8 @@ import 'package:puissance4_client/src/protocol/greetings/greeting.dart'
     as _i45e1izr;
 import 'package:puissance4_client/src/protocol/history/history_dto.dart'
     as _igkkg43x;
+import 'package:puissance4_client/src/protocol/leaderboard/leaderboard_dto.dart'
+    as _ihkbd7x6;
 import 'package:puissance4_client/src/protocol/profile/user_profile_dto.dart'
     as _i5lufru8;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
@@ -360,7 +362,10 @@ class EndpointConnection extends _isc.EndpointRef {
 /// Outil de dev temporaire — insère une partie Classé/Multi terminée
 /// (issue et couleur aléatoires) pour l'utilisateur authentifié, pour
 /// tester `nbParties`/`nbVictoires` (`ProfileEndpoint.getMyProfile`) sans
-/// vrai moteur de jeu (E4). À retirer une fois E4 fait.
+/// vrai moteur de jeu (E4). Fait aussi varier `User.elo` (±5 à 25, pas la
+/// vraie formule Elo — hors scope, futur moteur/E7) avec une `EloHistory`
+/// correspondante, pour pouvoir tester le Classement (E8) en dev. À retirer
+/// une fois E4 fait.
 /// {@category Endpoint}
 class EndpointDevSimulate extends _isc.EndpointRef {
   EndpointDevSimulate(_isc.EndpointCaller caller) : super(caller);
@@ -428,6 +433,38 @@ class EndpointHistory extends _isc.EndpointRef {
   );
 }
 
+/// Classement par Elo (E8) — uniquement des `User`, jamais de `Bot` (son
+/// `elo` ne sert qu'au matchmaking de difficulté, cf. plan Classement).
+/// {@category Endpoint}
+class EndpointLeaderboard extends _isc.EndpointRef {
+  EndpointLeaderboard(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'leaderboard';
+
+  _ida.Future<List<_ihkbd7x6.LeaderboardEntryDto>> getLeaderboard({
+    required int limit,
+    required int offset,
+  }) => caller.callServerEndpoint<List<_ihkbd7x6.LeaderboardEntryDto>>(
+    'leaderboard',
+    'getLeaderboard',
+    {
+      'limit': limit,
+      'offset': offset,
+    },
+  );
+
+  /// Rang calculé séparément de [getLeaderboard] (pas de vrai départage
+  /// d'ex-aequo, comme la pagination) — permet à l'écran d'afficher la ligne
+  /// du joueur courant même quand elle est hors de la page top-N chargée.
+  _ida.Future<_ihkbd7x6.LeaderboardEntryDto> getMyRank() =>
+      caller.callServerEndpoint<_ihkbd7x6.LeaderboardEntryDto>(
+        'leaderboard',
+        'getMyRank',
+        {},
+      );
+}
+
 /// {@category Endpoint}
 class EndpointProfile extends _isc.EndpointRef {
   EndpointProfile(_isc.EndpointCaller caller) : super(caller);
@@ -492,6 +529,7 @@ class Client extends _isc.ServerpodClientShared {
     devSimulate = EndpointDevSimulate(this);
     greeting = EndpointGreeting(this);
     history = EndpointHistory(this);
+    leaderboard = EndpointLeaderboard(this);
     profile = EndpointProfile(this);
     modules = Modules(this);
   }
@@ -512,6 +550,8 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointHistory history;
 
+  late final EndpointLeaderboard leaderboard;
+
   late final EndpointProfile profile;
 
   late final Modules modules;
@@ -526,6 +566,7 @@ class Client extends _isc.ServerpodClientShared {
     'devSimulate': devSimulate,
     'greeting': greeting,
     'history': history,
+    'leaderboard': leaderboard,
     'profile': profile,
   };
 

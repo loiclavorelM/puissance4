@@ -8,7 +8,10 @@ import '../generated/protocol.dart';
 /// Outil de dev temporaire — insère une partie Classé/Multi terminée
 /// (issue et couleur aléatoires) pour l'utilisateur authentifié, pour
 /// tester `nbParties`/`nbVictoires` (`ProfileEndpoint.getMyProfile`) sans
-/// vrai moteur de jeu (E4). À retirer une fois E4 fait.
+/// vrai moteur de jeu (E4). Fait aussi varier `User.elo` (±5 à 25, pas la
+/// vraie formule Elo — hors scope, futur moteur/E7) avec une `EloHistory`
+/// correspondante, pour pouvoir tester le Classement (E8) en dev. À retirer
+/// une fois E4 fait.
 class DevSimulateEndpoint extends Endpoint {
   @override
   bool get requireLogin => true;
@@ -46,7 +49,7 @@ class DevSimulateEndpoint extends Endpoint {
         ? (userIsRouge ? EnumOutcome.rouge : EnumOutcome.jaune)
         : (userIsRouge ? EnumOutcome.jaune : EnumOutcome.rouge);
 
-    await Partie.db.insertRow(
+    final partie = await Partie.db.insertRow(
       session,
       Partie(
         typePartie: typePartie,
@@ -55,6 +58,21 @@ class DevSimulateEndpoint extends Endpoint {
         winner: winner,
         status: EnumStatut.finished,
         moves: const [],
+      ),
+    );
+
+    final eloVariation = (5 + random.nextInt(21)) * (userWins ? 1 : -1);
+    final newElo = user.elo + eloVariation;
+    user.elo = newElo;
+    await User.db.updateRow(session, user);
+
+    await EloHistory.db.insertRow(
+      session,
+      EloHistory(
+        userId: user.id!,
+        partieId: partie.id!,
+        eloVariation: eloVariation,
+        newElo: newElo,
       ),
     );
   }
