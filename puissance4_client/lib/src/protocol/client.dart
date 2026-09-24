@@ -20,6 +20,8 @@ import 'package:puissance4_client/src/protocol/history/history_dto.dart'
     as _igkkg43x;
 import 'package:puissance4_client/src/protocol/leaderboard/leaderboard_dto.dart'
     as _ihkbd7x6;
+import 'package:puissance4_client/src/protocol/live/live_event.dart'
+    as _io59k800;
 import 'package:puissance4_client/src/protocol/profile/user_profile_dto.dart'
     as _i5lufru8;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
@@ -465,6 +467,29 @@ class EndpointLeaderboard extends _isc.EndpointRef {
       );
 }
 
+/// Mises à jour "temps réel" : un stream (WebSocket) par client connecté qui
+/// reçoit un [LiveEvent] chaque fois que son profil, son historique ou le
+/// Classement change côté serveur — les écritures appellent les helpers de
+/// `live_notifier.dart`.
+/// {@category Endpoint}
+class EndpointLive extends _isc.EndpointRef {
+  EndpointLive(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'live';
+
+  _ida.Stream<_io59k800.LiveEvent> watchUpdates() =>
+      caller.callStreamingServerEndpoint<
+        _ida.Stream<_io59k800.LiveEvent>,
+        _io59k800.LiveEvent
+      >(
+        'live',
+        'watchUpdates',
+        {},
+        {},
+      );
+}
+
 /// {@category Endpoint}
 class EndpointProfile extends _isc.EndpointRef {
   EndpointProfile(_isc.EndpointCaller caller) : super(caller);
@@ -541,6 +566,7 @@ class Client extends _isc.ServerpodClientShared {
     greeting = EndpointGreeting(this);
     history = EndpointHistory(this);
     leaderboard = EndpointLeaderboard(this);
+    live = EndpointLive(this);
     profile = EndpointProfile(this);
     modules = Modules(this);
   }
@@ -563,6 +589,8 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointLeaderboard leaderboard;
 
+  late final EndpointLive live;
+
   late final EndpointProfile profile;
 
   late final Modules modules;
@@ -578,6 +606,7 @@ class Client extends _isc.ServerpodClientShared {
     'greeting': greeting,
     'history': history,
     'leaderboard': leaderboard,
+    'live': live,
     'profile': profile,
   };
 

@@ -1,13 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
+import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
+import '../../../client.dart';
 import '../../auth/viewmodel/auth_viewmodel.dart';
+import '../../offline/viewmodel/local_cache_provider.dart';
 import '../../offline/viewmodel/offline_sync_provider.dart';
 import '../model/history_item.dart';
 import '../model/history_repository.dart';
 
 final historyRepositoryProvider = Provider<HistoryRepository>(
-  (ref) => HistoryRepository(),
+  (ref) => HistoryRepository(ref.watch(localCacheProvider)),
 );
 
 /// Filtre sélectionné par les chips Tous/Normal/Classé/Multi — `null` = Tous.
@@ -23,32 +26,57 @@ final historyFilterProvider =
       HistoryFilterNotifier.new,
     );
 
-/// Fusionne les deux sources pertinentes pour le filtre courant (serveur
-/// pour Multi/Classé, session de synchro locale pour Normal), triées par
-/// date décroissante. Vide tant qu'il n'y a pas de session serveur — même
-/// limitation déjà acceptée ailleurs pour la synchro hors-ligne.
-final historyListProvider = FutureProvider<List<HistoryItem>>((ref) async {
-  final filter = ref.watch(historyFilterProvider);
+/// Parties Multi/Classé (serveur), cache d'abord — relancé sur chaque
+/// `historyChanged` temps réel (voir `liveUpdatesProvider`).
+final serverHistoryProvider = StreamProvider<List<HistoryItem>>((ref) {
   final isAuthenticated =
       ref.watch(authViewModelProvider).status == AuthStatus.serverAuthenticated;
-  if (!isAuthenticated) return const [];
+  final authUserId = client.auth.authInfo?.authUserId;
+  if (!isAuthenticated || authUserId == null) return Stream.value(const []);
+  return ref.read(historyRepositoryProvider).watchServerHistory(authUserId);
+});
 
-  final repository = ref.read(historyRepositoryProvider);
-  final fetches = <Future<List<HistoryItem>>>[];
-
-  if (filter != EnumType.normal) {
-    fetches.add(repository.fetchServerHistory(typePartie: filter));
+/// Parties Normal (session de synchro locale), miroir local d'abord.
+final offlineHistoryProvider = StreamProvider<List<HistoryItem>>((ref) async* {
+  final isAuthenticated =
+      ref.watch(authViewModelProvider).status == AuthStatus.serverAuthenticated;
+  if (!isAuthenticated) {
+    yield const [];
+    return;
   }
-  if (filter == null || filter == EnumType.normal) {
-    fetches.add(
-      ref
-          .read(offlineSyncSessionHolderProvider)
-          .getOrCreate()
-          .then(repository.fetchOfflineHistory),
-    );
+  final session = await ref
+      .read(offlineSyncSessionHolderProvider)
+      .getOrCreate();
+  yield* ref.read(historyRepositoryProvider).watchOfflineHistory(session);
+});
+
+/// Fusionne les deux sources pertinentes pour le filtre courant, triées par
+/// date décroissante. Vide tant qu'il n'y a pas de session serveur — même
+/// limitation déjà acceptée ailleurs pour la synchro hors-ligne. Changer de
+/// filtre ne refait aucun appel : les deux sources sont déjà chargées.
+final historyListProvider = Provider<AsyncValue<List<HistoryItem>>>((ref) {
+  final filter = ref.watch(historyFilterProvider);
+  final sources = [
+    if (filter != EnumType.normal) ref.watch(serverHistoryProvider),
+    if (filter == null || filter == EnumType.normal)
+      ref.watch(offlineHistoryProvider),
+  ];
+
+  // Tant qu'une source n'a encore rien émis (ni cache ni réseau), on
+  // attend ; une source en erreur sans aucune donnée fait échouer l'écran.
+  for (final source in sources) {
+    if (!source.hasValue) {
+      return source.hasError
+          ? AsyncError(source.error!, source.stackTrace!)
+          : const AsyncLoading();
+    }
   }
 
-  final results = await Future.wait(fetches);
-  return results.expand((r) => r).toList()
-    ..sort((a, b) => b.date.compareTo(a.date));
+  final items =
+      sources
+          .expand((source) => source.requireValue)
+          .where((item) => filter == null || item.mode == filter)
+          .toList()
+        ..sort((a, b) => b.date.compareTo(a.date));
+  return AsyncData(items);
 });

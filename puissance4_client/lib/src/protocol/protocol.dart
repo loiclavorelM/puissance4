@@ -36,6 +36,8 @@ import 'game/player.dart' as _id5q07gg;
 import 'greetings/greeting.dart' as _izw8z7ou;
 import 'history/history_dto.dart' as _inn2tdi6;
 import 'leaderboard/leaderboard_dto.dart' as _i6lckwy9;
+import 'live/enum_live_event_type.dart' as _ikanpab0;
+import 'live/live_event.dart' as _ixdzvre4;
 import 'profile/enum_profile_update_error.dart' as _ib6s6ke7;
 import 'profile/profile_update_exception.dart' as _i1cvnna1;
 import 'profile/user.dart' as _iytd8mlf;
@@ -54,6 +56,8 @@ export 'game/player.dart';
 export 'greetings/greeting.dart';
 export 'history/history_dto.dart';
 export 'leaderboard/leaderboard_dto.dart';
+export 'live/enum_live_event_type.dart';
+export 'live/live_event.dart';
 export 'profile/enum_profile_update_error.dart';
 export 'profile/profile_update_exception.dart';
 export 'profile/user.dart';
@@ -216,6 +220,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _i6lckwy9.LeaderboardEntryDto) {
       return _i6lckwy9.LeaderboardEntryDto.fromJson(data) as T;
     }
+    if (t == _ikanpab0.EnumLiveEventType) {
+      return _ikanpab0.EnumLiveEventType.fromJson(data) as T;
+    }
+    if (t == _ixdzvre4.LiveEvent) {
+      return _ixdzvre4.LiveEvent.fromJson(data) as T;
+    }
     if (t == _ib6s6ke7.EnumProfileUpdateError) {
       return _ib6s6ke7.EnumProfileUpdateError.fromJson(data) as T;
     }
@@ -274,6 +284,13 @@ class Protocol extends _isd.DatabaseSerializationManager {
               ? _i6lckwy9.LeaderboardEntryDto.fromJson(data)
               : null)
           as T;
+    }
+    if (t == _isc.getType<_ikanpab0.EnumLiveEventType?>()) {
+      return (data != null ? _ikanpab0.EnumLiveEventType.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_ixdzvre4.LiveEvent?>()) {
+      return (data != null ? _ixdzvre4.LiveEvent.fromJson(data) : null) as T;
     }
     if (t == _isc.getType<_ib6s6ke7.EnumProfileUpdateError?>()) {
       return (data != null
@@ -339,6 +356,8 @@ class Protocol extends _isd.DatabaseSerializationManager {
       _izw8z7ou.Greeting => 'Greeting',
       _inn2tdi6.HistoryDto => 'HistoryDto',
       _i6lckwy9.LeaderboardEntryDto => 'LeaderboardEntryDto',
+      _ikanpab0.EnumLiveEventType => 'EnumLiveEventType',
+      _ixdzvre4.LiveEvent => 'LiveEvent',
       _ib6s6ke7.EnumProfileUpdateError => 'EnumProfileUpdateError',
       _i1cvnna1.ProfileUpdateException => 'ProfileUpdateException',
       _iytd8mlf.User => 'User',
@@ -384,6 +403,10 @@ class Protocol extends _isd.DatabaseSerializationManager {
         return 'HistoryDto';
       case _i6lckwy9.LeaderboardEntryDto():
         return 'LeaderboardEntryDto';
+      case _ikanpab0.EnumLiveEventType():
+        return 'EnumLiveEventType';
+      case _ixdzvre4.LiveEvent():
+        return 'LiveEvent';
       case _ib6s6ke7.EnumProfileUpdateError():
         return 'EnumProfileUpdateError';
       case _i1cvnna1.ProfileUpdateException():
@@ -460,6 +483,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (dataClassName == 'LeaderboardEntryDto') {
       return deserialize<_i6lckwy9.LeaderboardEntryDto>(data['data']);
+    }
+    if (dataClassName == 'EnumLiveEventType') {
+      return deserialize<_ikanpab0.EnumLiveEventType>(data['data']);
+    }
+    if (dataClassName == 'LiveEvent') {
+      return deserialize<_ixdzvre4.LiveEvent>(data['data']);
     }
     if (dataClassName == 'EnumProfileUpdateError') {
       return deserialize<_ib6s6ke7.EnumProfileUpdateError>(data['data']);

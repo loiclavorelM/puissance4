@@ -4,6 +4,7 @@ import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart';
 
 import '../generated/protocol.dart';
+import '../live/live_notifier.dart';
 
 /// Outil de dev temporaire — insère une partie Classé/Multi terminée
 /// (issue et couleur aléatoires) pour l'utilisateur authentifié, pour
@@ -75,5 +76,7 @@ class DevSimulateEndpoint extends Endpoint {
         newElo: newElo,
       ),
     );
+
+    await notifyPartieFinished(session, authUserId);
   }
 }

@@ -28,6 +28,7 @@ import '../game/dev_simulate_endpoint.dart' as _iqkago6i;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
 import '../history/history_endpoint.dart' as _iqb2o93i;
 import '../leaderboard/leaderboard_endpoint.dart' as _io6aq3ur;
+import '../live/live_endpoint.dart' as _i4k4ewet;
 import '../profile/profile_endpoint.dart' as _i6ky944g;
 
 class Endpoints extends _is.EndpointDispatch {
@@ -86,6 +87,12 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'leaderboard',
+          null,
+        ),
+      'live': _i4k4ewet.LiveEndpoint()
+        ..initialize(
+          server,
+          'live',
           null,
         ),
       'profile': _i6ky944g.ProfileEndpoint()
@@ -554,6 +561,26 @@ class Endpoints extends _is.EndpointDispatch {
               ) async =>
                   (endpoints['leaderboard'] as _io6aq3ur.LeaderboardEndpoint)
                       .getMyRank(session),
+        ),
+      },
+    );
+    connectors['live'] = _is.EndpointConnector(
+      name: 'live',
+      endpoint: endpoints['live']!,
+      methodConnectors: {
+        'watchUpdates': _is.MethodStreamConnector(
+          name: 'watchUpdates',
+          params: {},
+          streamParams: {},
+          returnType: _is.MethodStreamReturnType.streamType,
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+                Map<String, Stream> streamParams,
+              ) => (endpoints['live'] as _i4k4ewet.LiveEndpoint).watchUpdates(
+                session,
+              ),
         ),
       },
     );

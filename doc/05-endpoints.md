@@ -67,7 +67,18 @@ qu'elle expose, pas de contrainte que dossier et nom de classe soient identiques
 - `getHistory(idPartie: Guid) -> HistoryDto`
 
 ### Classement — `LeaderboardEndpoint` (`client.leaderboard`), `lib/src/leaderboard/`
-- `getLeaderboard(limit: int, offset: int) -> List<UserSummaryDto>`
+- `getLeaderboard(limit: int, offset: int) -> List<LeaderboardEntryDto>`
+  Page mise en cache côté serveur (`session.caches.local`, groupe
+  `leaderboard`), vidée à chaque changement d'Elo/pseudo.
+- `getMyRank() -> LeaderboardEntryDto`
+
+### Temps réel — `LiveEndpoint` (`client.live`), `lib/src/live/`
+- `watchUpdates() -> Stream<LiveEvent>`
+  Stream (WebSocket) ouvert par le client tant qu'il est connecté. Émet
+  `LiveEvent(type: profileChanged | historyChanged | leaderboardChanged)` —
+  sans payload : le client recharge la donnée concernée (cache local puis
+  réseau). Alimenté par `session.messages` via `live_notifier.dart` : canal
+  `live.user.<authUserId>` (profil/historique) et `live.leaderboard` (tous).
 
 ### Revue de partie IA `[optionnel]` — `ReviewEndpoint` (`client.review`), `lib/src/review/`
 - `explainMove(idPartie: Guid, moveIndex: int) -> ExplainMoveResultDto`

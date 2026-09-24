@@ -3,6 +3,7 @@ import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart';
 
 import '../game/enum_color_extensions.dart';
 import '../generated/protocol.dart';
+import '../live/live_notifier.dart';
 import 'user_provisioning.dart';
 
 class ProfileEndpoint extends Endpoint {
@@ -81,6 +82,8 @@ class ProfileEndpoint extends Endpoint {
         reason: EnumProfileUpdateError.usernameTaken,
       );
     }
+    await notifyUser(session, authUserId, profile: true);
+    await notifyLeaderboardChanged(session);
     return _buildProfileDto(session, updated);
   }
 

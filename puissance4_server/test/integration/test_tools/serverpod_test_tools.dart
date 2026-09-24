@@ -21,6 +21,8 @@ import 'package:puissance4_server/src/generated/history/history_dto.dart'
     as _islja9se;
 import 'package:puissance4_server/src/generated/leaderboard/leaderboard_dto.dart'
     as _i5549tex;
+import 'package:puissance4_server/src/generated/live/live_event.dart'
+    as _ifw32v1t;
 import 'package:puissance4_server/src/generated/profile/user_profile_dto.dart'
     as _is7wjsnn;
 import 'package:serverpod/serverpod.dart' as _is;
@@ -173,6 +175,8 @@ class TestEndpoints {
 
   late final _LeaderboardEndpoint leaderboard;
 
+  late final _LiveEndpoint live;
+
   late final _ProfileEndpoint profile;
 }
 
@@ -216,6 +220,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     leaderboard = _LeaderboardEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    live = _LiveEndpoint(
       endpoints,
       serializationManager,
     );
@@ -971,6 +979,48 @@ class _LeaderboardEndpoint {
         await _localUniqueSession.close();
       }
     });
+  }
+}
+
+class _LiveEndpoint {
+  _LiveEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Stream<_ifw32v1t.LiveEvent> watchUpdates(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) {
+    var _localTestStreamManager = _ist.TestStreamManager<_ifw32v1t.LiveEvent>();
+    _ist.callStreamFunctionAndHandleExceptions(
+      () async {
+        var _localUniqueSession =
+            (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+              endpoint: 'live',
+              method: 'watchUpdates',
+            );
+        var _localCallContext = await _endpointDispatch
+            .getMethodStreamCallContext(
+              createSessionCallback: (_) => _localUniqueSession,
+              endpointPath: 'live',
+              methodName: 'watchUpdates',
+              arguments: {},
+              requestedInputStreams: [],
+              serializationManager: _serializationManager,
+            );
+        await _localTestStreamManager.callStreamMethod(
+          _localCallContext,
+          _localUniqueSession,
+          {},
+        );
+      },
+      _localTestStreamManager.outputStreamController,
+    );
+    return _localTestStreamManager.outputStreamController.stream;
   }
 }
 

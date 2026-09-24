@@ -37,8 +37,9 @@ class EditProfileViewModel extends AutoDisposeNotifier<EditProfileState> {
       );
       return false;
     }
-    // Jouer et Réglages lisent le pseudo depuis `myProfileProvider` ; le
-    // Classement se recharge déjà à chaque ouverture de l'onglet.
+    // Jouer et Réglages lisent le pseudo depuis `myProfileProvider` ;
+    // invalidé ici sans attendre l'événement temps réel `profileChanged`
+    // (qui recharge aussi le Classement), au cas où le stream serait coupé.
     ref.invalidate(myProfileProvider);
     state = const EditProfileState();
     return true;

@@ -2,6 +2,7 @@ import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart';
 
 import '../generated/protocol.dart';
+import '../live/live_notifier.dart';
 
 /// Wired as `AuthUsersConfig.onAfterAuthUserCreated` in `server.dart`.
 ///
@@ -22,6 +23,9 @@ Future<void> createUserForAuthUser(
     ),
     transaction: transaction,
   );
+  // Le nouveau joueur apparaît dans le Classement : pas de diffusion (chaque
+  // connexion anonyme ferait recharger tous les clients), juste le cache.
+  await session.caches.local.invalidateGroup(leaderboardCacheGroup);
 }
 
 /// Pseudo attribué à la création d'un [User] — `username` est unique en base.

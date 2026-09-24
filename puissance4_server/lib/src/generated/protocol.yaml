@@ -27,6 +27,8 @@ history:
 leaderboard:
   - getLeaderboard:
   - getMyRank:
+live:
+  - watchUpdates:
 profile:
   - getMyProfile:
   - updateUsername:
