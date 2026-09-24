@@ -13,16 +13,20 @@
 import 'package:puissance4_client/src/protocol/protocol.dart' as _ixdd0t97;
 import 'package:serverpod_client/serverpod_client.dart' as _isc;
 import 'package:serverpod_database/serverpod_database.dart' as _isd;
-import '../bot/enum_bot_level.dart' as _ivcfpjgb;
+import '../game/enum_color.dart' as _ik9tqcac;
 import '../game/enum_match_result.dart' as _ib5rq0bj;
+import '../game/enum_statut.dart' as _irc493lf;
 
 abstract class OfflineMatchResult
     implements _isd.TableRow<_isc.UuidValue?>, _isc.ProtocolSerialization {
   OfflineMatchResult._({
     this.id,
     this.spaceId,
-    required this.result,
-    required this.botLevel,
+    required this.status,
+    this.result,
+    required this.botId,
+    required this.botName,
+    required this.playedAs,
     required this.moves,
     required this.playedAt,
     bool? reconciled,
@@ -31,8 +35,11 @@ abstract class OfflineMatchResult
   factory OfflineMatchResult({
     _isc.UuidValue? id,
     int? spaceId,
-    required _ib5rq0bj.EnumMatchResult result,
-    required _ivcfpjgb.EnumBotLevel botLevel,
+    required _irc493lf.EnumStatut status,
+    _ib5rq0bj.EnumMatchResult? result,
+    required _isc.UuidValue botId,
+    required String botName,
+    required _ik9tqcac.EnumColor playedAs,
     required List<int> moves,
     required DateTime playedAt,
     bool? reconciled,
@@ -44,11 +51,18 @@ abstract class OfflineMatchResult
           ? null
           : _isc.UuidValueJsonExtension.fromJson(jsonSerialization['id']),
       spaceId: jsonSerialization['spaceId'] as int?,
-      result: _ib5rq0bj.EnumMatchResult.fromJson(
-        (jsonSerialization['result'] as String),
+      status: _irc493lf.EnumStatut.fromJson(
+        (jsonSerialization['status'] as String),
       ),
-      botLevel: _ivcfpjgb.EnumBotLevel.fromJson(
-        (jsonSerialization['botLevel'] as String),
+      result: jsonSerialization['result'] == null
+          ? null
+          : _ib5rq0bj.EnumMatchResult.fromJson(
+              (jsonSerialization['result'] as String),
+            ),
+      botId: _isc.UuidValueJsonExtension.fromJson(jsonSerialization['botId']),
+      botName: jsonSerialization['botName'] as String,
+      playedAs: _ik9tqcac.EnumColor.fromJson(
+        (jsonSerialization['playedAs'] as String),
       ),
       moves: _ixdd0t97.Protocol().deserialize<List<int>>(
         jsonSerialization['moves'],
@@ -72,9 +86,15 @@ abstract class OfflineMatchResult
   /// The space owning this row. Maintained by the sync engine.
   int? spaceId;
 
-  _ib5rq0bj.EnumMatchResult result;
+  _irc493lf.EnumStatut status;
 
-  _ivcfpjgb.EnumBotLevel botLevel;
+  _ib5rq0bj.EnumMatchResult? result;
+
+  _isc.UuidValue botId;
+
+  String botName;
+
+  _ik9tqcac.EnumColor playedAs;
 
   List<int> moves;
 
@@ -91,8 +111,11 @@ abstract class OfflineMatchResult
   OfflineMatchResult copyWith({
     _isc.UuidValue? id,
     int? spaceId,
+    _irc493lf.EnumStatut? status,
     _ib5rq0bj.EnumMatchResult? result,
-    _ivcfpjgb.EnumBotLevel? botLevel,
+    _isc.UuidValue? botId,
+    String? botName,
+    _ik9tqcac.EnumColor? playedAs,
     List<int>? moves,
     DateTime? playedAt,
     bool? reconciled,
@@ -103,8 +126,11 @@ abstract class OfflineMatchResult
       '__className__': 'OfflineMatchResult',
       if (id != null) 'id': id?.toJson(),
       if (spaceId != null) 'spaceId': spaceId,
-      'result': result.toJson(),
-      'botLevel': botLevel.toJson(),
+      'status': status.toJson(),
+      if (result != null) 'result': result?.toJson(),
+      'botId': botId.toJson(),
+      'botName': botName,
+      'playedAs': playedAs.toJson(),
       'moves': moves.toJson(),
       'playedAt': playedAt.toJson(),
       'reconciled': reconciled,
@@ -117,8 +143,11 @@ abstract class OfflineMatchResult
       '__className__': 'OfflineMatchResult',
       if (id != null) 'id': id?.toJson(),
       if (spaceId != null) 'spaceId': spaceId,
-      'result': result.toJson(),
-      'botLevel': botLevel.toJson(),
+      'status': status.toJson(),
+      if (result != null) 'result': result?.toJson(),
+      'botId': botId.toJson(),
+      'botName': botName,
+      'playedAs': playedAs.toJson(),
       'moves': moves.toJson(),
       'playedAt': playedAt.toJson(),
       'reconciled': reconciled,
@@ -159,16 +188,22 @@ class _OfflineMatchResultImpl extends OfflineMatchResult {
   _OfflineMatchResultImpl({
     _isc.UuidValue? id,
     int? spaceId,
-    required _ib5rq0bj.EnumMatchResult result,
-    required _ivcfpjgb.EnumBotLevel botLevel,
+    required _irc493lf.EnumStatut status,
+    _ib5rq0bj.EnumMatchResult? result,
+    required _isc.UuidValue botId,
+    required String botName,
+    required _ik9tqcac.EnumColor playedAs,
     required List<int> moves,
     required DateTime playedAt,
     bool? reconciled,
   }) : super._(
          id: id,
          spaceId: spaceId,
+         status: status,
          result: result,
-         botLevel: botLevel,
+         botId: botId,
+         botName: botName,
+         playedAs: playedAs,
          moves: moves,
          playedAt: playedAt,
          reconciled: reconciled,
@@ -181,8 +216,11 @@ class _OfflineMatchResultImpl extends OfflineMatchResult {
   OfflineMatchResult copyWith({
     Object? id = _Undefined,
     Object? spaceId = _Undefined,
-    _ib5rq0bj.EnumMatchResult? result,
-    _ivcfpjgb.EnumBotLevel? botLevel,
+    _irc493lf.EnumStatut? status,
+    Object? result = _Undefined,
+    _isc.UuidValue? botId,
+    String? botName,
+    _ik9tqcac.EnumColor? playedAs,
     List<int>? moves,
     DateTime? playedAt,
     bool? reconciled,
@@ -190,8 +228,11 @@ class _OfflineMatchResultImpl extends OfflineMatchResult {
     return OfflineMatchResult(
       id: id is _isc.UuidValue? ? id : this.id,
       spaceId: spaceId is int? ? spaceId : this.spaceId,
-      result: result ?? this.result,
-      botLevel: botLevel ?? this.botLevel,
+      status: status ?? this.status,
+      result: result is _ib5rq0bj.EnumMatchResult? ? result : this.result,
+      botId: botId ?? this.botId,
+      botName: botName ?? this.botName,
+      playedAs: playedAs ?? this.playedAs,
       moves: moves ?? this.moves.map((e0) => e0).toList(),
       playedAt: playedAt ?? this.playedAt,
       reconciled: reconciled ?? this.reconciled,
@@ -208,17 +249,36 @@ class OfflineMatchResultUpdateTable
     value,
   );
 
+  _isd.ColumnValue<_irc493lf.EnumStatut, _irc493lf.EnumStatut> status(
+    _irc493lf.EnumStatut value,
+  ) => _isd.ColumnValue(
+    table.status,
+    value,
+  );
+
   _isd.ColumnValue<_ib5rq0bj.EnumMatchResult, _ib5rq0bj.EnumMatchResult> result(
-    _ib5rq0bj.EnumMatchResult value,
+    _ib5rq0bj.EnumMatchResult? value,
   ) => _isd.ColumnValue(
     table.result,
     value,
   );
 
-  _isd.ColumnValue<_ivcfpjgb.EnumBotLevel, _ivcfpjgb.EnumBotLevel> botLevel(
-    _ivcfpjgb.EnumBotLevel value,
+  _isd.ColumnValue<_isc.UuidValue, _isc.UuidValue> botId(
+    _isc.UuidValue value,
   ) => _isd.ColumnValue(
-    table.botLevel,
+    table.botId,
+    value,
+  );
+
+  _isd.ColumnValue<String, String> botName(String value) => _isd.ColumnValue(
+    table.botName,
+    value,
+  );
+
+  _isd.ColumnValue<_ik9tqcac.EnumColor, _ik9tqcac.EnumColor> playedAs(
+    _ik9tqcac.EnumColor value,
+  ) => _isd.ColumnValue(
+    table.playedAs,
     value,
   );
 
@@ -248,13 +308,26 @@ class OfflineMatchResultTable extends _isd.Table<_isc.UuidValue?> {
       'spaceId',
       this,
     );
+    status = _isd.ColumnEnum(
+      'status',
+      this,
+      _isd.EnumSerialization.byName,
+    );
     result = _isd.ColumnEnum(
       'result',
       this,
       _isd.EnumSerialization.byName,
     );
-    botLevel = _isd.ColumnEnum(
-      'botLevel',
+    botId = _isd.ColumnUuid(
+      'botId',
+      this,
+    );
+    botName = _isd.ColumnString(
+      'botName',
+      this,
+    );
+    playedAs = _isd.ColumnEnum(
+      'playedAs',
       this,
       _isd.EnumSerialization.byName,
     );
@@ -278,9 +351,15 @@ class OfflineMatchResultTable extends _isd.Table<_isc.UuidValue?> {
   /// The space owning this row. Maintained by the sync engine.
   late final _isd.ColumnInt spaceId;
 
+  late final _isd.ColumnEnum<_irc493lf.EnumStatut> status;
+
   late final _isd.ColumnEnum<_ib5rq0bj.EnumMatchResult> result;
 
-  late final _isd.ColumnEnum<_ivcfpjgb.EnumBotLevel> botLevel;
+  late final _isd.ColumnUuid botId;
+
+  late final _isd.ColumnString botName;
+
+  late final _isd.ColumnEnum<_ik9tqcac.EnumColor> playedAs;
 
   late final _isd.ColumnSerializable<List<int>> moves;
 
@@ -292,8 +371,11 @@ class OfflineMatchResultTable extends _isd.Table<_isc.UuidValue?> {
   List<_isd.Column> get columns => [
     id,
     spaceId,
+    status,
     result,
-    botLevel,
+    botId,
+    botName,
+    playedAs,
     moves,
     playedAt,
     reconciled,

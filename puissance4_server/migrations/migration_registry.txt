@@ -10,3 +10,4 @@
 20260921083724523-offline_match_result_user_id
 20260921093603438-drop_offline_match_result_user_id
 20260924211934424-user_username_unique
+20260924214800389-offline-normal-game

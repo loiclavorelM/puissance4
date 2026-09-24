@@ -57,7 +57,12 @@ class HistoryRepository {
   Future<List<HistoryItem>> _readOffline(
     OfflineSyncDatabaseSession session,
   ) async {
-    final rows = await OfflineMatchResult.db.find(session);
+    // Les parties encore `inProgress` (en cours, ou abandonnées sans être
+    // terminées) n'ont pas de résultat : pas leur place dans l'Historique.
+    final rows = await OfflineMatchResult.db.find(
+      session,
+      where: (t) => t.status.equals(EnumStatut.finished),
+    );
     return rows.map(HistoryItem.fromOfflineMatchResult).toList();
   }
 }

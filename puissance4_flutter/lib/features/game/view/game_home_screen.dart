@@ -1,23 +1,20 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
-import 'package:serverpod_offline_sync_client/serverpod_offline_sync_client.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/initials.dart';
 import '../../../core/widgets/coming_soon_tab.dart';
 import '../../../client.dart';
 import '../../auth/viewmodel/auth_viewmodel.dart';
-import '../../offline/viewmodel/offline_sync_provider.dart';
+import '../../bot/view/normal_mode_screen.dart';
 import '../../profile/viewmodel/profile_provider.dart';
 import '../viewmodel/game_home_viewmodel.dart';
 
 /// Écran "Jouer" (onglet par défaut) — reprend `maquette-2.png` : résumé du
-/// profil, stats, et les 3 modes de jeu. Aucun des 3 modes ne mène encore
-/// nulle part (E4/E5/E7 pas construits) — appui = SnackBar "Bientôt
-/// disponible".
+/// profil, stats, et les modes de jeu. Normal ouvre le choix du bot (E5) ;
+/// Multijoueur ne mène encore nulle part (appui = SnackBar "Bientôt
+/// disponible").
 class GameHomeScreen extends ConsumerStatefulWidget {
   const GameHomeScreen({super.key, required this.onOpenSettings});
 
@@ -30,16 +27,13 @@ class GameHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
-  bool _isSimulating = false;
   bool _isSimulatingPartie = false;
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(gameHomeViewModelProvider);
-    // serverpod_offline_sync ne synchronise que les spaces liés à un
-    // authUserId reconnu par le serveur : pas de session possible en
-    // AuthStatus.localGuest (pas d'authUserId du tout). Limitation
-    // acceptée pour l'instant — voir la mémoire projet sur le sujet.
+    // `devSimulate` exige une session serveur : rien à simuler en
+    // AuthStatus.localGuest (pas d'authUserId du tout).
     final isAuthenticated =
         ref.watch(authViewModelProvider).status ==
         AuthStatus.serverAuthenticated;
@@ -152,7 +146,9 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
             color: AppColors.primary,
             title: 'Normal',
             subtitle: 'Choisis la difficulté du bot',
-            onTap: () => showComingSoonSnackBar(context),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const NormalModeScreen()),
+            ),
           ),
           const SizedBox(height: 12),
           _ModeCard(
@@ -165,30 +161,10 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
           const SizedBox(height: 32),
           const Divider(color: Colors.white12),
           const SizedBox(height: 8),
-          // Outil de dev temporaire : pas encore de moteur de jeu (E4) pour
-          // générer de vraies OfflineMatchResult, donc ce bouton permet de
-          // tester le flux complet (création -> sync) depuis l'app plutôt
-          // qu'avec un script. À retirer une fois E4 fait.
           const Text(
             'Outil de dev — à retirer une fois le moteur de jeu (E4) fait',
             style: TextStyle(color: Colors.white38, fontSize: 11),
           ),
-          const SizedBox(height: 8),
-          ElevatedButton(
-            onPressed: (_isSimulating || !isAuthenticated)
-                ? null
-                : _simulateMatch,
-            child: const Text('Simuler une partie'),
-          ),
-          if (!isAuthenticated)
-            const Padding(
-              padding: EdgeInsets.only(top: 8),
-              child: Text(
-                'Connecte-toi (même en invité, en ligne) pour tester la '
-                'synchro.',
-                style: TextStyle(color: Colors.white54, fontSize: 12),
-              ),
-            ),
           const SizedBox(height: 8),
           // Outil de dev temporaire : pas de vrai moteur de jeu (E4) pour
           // générer de vraies Partie, donc ce bouton permet de tester
@@ -203,59 +179,6 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
         ],
       ),
     );
-  }
-
-  Future<void> _simulateMatch() async {
-    setState(() => _isSimulating = true);
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      final session = await ref
-          .read(offlineSyncSessionHolderProvider)
-          .getOrCreate();
-      final random = Random();
-      await OfflineMatchResult.db.insertRow(
-        session,
-        OfflineMatchResult(
-          result:
-              EnumMatchResult.values[random.nextInt(
-                EnumMatchResult.values.length,
-              )],
-          botLevel:
-              EnumBotLevel.values[random.nextInt(
-                EnumBotLevel.values.length,
-              )],
-          moves: const [1, 4, 2, 5],
-          playedAt: DateTime.now(),
-        ),
-      );
-      // La ligne est déjà sauvegardée localement à ce stade (insertRow ne
-      // fait aucun appel réseau) — une panne réseau ici ne doit pas être
-      // affichée comme une erreur, juste comme "en attente de sync".
-      // syncOnce ouvre un method stream (WebSocket), pas un appel RPC
-      // classique : ses échecs réseau remontent en MethodStreamException
-      // (ex. WebSocketConnectException), pas en ServerpodClientNetworkException.
-      String message;
-      try {
-        await client.offlineSync.syncOnce(session);
-        message = 'Partie simulée, créée et synchronisée';
-      } on ServerpodClientNetworkException {
-        message =
-            'Partie simulée créée localement (pas de réseau, sera '
-            'synchronisée au retour de la connexion)';
-      } on MethodStreamException {
-        message =
-            'Partie simulée créée localement (pas de réseau, sera '
-            'synchronisée au retour de la connexion)';
-      }
-      if (!context.mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text(message)));
-    } catch (error) {
-      if (context.mounted) {
-        messenger.showSnackBar(SnackBar(content: Text('Erreur : $error')));
-      }
-    } finally {
-      if (mounted) setState(() => _isSimulating = false);
-    }
   }
 
   Future<void> _simulatePartie() async {

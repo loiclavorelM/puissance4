@@ -11,6 +11,7 @@
 // ignore_for_file: dead_code, unnecessary_type_check
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:puissance4_client/src/protocol/bot/bot.dart' as _ighv8e6n;
 import 'package:puissance4_client/src/protocol/history/history_dto.dart'
     as _igkkg43x;
 import 'package:puissance4_client/src/protocol/leaderboard/leaderboard_dto.dart'
@@ -94,16 +95,34 @@ class Protocol extends _isd.DatabaseSerializationManager {
           dartType: 'int?',
         ),
         _isd.ColumnDefinition(
-          name: 'result',
+          name: 'status',
           columnType: _isd.ColumnType.text,
           isNullable: false,
-          dartType: 'protocol:EnumMatchResult',
+          dartType: 'protocol:EnumStatut',
         ),
         _isd.ColumnDefinition(
-          name: 'botLevel',
+          name: 'result',
+          columnType: _isd.ColumnType.text,
+          isNullable: true,
+          dartType: 'protocol:EnumMatchResult?',
+        ),
+        _isd.ColumnDefinition(
+          name: 'botId',
+          columnType: _isd.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isd.ColumnDefinition(
+          name: 'botName',
           columnType: _isd.ColumnType.text,
           isNullable: false,
-          dartType: 'protocol:EnumBotLevel',
+          dartType: 'String',
+        ),
+        _isd.ColumnDefinition(
+          name: 'playedAs',
+          columnType: _isd.ColumnType.text,
+          isNullable: false,
+          dartType: 'protocol:EnumColor',
         ),
         _isd.ColumnDefinition(
           name: 'moves',
@@ -316,6 +335,10 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (t == List<int>) {
       return (data as List).map((e) => deserialize<int>(e)).toList() as T;
+    }
+    if (t == List<_ighv8e6n.Bot>) {
+      return (data as List).map((e) => deserialize<_ighv8e6n.Bot>(e)).toList()
+          as T;
     }
     if (t == List<_igkkg43x.HistoryDto>) {
       return (data as List)

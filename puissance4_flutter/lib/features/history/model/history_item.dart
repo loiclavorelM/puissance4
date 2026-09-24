@@ -37,12 +37,10 @@ class HistoryItem {
         id: row.id!.toString(),
         date: row.playedAt,
         mode: EnumType.normal,
-        adversaire: _botLevelLabel(row.botLevel),
-        resultat: row.result,
-        // OfflineMatchResult ne stocke pas encore la couleur jouée (pas de
-        // moteur de jeu réel — E4 pas fait) : le solo vs bot suppose pour
-        // l'instant que le joueur joue toujours rouge.
-        playedAs: EnumColor.rouge,
+        adversaire: 'Bot ${row.botName}',
+        // Seules les parties terminées sont lues (voir HistoryRepository).
+        resultat: row.result!,
+        playedAs: row.playedAs,
         eloVariation: null,
         source: HistorySource.offline,
       );
@@ -55,15 +53,4 @@ class HistoryItem {
   final EnumColor playedAs;
   final int? eloVariation;
   final HistorySource source;
-
-  static String _botLevelLabel(EnumBotLevel level) {
-    switch (level) {
-      case EnumBotLevel.beginner:
-        return 'Bot Débutant';
-      case EnumBotLevel.medium:
-        return 'Bot Intermédiaire';
-      case EnumBotLevel.expert:
-        return 'Bot Difficile';
-    }
-  }
 }

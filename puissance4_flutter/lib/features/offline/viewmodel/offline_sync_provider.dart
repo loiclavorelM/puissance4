@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../model/offline_game_repository.dart';
 import '../model/offline_sync_session_holder.dart';
 import '../model/server_connection_tracker.dart';
 import 'server_connection_provider.dart';
@@ -23,3 +24,7 @@ final offlineSyncOnReconnectProvider = Provider<void>((ref) {
     }
   });
 });
+
+final offlineGameRepositoryProvider = Provider<OfflineGameRepository>(
+  (ref) => OfflineGameRepository(ref.watch(offlineSyncSessionHolderProvider)),
+);

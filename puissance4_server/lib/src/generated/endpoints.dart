@@ -23,6 +23,7 @@ import '../auth/anonymous_idp_endpoint.dart' as _in0zita6;
 import '../auth/email_idp_endpoint.dart' as _iuc1hd5t;
 import '../auth/google_idp_endpoint.dart' as _i71axiz0;
 import '../auth/jwt_refresh_endpoint.dart' as _inwq3ztq;
+import '../bot/bot_endpoint.dart' as _i8l8pxdo;
 import '../connection/connection_endpoint.dart' as _in8dx5ef;
 import '../game/dev_simulate_endpoint.dart' as _iqkago6i;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
@@ -57,6 +58,12 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'jwtRefresh',
+          null,
+        ),
+      'bot': _i8l8pxdo.BotEndpoint()
+        ..initialize(
+          server,
+          'bot',
           null,
         ),
       'connection': _in8dx5ef.ConnectionEndpoint()
@@ -403,6 +410,22 @@ class Endpoints extends _is.EndpointDispatch {
                         session,
                         refreshToken: params['refreshToken'],
                       ),
+        ),
+      },
+    );
+    connectors['bot'] = _is.EndpointConnector(
+      name: 'bot',
+      endpoint: endpoints['bot']!,
+      methodConnectors: {
+        'getBots': _is.MethodConnector(
+          name: 'getBots',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['bot'] as _i8l8pxdo.BotEndpoint).getBots(session),
         ),
       },
     );

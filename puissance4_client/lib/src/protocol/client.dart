@@ -12,6 +12,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _ida;
 import 'package:http/http.dart' as _i85jenna;
+import 'package:puissance4_client/src/protocol/bot/bot.dart' as _ighv8e6n;
 import 'package:puissance4_client/src/protocol/game/enum_type.dart'
     as _i6ui2hi8;
 import 'package:puissance4_client/src/protocol/greetings/greeting.dart'
@@ -343,6 +344,24 @@ class EndpointJwtRefresh extends _iacc.EndpointRefreshJwtTokens {
       );
 }
 
+/// Liste des bots jouables en mode Normal (E5) — alimentée par
+/// `bots_seed.yaml`. Pas de connexion requise : ce n'est pas une donnée
+/// personnelle, et un invité local doit pouvoir voir les niveaux proposés.
+/// {@category Endpoint}
+class EndpointBot extends _isc.EndpointRef {
+  EndpointBot(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'bot';
+
+  _ida.Future<List<_ighv8e6n.Bot>> getBots() =>
+      caller.callServerEndpoint<List<_ighv8e6n.Bot>>(
+        'bot',
+        'getBots',
+        {},
+      );
+}
+
 /// Endpoint volontairement vide : sert uniquement de sonde de joignabilité
 /// pour `ServerConnectionTracker` côté client. Le simple fait que l'appel
 /// réussisse ou échoue passe par les hooks globaux
@@ -561,6 +580,7 @@ class Client extends _isc.ServerpodClientShared {
     emailIdp = EndpointEmailIdp(this);
     googleIdp = EndpointGoogleIdp(this);
     jwtRefresh = EndpointJwtRefresh(this);
+    bot = EndpointBot(this);
     connection = EndpointConnection(this);
     devSimulate = EndpointDevSimulate(this);
     greeting = EndpointGreeting(this);
@@ -578,6 +598,8 @@ class Client extends _isc.ServerpodClientShared {
   late final EndpointGoogleIdp googleIdp;
 
   late final EndpointJwtRefresh jwtRefresh;
+
+  late final EndpointBot bot;
 
   late final EndpointConnection connection;
 
@@ -601,6 +623,7 @@ class Client extends _isc.ServerpodClientShared {
     'emailIdp': emailIdp,
     'googleIdp': googleIdp,
     'jwtRefresh': jwtRefresh,
+    'bot': bot,
     'connection': connection,
     'devSimulate': devSimulate,
     'greeting': greeting,

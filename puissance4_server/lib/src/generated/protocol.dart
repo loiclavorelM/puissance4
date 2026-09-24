@@ -11,6 +11,7 @@
 // ignore_for_file: dead_code, unnecessary_type_check
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:puissance4_server/src/generated/bot/bot.dart' as _iyz5ninx;
 import 'package:puissance4_server/src/generated/history/history_dto.dart'
     as _islja9se;
 import 'package:puissance4_server/src/generated/leaderboard/leaderboard_dto.dart'
@@ -218,16 +219,34 @@ class Protocol extends _is.DatabaseSerializationManager {
           dartType: 'int?',
         ),
         _isp.ColumnDefinition(
-          name: 'result',
+          name: 'status',
           columnType: _isp.ColumnType.text,
           isNullable: false,
-          dartType: 'protocol:EnumMatchResult',
+          dartType: 'protocol:EnumStatut',
         ),
         _isp.ColumnDefinition(
-          name: 'botLevel',
+          name: 'result',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'protocol:EnumMatchResult?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'botId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'botName',
           columnType: _isp.ColumnType.text,
           isNullable: false,
-          dartType: 'protocol:EnumBotLevel',
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'playedAs',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'protocol:EnumColor',
         ),
         _isp.ColumnDefinition(
           name: 'moves',
@@ -671,6 +690,10 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == List<int>) {
       return (data as List).map((e) => deserialize<int>(e)).toList() as T;
+    }
+    if (t == List<_iyz5ninx.Bot>) {
+      return (data as List).map((e) => deserialize<_iyz5ninx.Bot>(e)).toList()
+          as T;
     }
     if (t == List<_islja9se.HistoryDto>) {
       return (data as List)

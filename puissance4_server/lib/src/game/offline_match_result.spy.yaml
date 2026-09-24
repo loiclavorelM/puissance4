@@ -1,9 +1,12 @@
-# Spike T0.1.1 — valide `database: sync` (serverpod_offline_sync) sur un
-# modèle plat avant adoption sur les modèles réels (Partie/Player/User).
-# Volontairement sans aucune relation : un modèle `database: sync` ne peut
-# référencer qu'un autre modèle `database: sync` (à l'exception de
-# spaceId -> offline_sync_spaces.id), donc pas de FK possible ici vers
-# User/Player/Bot qui restent `database: server`.
+# Partie Normal (solo vs bot, E5) — `database: sync` (serverpod_offline_sync)
+# pour être jouable hors-ligne. Créée à `inProgress` au lancement de la
+# partie, passée à `finished` (avec `result`) quand elle se termine.
+#
+# Un modèle `database: sync` ne peut référencer qu'un autre modèle
+# `database: sync` (à l'exception de spaceId -> offline_sync_spaces.id), donc
+# pas de FK possible ici vers User/Player/Bot qui restent `database: server` :
+# `botId` est un simple identifiant, et `botName` en garde une copie pour que
+# l'Historique puisse l'afficher sans réseau.
 #
 # Pas de champ userId : le rattachement au bon utilisateur se fait via le
 # `spaceId` géré par le moteur CRDT lui-même — la session client est ouverte
@@ -16,8 +19,12 @@ class: OfflineMatchResult
 table: offline_match_result
 database: sync
 fields:
-  result: EnumMatchResult
-  botLevel: EnumBotLevel
+  status: EnumStatut
+  # Null tant que la partie n'est pas terminée.
+  result: EnumMatchResult?
+  botId: UuidValue
+  botName: String
+  playedAs: EnumColor
   moves: List<int>
   playedAt: DateTime
   reconciled: bool, default=false
