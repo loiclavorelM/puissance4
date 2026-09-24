@@ -28,7 +28,11 @@ AGENTS.md).
   Crée le `User` de jeu (username/photo/Elo) au premier appel si celui-ci n'existe
   pas encore pour cet `authUserId` (pas de méthode de création séparée).
 - `getUserSummary(idUser: Guid) -> UserSummaryDto`
-- `updateProfile(username: String?, photo: ByteData?) -> UserProfileDto`
+- `updateUsername(username: String) -> UserProfileDto`
+  3 à 20 caractères `[A-Za-z0-9_-]`, unique (insensible à la casse). Lève
+  `ProfileUpdateException(reason: invalidUsername | usernameTaken)`.
+- `updateProfilePhoto(...)` — *à venir* (US2.1/T2.1.3) : upload Serverpod
+  séparé qui remplit `User.thumbnailPath`.
 
 ### Bot — `BotEndpoint` (`client.bot`), `lib/src/bot/`
 - `getBotLevels() -> List<BotDto>`

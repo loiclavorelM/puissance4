@@ -29,3 +29,4 @@ leaderboard:
   - getMyRank:
 profile:
   - getMyProfile:
+  - updateUsername:

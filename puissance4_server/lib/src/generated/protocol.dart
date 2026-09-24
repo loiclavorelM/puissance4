@@ -36,6 +36,8 @@ import 'game/player.dart' as _id5q07gg;
 import 'greetings/greeting.dart' as _izw8z7ou;
 import 'history/history_dto.dart' as _inn2tdi6;
 import 'leaderboard/leaderboard_dto.dart' as _i6lckwy9;
+import 'profile/enum_profile_update_error.dart' as _ib6s6ke7;
+import 'profile/profile_update_exception.dart' as _i1cvnna1;
 import 'profile/user.dart' as _iytd8mlf;
 import 'profile/user_profile_dto.dart' as _ivqmpbel;
 import 'ranked/elo_history.dart' as _i8na2re5;
@@ -52,6 +54,8 @@ export 'game/player.dart';
 export 'greetings/greeting.dart';
 export 'history/history_dto.dart';
 export 'leaderboard/leaderboard_dto.dart';
+export 'profile/enum_profile_update_error.dart';
+export 'profile/profile_update_exception.dart';
 export 'profile/user.dart';
 export 'profile/user_profile_dto.dart';
 export 'ranked/elo_history.dart';
@@ -479,6 +483,19 @@ class Protocol extends _is.DatabaseSerializationManager {
           isUnique: true,
           isPrimary: false,
         ),
+        _isp.IndexDefinition(
+          indexName: 'user_username_unique_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'username',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
       ],
       managed: true,
     ),
@@ -554,6 +571,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _i6lckwy9.LeaderboardEntryDto) {
       return _i6lckwy9.LeaderboardEntryDto.fromJson(data) as T;
     }
+    if (t == _ib6s6ke7.EnumProfileUpdateError) {
+      return _ib6s6ke7.EnumProfileUpdateError.fromJson(data) as T;
+    }
+    if (t == _i1cvnna1.ProfileUpdateException) {
+      return _i1cvnna1.ProfileUpdateException.fromJson(data) as T;
+    }
     if (t == _iytd8mlf.User) {
       return _iytd8mlf.User.fromJson(data) as T;
     }
@@ -604,6 +627,18 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_i6lckwy9.LeaderboardEntryDto?>()) {
       return (data != null
               ? _i6lckwy9.LeaderboardEntryDto.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _is.getType<_ib6s6ke7.EnumProfileUpdateError?>()) {
+      return (data != null
+              ? _ib6s6ke7.EnumProfileUpdateError.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _is.getType<_i1cvnna1.ProfileUpdateException?>()) {
+      return (data != null
+              ? _i1cvnna1.ProfileUpdateException.fromJson(data)
               : null)
           as T;
     }
@@ -662,6 +697,8 @@ class Protocol extends _is.DatabaseSerializationManager {
       _izw8z7ou.Greeting => 'Greeting',
       _inn2tdi6.HistoryDto => 'HistoryDto',
       _i6lckwy9.LeaderboardEntryDto => 'LeaderboardEntryDto',
+      _ib6s6ke7.EnumProfileUpdateError => 'EnumProfileUpdateError',
+      _i1cvnna1.ProfileUpdateException => 'ProfileUpdateException',
       _iytd8mlf.User => 'User',
       _ivqmpbel.UserProfileDto => 'UserProfileDto',
       _i8na2re5.EloHistory => 'EloHistory',
@@ -705,6 +742,10 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'HistoryDto';
       case _i6lckwy9.LeaderboardEntryDto():
         return 'LeaderboardEntryDto';
+      case _ib6s6ke7.EnumProfileUpdateError():
+        return 'EnumProfileUpdateError';
+      case _i1cvnna1.ProfileUpdateException():
+        return 'ProfileUpdateException';
       case _iytd8mlf.User():
         return 'User';
       case _ivqmpbel.UserProfileDto():
@@ -781,6 +822,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (dataClassName == 'LeaderboardEntryDto') {
       return deserialize<_i6lckwy9.LeaderboardEntryDto>(data['data']);
+    }
+    if (dataClassName == 'EnumProfileUpdateError') {
+      return deserialize<_ib6s6ke7.EnumProfileUpdateError>(data['data']);
+    }
+    if (dataClassName == 'ProfileUpdateException') {
+      return deserialize<_i1cvnna1.ProfileUpdateException>(data['data']);
     }
     if (dataClassName == 'User') {
       return deserialize<_iytd8mlf.User>(data['data']);

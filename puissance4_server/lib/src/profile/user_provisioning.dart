@@ -18,8 +18,18 @@ Future<void> createUserForAuthUser(
     session,
     User(
       authUserId: authUser.id,
-      username: 'Joueur-${authUser.id.toString().substring(0, 8)}',
+      username: defaultUsernameFor(authUser.id),
     ),
     transaction: transaction,
   );
+}
+
+/// Pseudo attribué à la création d'un [User] — `username` est unique en base.
+///
+/// Prend la **fin** de l'UUID : [authUserId] est un UUID v7 dont les premiers
+/// caractères encodent l'horodatage, donc deux comptes créés à moins d'une
+/// minute d'intervalle partageraient le même préfixe.
+String defaultUsernameFor(UuidValue authUserId) {
+  final hex = authUserId.uuid.replaceAll('-', '');
+  return 'Joueur-${hex.substring(hex.length - 8)}';
 }

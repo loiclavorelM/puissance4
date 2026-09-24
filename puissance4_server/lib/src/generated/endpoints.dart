@@ -571,6 +571,25 @@ class Endpoints extends _is.EndpointDispatch {
               ) async => (endpoints['profile'] as _i6ky944g.ProfileEndpoint)
                   .getMyProfile(session),
         ),
+        'updateUsername': _is.MethodConnector(
+          name: 'updateUsername',
+          params: {
+            'username': _is.ParameterDescription(
+              name: 'username',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6ky944g.ProfileEndpoint)
+                  .updateUsername(
+                    session,
+                    params['username'],
+                  ),
+        ),
       },
     );
     modules['serverpod_auth_core'] = _iacs.Endpoints()

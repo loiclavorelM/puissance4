@@ -41,6 +41,7 @@ dependencies:
   serverpod_client: 4.0.0
   serverpod_flutter: 4.0.0
   serverpod_offline_sync_client: ^0.0.8
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   # Used for agents to drive the app through the Dart MCP

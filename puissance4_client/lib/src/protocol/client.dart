@@ -478,6 +478,17 @@ class EndpointProfile extends _isc.EndpointRef {
         'getMyProfile',
         {},
       );
+
+  /// Change le pseudo du User authentifié (seule modification de profil
+  /// pour l'instant — la photo passera par un endpoint d'upload séparé,
+  /// cf. T2.1.3). Lève [ProfileUpdateException] si [username] ne respecte
+  /// pas [_usernamePattern] ou est déjà pris (insensible à la casse).
+  _ida.Future<_i5lufru8.UserProfileDto> updateUsername(String username) =>
+      caller.callServerEndpoint<_i5lufru8.UserProfileDto>(
+        'profile',
+        'updateUsername',
+        {'username': username},
+      );
 }
 
 class Modules {

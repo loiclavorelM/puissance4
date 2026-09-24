@@ -1,0 +1,5 @@
+# Raison d'un refus de ProfileEndpoint.updateUsername (cf. ProfileUpdateException).
+enum: EnumProfileUpdateError
+values:
+  - invalidUsername
+  - usernameTaken

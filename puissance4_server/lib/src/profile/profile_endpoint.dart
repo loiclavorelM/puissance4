@@ -3,6 +3,7 @@ import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart';
 
 import '../game/enum_color_extensions.dart';
 import '../generated/protocol.dart';
+import 'user_provisioning.dart';
 
 class ProfileEndpoint extends Endpoint {
   @override
@@ -24,13 +25,73 @@ class ProfileEndpoint extends Endpoint {
       session,
       User(
         authUserId: authUserId,
-        username: 'Joueur-${authUserId.toString().substring(0, 8)}',
+        username: defaultUsernameFor(authUserId),
       ),
     );
 
+    return _buildProfileDto(session, user);
+  }
+
+  /// Change le pseudo du User authentifié (seule modification de profil
+  /// pour l'instant — la photo passera par un endpoint d'upload séparé,
+  /// cf. T2.1.3). Lève [ProfileUpdateException] si [username] ne respecte
+  /// pas [_usernamePattern] ou est déjà pris (insensible à la casse).
+  Future<UserProfileDto> updateUsername(
+    Session session,
+    String username,
+  ) async {
+    final authUserId = session.authenticated!.authUserId;
+    final trimmed = username.trim();
+    if (!_usernamePattern.hasMatch(trimmed)) {
+      throw ProfileUpdateException(
+        reason: EnumProfileUpdateError.invalidUsername,
+      );
+    }
+
+    final user = await User.db.findFirstRow(
+      session,
+      where: (t) => t.authUserId.equals(authUserId),
+    );
+    if (user == null) {
+      throw StateError('Aucun User pour l\'AuthUser $authUserId');
+    }
+    if (user.username == trimmed) return _buildProfileDto(session, user);
+
+    // `_` est un joker ILIKE : l'échapper pour une comparaison exacte.
+    final escaped = trimmed.replaceAll('_', r'\_');
+    final taken = await User.db.findFirstRow(
+      session,
+      where: (t) => t.username.ilike(escaped) & t.id.notEquals(user.id),
+    );
+    if (taken != null) {
+      throw ProfileUpdateException(
+        reason: EnumProfileUpdateError.usernameTaken,
+      );
+    }
+
+    final User updated;
+    try {
+      updated = await User.db.updateRow(
+        session,
+        user.copyWith(username: trimmed, updatedAt: DateTime.now()),
+      );
+    } on DatabaseUniqueViolationException {
+      // Un autre joueur a pris ce pseudo entre la vérification et l'écriture.
+      throw ProfileUpdateException(
+        reason: EnumProfileUpdateError.usernameTaken,
+      );
+    }
+    return _buildProfileDto(session, updated);
+  }
+
+  /// 3 à 20 caractères, lettres/chiffres/`_`/`-` — mêmes règles que
+  /// `validateUsername` côté Flutter (profile/model/username_rules.dart).
+  static final _usernamePattern = RegExp(r'^[A-Za-z0-9_-]{3,20}$');
+
+  Future<UserProfileDto> _buildProfileDto(Session session, User user) async {
     final myPlayers = await Player.db.find(
       session,
-      where: (t) => t.userId.equals(user!.id),
+      where: (t) => t.userId.equals(user.id),
     );
     final myPlayerIds = myPlayers.map((p) => p.id!).toSet();
 
