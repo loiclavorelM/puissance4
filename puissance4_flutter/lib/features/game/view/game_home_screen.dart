@@ -4,17 +4,16 @@ import 'package:puissance4_client/puissance4_client.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/initials.dart';
-import '../../../core/widgets/coming_soon_tab.dart';
-import '../../../client.dart';
 import '../../auth/viewmodel/auth_viewmodel.dart';
 import '../../bot/view/normal_mode_screen.dart';
-import '../../profile/viewmodel/profile_provider.dart';
+import '../../multiplayer/view/multiplayer_screen.dart';
+import '../../ranked/view/ranked_screen.dart';
 import '../viewmodel/game_home_viewmodel.dart';
 
 /// Écran "Jouer" (onglet par défaut) — reprend `maquette-2.png` : résumé du
-/// profil, stats, et les modes de jeu. Normal ouvre le choix du bot (E5) ;
-/// Multijoueur ne mène encore nulle part (appui = SnackBar "Bientôt
-/// disponible").
+/// profil, stats, et les modes de jeu : Normal (bot sur le téléphone, E5),
+/// Classé (bot joué par le serveur, compte pour l'Elo) et Multijoueur (E7) —
+/// ces deux derniers réservés à une session serveur.
 class GameHomeScreen extends ConsumerStatefulWidget {
   const GameHomeScreen({super.key, required this.onOpenSettings});
 
@@ -27,13 +26,11 @@ class GameHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
-  bool _isSimulatingPartie = false;
-
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(gameHomeViewModelProvider);
-    // `devSimulate` exige une session serveur : rien à simuler en
-    // AuthStatus.localGuest (pas d'authUserId du tout).
+    // Classé et Multi exigent une session serveur (pas d'authUserId en
+    // AuthStatus.localGuest).
     final isAuthenticated =
         ref.watch(authViewModelProvider).status ==
         AuthStatus.serverAuthenticated;
@@ -152,52 +149,46 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
           ),
           const SizedBox(height: 12),
           _ModeCard(
+            icon: Icons.emoji_events,
+            color: AppColors.yellow,
+            title: 'Classé',
+            subtitle: 'Affronte le bot du serveur, fais monter ton Elo',
+            onTap: () =>
+                _openOnline(context, isAuthenticated, const RankedScreen()),
+          ),
+          const SizedBox(height: 12),
+          _ModeCard(
             icon: Icons.people,
             color: AppColors.green,
             title: 'Multijoueur',
             subtitle: 'Défie un ami en 1v1',
-            onTap: () => showComingSoonSnackBar(context),
-          ),
-          const SizedBox(height: 32),
-          const Divider(color: Colors.white12),
-          const SizedBox(height: 8),
-          const Text(
-            'Outil de dev — à retirer une fois le moteur de jeu (E4) fait',
-            style: TextStyle(color: Colors.white38, fontSize: 11),
-          ),
-          const SizedBox(height: 8),
-          // Outil de dev temporaire : pas de vrai moteur de jeu (E4) pour
-          // générer de vraies Partie, donc ce bouton permet de tester
-          // nbParties/nbVictoires (ProfileEndpoint.getMyProfile) depuis
-          // l'app. À retirer une fois E4 fait.
-          ElevatedButton(
-            onPressed: (_isSimulatingPartie || !isAuthenticated)
-                ? null
-                : _simulatePartie,
-            child: const Text('Simuler une partie classée/multi (stats)'),
+            onTap: () => _openOnline(
+              context,
+              isAuthenticated,
+              const MultiplayerScreen(),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Future<void> _simulatePartie() async {
-    setState(() => _isSimulatingPartie = true);
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      await client.devSimulate.simulatePartie();
-      ref.invalidate(myProfileProvider);
-      if (!context.mounted) return;
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Partie simulée — stats mises à jour')),
+  /// Classé et Multijoueur passent par le serveur : sans session serveur
+  /// (invité hors-ligne), on explique plutôt que d'ouvrir un écran inutile.
+  static void _openOnline(
+    BuildContext context,
+    bool isAuthenticated,
+    Widget screen,
+  ) {
+    if (!isAuthenticated) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Ce mode nécessite une connexion au serveur.'),
+        ),
       );
-    } catch (error) {
-      if (context.mounted) {
-        messenger.showSnackBar(SnackBar(content: Text('Erreur : $error')));
-      }
-    } finally {
-      if (mounted) setState(() => _isSimulatingPartie = false);
+      return;
     }
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
   }
 }
 

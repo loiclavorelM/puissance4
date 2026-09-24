@@ -1,0 +1,5 @@
+exception: GameException
+fields:
+  reason: EnumGameError
+  # Renseigné pour `alreadyInGame` : la partie à reprendre (`watchPartie`).
+  partieId: UuidValue?

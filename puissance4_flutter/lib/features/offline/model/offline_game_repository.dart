@@ -6,7 +6,7 @@ import 'offline_sync_session_holder.dart';
 
 /// Écrit les parties Normal (`OfflineMatchResult`) dans la session de synchro
 /// locale — marche sans réseau, la remontée au serveur se fait en
-/// best-effort (ici, puis à chaque reconnexion via
+/// best-effort (en fin de partie, puis à chaque reconnexion via
 /// `offlineSyncOnReconnectProvider`).
 class OfflineGameRepository {
   OfflineGameRepository(this._sessionHolder);
@@ -14,11 +14,25 @@ class OfflineGameRepository {
   final OfflineSyncSessionHolder _sessionHolder;
 
   /// Crée la partie à l'état `inProgress` et renvoie son id.
+  ///
+  /// Les parties restées `inProgress` (app fermée en pleine partie) passent
+  /// d'abord en `abandoned` : pas de partie fantôme locale, et l'Historique
+  /// les ignore déjà (il ne lit que `finished`).
   Future<UuidValue> createGame({
     required Bot bot,
     required EnumColor playedAs,
   }) async {
     final session = await _sessionHolder.getOrCreate();
+    final stale = await OfflineMatchResult.db.find(
+      session,
+      where: (t) => t.status.equals(EnumStatut.inProgress),
+    );
+    for (final row in stale) {
+      await OfflineMatchResult.db.updateRow(
+        session,
+        row.copyWith(status: EnumStatut.abandoned),
+      );
+    }
     final row = await OfflineMatchResult.db.insertRow(
       session,
       OfflineMatchResult(
@@ -33,16 +47,36 @@ class OfflineGameRepository {
     return row.id!;
   }
 
-  Future<void> finishGame(UuidValue id, EnumMatchResult result) async {
+  Future<OfflineMatchResult?> findGame(UuidValue id) async {
     final session = await _sessionHolder.getOrCreate();
-    final row = await OfflineMatchResult.db.findById(session, id);
-    if (row == null) {
-      throw StateError('Partie hors-ligne $id introuvable.');
-    }
+    return OfflineMatchResult.db.findById(session, id);
+  }
+
+  /// Enregistre les coups au fil de la partie (replay, E14).
+  Future<void> recordMoves(UuidValue id, List<int> moves) async {
+    final session = await _sessionHolder.getOrCreate();
+    final row = await _require(session, id);
+    await OfflineMatchResult.db.updateRow(session, row.copyWith(moves: moves));
+  }
+
+  /// Clôt la partie : `finished` avec [result], ou `abandoned` si [result]
+  /// est `null` (partie annulée).
+  Future<void> finishGame(
+    UuidValue id,
+    EnumMatchResult? result,
+    List<int> moves,
+  ) async {
+    final session = await _sessionHolder.getOrCreate();
+    final row = await _require(session, id);
     await OfflineMatchResult.db.updateRow(
       session,
-      row.copyWith(status: EnumStatut.finished, result: result),
+      row.copyWith(
+        status: result == null ? EnumStatut.abandoned : EnumStatut.finished,
+        result: result,
+        moves: moves,
+      ),
     );
+    if (result == null) return;
     try {
       await client.offlineSync.syncOnce(session);
     } on ServerpodClientNetworkException {
@@ -51,5 +85,16 @@ class OfflineGameRepository {
       // Idem — syncOnce ouvre un method stream (WebSocket), ses échecs
       // réseau remontent ainsi, pas en ServerpodClientNetworkException.
     }
+  }
+
+  Future<OfflineMatchResult> _require(
+    OfflineSyncDatabaseSession session,
+    UuidValue id,
+  ) async {
+    final row = await OfflineMatchResult.db.findById(session, id);
+    if (row == null) {
+      throw StateError('Partie hors-ligne $id introuvable.');
+    }
+    return row;
   }
 }

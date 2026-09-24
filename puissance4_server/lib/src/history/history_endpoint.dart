@@ -2,6 +2,7 @@ import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart';
 
 import '../game/enum_color_extensions.dart';
+import '../game/server_game.dart';
 import '../generated/protocol.dart';
 
 /// Historique des parties de l'appelant (E9) — ne couvre que Multi/Classé
@@ -52,6 +53,31 @@ class HistoryEndpoint extends Endpoint {
     );
 
     return _toDtos(session, user, myPlayerIds, parties);
+  }
+
+  /// Coups et joueurs d'une partie Multi/Classé, pour la rejouer (E14).
+  /// Réservé aux joueurs de la partie (`GameException(notAPlayer)` sinon).
+  Future<ReplayDto> getReplay(
+    Session session, {
+    required UuidValue idPartie,
+  }) async {
+    final me = await ServerGame.requireUser(session);
+    final (partie, seats, color) = await ServerGame.loadAsPlayer(
+      session,
+      idPartie,
+      me,
+    );
+    return ReplayDto(
+      id: partie.id!,
+      typePartie: partie.typePartie,
+      date: partie.createdAt,
+      moves: partie.moves,
+      rouge: seats.rouge.info,
+      jaune: seats.jaune.info,
+      playedAs: color,
+      winner: partie.winner,
+      endReason: partie.endReason,
+    );
   }
 
   Future<HistoryDto> getHistory(

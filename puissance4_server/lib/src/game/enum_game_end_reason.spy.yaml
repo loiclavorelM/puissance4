@@ -1,0 +1,12 @@
+enum: EnumGameEndReason
+values:
+  - connectFour
+  - boardFull
+  # Abandon explicite (`GameEndpoint.abandon`).
+  - forfeit
+  # Un joueur n'est pas revenu dans le délai de grâce.
+  - disconnect
+  # Le joueur au trait n'a pas joué à temps.
+  - timeout
+  # Partie annulée sans vainqueur (statut `abandoned`).
+  - cancelled

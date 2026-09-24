@@ -1,48 +1,56 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:puissance4_client/puissance4_client.dart';
 
-import '../../history/viewmodel/history_viewmodel.dart';
-import '../../offline/viewmodel/offline_sync_provider.dart';
-import '../model/game_setup.dart';
+import '../model/game_engine.dart';
+import '../model/game_launch.dart';
+import '../model/game_snapshot.dart';
+import '../model/server_game_repository.dart';
 
-class GameState {
-  const GameState({this.isFinishing = false, this.errorMessage});
-
-  final bool isFinishing;
-  final String? errorMessage;
-}
+final serverGameRepositoryProvider = Provider<ServerGameRepository>(
+  (ref) => ServerGameRepository(),
+);
 
 final gameViewModelProvider = NotifierProvider.autoDispose
-    .family<GameViewModel, GameState, GameSetup>(GameViewModel.new);
+    .family<GameViewModel, GameSnapshot, GameLaunch>(GameViewModel.new);
 
-/// Partie en cours — pour l'instant sans plateau (E4 pas fait) : ne sait que
-/// clore la partie avec un résultat choisi à la main.
-class GameViewModel extends AutoDisposeFamilyNotifier<GameState, GameSetup> {
+/// Partie affichée par `GameScreen`, quel que soit le mode : relaie l'état
+/// du `GameEngine` fourni par le [GameLaunch] et lui transmet les actions.
+/// Fermer l'écran dispose le moteur (et donc le stream d'une partie serveur).
+class GameViewModel
+    extends AutoDisposeFamilyNotifier<GameSnapshot, GameLaunch> {
+  late GameEngine _engine;
+
   @override
-  GameState build(GameSetup setup) => const GameState();
+  GameSnapshot build(GameLaunch launch) {
+    _engine = launch.createEngine(ref);
+    final subscription = _engine.snapshots.listen((s) => state = s);
+    ref.onDispose(() {
+      unawaited(subscription.cancel());
+      _engine.dispose();
+    });
+    return _engine.current;
+  }
 
-  /// Renvoie `true` si la partie a bien été close.
-  Future<bool> finish(EnumMatchResult result) async {
-    if (state.isFinishing) return false;
-    state = const GameState(isFinishing: true);
-    try {
-      switch (arg.mode) {
-        case EnumType.normal:
-          await ref
-              .read(offlineGameRepositoryProvider)
-              .finishGame(arg.partieId, result);
-          ref.invalidate(offlineHistoryProvider);
-        case EnumType.multi || EnumType.classe:
-          // Parties serveur (E4/E7) — pas encore de moteur de jeu.
-          throw UnimplementedError('Mode ${arg.mode} pas encore jouable.');
-      }
-    } catch (_) {
-      state = const GameState(
-        errorMessage: 'Impossible de terminer la partie. Réessaie.',
-      );
-      return false;
-    }
-    state = const GameState();
-    return true;
+  Stream<String> get notices => _engine.notices;
+
+  ReplayControls? get replay => _engine.replay;
+
+  Future<void> play(int column) => _engine.play(column);
+
+  Future<void> abandon() => _engine.abandon();
+
+  /// Replay de la partie qui vient de se terminer, sans appel réseau : tous
+  /// les coups sont déjà là.
+  GameLaunch? replayOfFinishedGame() {
+    final snapshot = state;
+    if (!snapshot.isOver || snapshot.isReplay) return null;
+    return GameLaunch.replay(
+      moves: snapshot.moves,
+      rouge: snapshot.rouge,
+      jaune: snapshot.jaune,
+      myColor: snapshot.myColor,
+      result: snapshot.result,
+    );
   }
 }

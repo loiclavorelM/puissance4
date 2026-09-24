@@ -6,11 +6,20 @@ import '../../../client.dart';
 import '../../auth/viewmodel/auth_viewmodel.dart';
 import '../../offline/viewmodel/local_cache_provider.dart';
 import '../../offline/viewmodel/offline_sync_provider.dart';
+import '../../game/viewmodel/game_viewmodel.dart';
 import '../model/history_item.dart';
+import '../model/history_replay_repository.dart';
 import '../model/history_repository.dart';
 
 final historyRepositoryProvider = Provider<HistoryRepository>(
   (ref) => HistoryRepository(ref.watch(localCacheProvider)),
+);
+
+final historyReplayRepositoryProvider = Provider<HistoryReplayRepository>(
+  (ref) => HistoryReplayRepository(
+    ref.watch(serverGameRepositoryProvider),
+    ref.watch(offlineGameRepositoryProvider),
+  ),
 );
 
 /// Filtre sélectionné par les chips Tous/Normal/Classé/Multi — `null` = Tous.

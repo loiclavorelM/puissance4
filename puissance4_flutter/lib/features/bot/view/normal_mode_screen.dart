@@ -117,10 +117,10 @@ class NormalModeScreen extends ConsumerWidget {
     BuildContext context,
     NormalModeViewModel viewModel,
   ) async {
-    final setup = await viewModel.start();
-    if (setup == null || !context.mounted) return;
+    final launch = await viewModel.start();
+    if (launch == null || !context.mounted) return;
     await Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => GameScreen(setup: setup)),
+      MaterialPageRoute(builder: (_) => GameScreen(launch: launch)),
     );
   }
 }

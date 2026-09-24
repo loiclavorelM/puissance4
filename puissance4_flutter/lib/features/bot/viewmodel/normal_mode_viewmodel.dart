@@ -4,11 +4,16 @@ import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import '../../../client.dart';
 import '../../auth/viewmodel/auth_viewmodel.dart';
-import '../../game/model/game_setup.dart';
+import '../../game/model/game_launch.dart';
+import '../../history/viewmodel/history_viewmodel.dart';
+import '../../game/model/game_participant.dart';
+import '../../game/model/local_game_engine.dart';
 import '../../game/viewmodel/game_home_viewmodel.dart';
 import '../../offline/viewmodel/local_cache_provider.dart';
 import '../../offline/viewmodel/offline_sync_provider.dart';
+import '../model/bot_brain.dart';
 import '../model/bot_repository.dart';
+import '../model/normal_game_recorder.dart';
 
 final botRepositoryProvider = Provider<BotRepository>(
   (ref) => BotRepository(ref.watch(localCacheProvider)),
@@ -60,7 +65,7 @@ class NormalModeViewModel extends AutoDisposeNotifier<NormalModeState> {
   /// Créée ici plutôt qu'à l'ouverture de l'écran de partie : une erreur
   /// s'affiche là où le joueur peut réessayer, et un rebuild de l'écran de
   /// partie ne peut pas créer de doublon.
-  Future<GameSetup?> start() async {
+  Future<GameLaunch?> start() async {
     final bot = state.selectedBot;
     if (bot == null || state.isStarting) return null;
     state = NormalModeState(selectedBot: bot, isStarting: true);
@@ -68,17 +73,29 @@ class NormalModeViewModel extends AutoDisposeNotifier<NormalModeState> {
     // Le joueur commence toujours, en rouge, contre un bot.
     const userColor = EnumColor.rouge;
     try {
-      final partieId = await ref
-          .read(offlineGameRepositoryProvider)
-          .createGame(bot: bot, playedAs: userColor);
+      final repository = ref.read(offlineGameRepositoryProvider);
+      final partieId = await repository.createGame(
+        bot: bot,
+        playedAs: userColor,
+      );
       final home = ref.read(gameHomeViewModelProvider);
       state = NormalModeState(selectedBot: bot);
-      return GameSetup(
-        mode: EnumType.normal,
-        partieId: partieId,
-        user: UserParticipant(username: home.username, elo: home.elo),
-        adversaire: BotParticipant(bot),
-        userColor: userColor,
+      final brain = HeuristicBotBrain.forElo(bot.elo);
+      return GameLaunch(
+        title: 'Normal',
+        createEngine: (gameRef) => LocalGameEngine(
+          rougeSeat: const HumanSeat(),
+          jauneSeat: BotSeat(brain.chooseColumn),
+          rouge: HumanParticipant(username: home.username, elo: home.elo),
+          jaune: BotParticipant.fromBot(bot),
+          myColor: userColor,
+          recorder: NormalGameRecorder(
+            repository,
+            partieId,
+            userColor,
+            onFinished: () => gameRef.invalidate(offlineHistoryProvider),
+          ),
+        ),
       );
     } catch (_) {
       state = NormalModeState(

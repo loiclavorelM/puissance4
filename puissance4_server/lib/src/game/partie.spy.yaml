@@ -12,3 +12,15 @@ fields:
   moves: List<int>
   createdAt: DateTime, default=now
   updatedAt: DateTime?
+  # Présence des joueurs humains, Multi et Classé (cf. `server_game.dart`).
+  # Tenue en base plutôt qu'en mémoire pour qu'un autre serveur du cluster (Redis) puisse
+  # juger une déconnexion : `xxxConnectionId` = stream actuellement ouvert par
+  # ce joueur (null = aucun), `xxxDisconnectedAt` = fermeture de son dernier
+  # stream (null = connecté, ou pas encore arrivé).
+  rougeConnectionId: UuidValue?
+  rougeDisconnectedAt: DateTime?
+  jauneConnectionId: UuidValue?
+  jauneDisconnectedAt: DateTime?
+  # Multi et Classé : comment la partie s'est terminée (pour l'afficher à un
+  # joueur qui se reconnecte après coup).
+  endReason: EnumGameEndReason?

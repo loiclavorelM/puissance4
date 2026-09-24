@@ -15,10 +15,14 @@ import 'package:http/http.dart' as _i85jenna;
 import 'package:puissance4_client/src/protocol/bot/bot.dart' as _ighv8e6n;
 import 'package:puissance4_client/src/protocol/game/enum_type.dart'
     as _i6ui2hi8;
+import 'package:puissance4_client/src/protocol/game/game_event.dart'
+    as _iho1cjz0;
 import 'package:puissance4_client/src/protocol/greetings/greeting.dart'
     as _i45e1izr;
 import 'package:puissance4_client/src/protocol/history/history_dto.dart'
     as _igkkg43x;
+import 'package:puissance4_client/src/protocol/history/replay_dto.dart'
+    as _io6ngfmf;
 import 'package:puissance4_client/src/protocol/leaderboard/leaderboard_dto.dart'
     as _ihkbd7x6;
 import 'package:puissance4_client/src/protocol/live/live_event.dart'
@@ -380,25 +384,58 @@ class EndpointConnection extends _isc.EndpointRef {
   );
 }
 
-/// Outil de dev temporaire — insère une partie Classé/Multi terminée
-/// (issue et couleur aléatoires) pour l'utilisateur authentifié, pour
-/// tester `nbParties`/`nbVictoires` (`ProfileEndpoint.getMyProfile`) sans
-/// vrai moteur de jeu (E4). Fait aussi varier `User.elo` (±5 à 25, pas la
-/// vraie formule Elo — hors scope, futur moteur/E7) avec une `EloHistory`
-/// correspondante, pour pouvoir tester le Classement (E8) en dev. À retirer
-/// une fois E4 fait.
+/// Partie serveur en cours, quel que soit le mode (Multi ou Classé) : la
+/// suivre, y jouer, l'abandonner. Les parties naissent ailleurs
+/// (`MultiplayerEndpoint`, `RankedEndpoint`) ; voir `server_game.dart` pour
+/// les garanties de fin.
 /// {@category Endpoint}
-class EndpointDevSimulate extends _isc.EndpointRef {
-  EndpointDevSimulate(_isc.EndpointCaller caller) : super(caller);
+class EndpointGame extends _isc.EndpointRef {
+  EndpointGame(_isc.EndpointCaller caller) : super(caller);
 
   @override
-  String get name => 'devSimulate';
+  String get name => 'game';
 
-  _ida.Future<void> simulatePartie() => caller.callServerEndpoint<void>(
-    'devSimulate',
-    'simulatePartie',
-    {},
+  /// Partie serveur en cours de l'appelant (à reprendre par [watchPartie]),
+  /// ou `null`.
+  _ida.Future<_isc.UuidValue?> getActivePartie() =>
+      caller.callServerEndpoint<_isc.UuidValue?>(
+        'game',
+        'getActivePartie',
+        {},
+      );
+
+  /// Suit la partie : `gameStarted` (photo complète) puis les événements, ou
+  /// directement `gameOver` si elle est déjà terminée. Sert aussi à revenir
+  /// après une coupure, dans le délai de grâce.
+  _ida.Stream<_iho1cjz0.GameEvent> watchPartie(_isc.UuidValue partieId) =>
+      caller.callStreamingServerEndpoint<
+        _ida.Stream<_iho1cjz0.GameEvent>,
+        _iho1cjz0.GameEvent
+      >(
+        'game',
+        'watchPartie',
+        {'partieId': partieId},
+        {},
+      );
+
+  _ida.Future<void> playMove(
+    _isc.UuidValue partieId,
+    int column,
+  ) => caller.callServerEndpoint<void>(
+    'game',
+    'playMove',
+    {
+      'partieId': partieId,
+      'column': column,
+    },
   );
+
+  _ida.Future<void> abandon(_isc.UuidValue partieId) =>
+      caller.callServerEndpoint<void>(
+        'game',
+        'abandon',
+        {'partieId': partieId},
+      );
 }
 
 /// This is an example endpoint that returns a greeting message through
@@ -443,6 +480,16 @@ class EndpointHistory extends _isc.EndpointRef {
       'limit': limit,
       'offset': offset,
     },
+  );
+
+  /// Coups et joueurs d'une partie Multi/Classé, pour la rejouer (E14).
+  /// Réservé aux joueurs de la partie (`GameException(notAPlayer)` sinon).
+  _ida.Future<_io6ngfmf.ReplayDto> getReplay({
+    required _isc.UuidValue idPartie,
+  }) => caller.callServerEndpoint<_io6ngfmf.ReplayDto>(
+    'history',
+    'getReplay',
+    {'idPartie': idPartie},
   );
 
   _ida.Future<_igkkg43x.HistoryDto> getHistory({
@@ -509,6 +556,47 @@ class EndpointLive extends _isc.EndpointRef {
       );
 }
 
+/// Multijoueur en ligne (E7) : salles d'attente. Une salle n'existe que tant
+/// que le stream de son hôte est ouvert ([hostRoom]) ; la `Partie` n'est
+/// créée qu'à l'arrivée de l'adversaire ([joinRoom]). Une fois la partie
+/// commencée, chaque joueur la suit par le même stream (ou par
+/// `GameEndpoint.watchPartie` après une coupure) et joue par
+/// `GameEndpoint.playMove`.
+/// {@category Endpoint}
+class EndpointMultiplayer extends _isc.EndpointRef {
+  EndpointMultiplayer(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'multiplayer';
+
+  /// Ouvre une salle : émet `roomCreated` (avec le code), puis, à l'arrivée
+  /// de l'adversaire, les événements de la partie. Fermer ce stream avant
+  /// ferme la salle ; à expiration il émet `roomClosed` et se termine.
+  _ida.Stream<_iho1cjz0.GameEvent> hostRoom() =>
+      caller.callStreamingServerEndpoint<
+        _ida.Stream<_iho1cjz0.GameEvent>,
+        _iho1cjz0.GameEvent
+      >(
+        'multiplayer',
+        'hostRoom',
+        {},
+        {},
+      );
+
+  /// Rejoint la salle [code] : crée la partie et émet ses événements, à
+  /// commencer par `gameStarted`.
+  _ida.Stream<_iho1cjz0.GameEvent> joinRoom(String code) =>
+      caller.callStreamingServerEndpoint<
+        _ida.Stream<_iho1cjz0.GameEvent>,
+        _iho1cjz0.GameEvent
+      >(
+        'multiplayer',
+        'joinRoom',
+        {'code': code},
+        {},
+      );
+}
+
 /// {@category Endpoint}
 class EndpointProfile extends _isc.EndpointRef {
   EndpointProfile(_isc.EndpointCaller caller) : super(caller);
@@ -532,6 +620,30 @@ class EndpointProfile extends _isc.EndpointRef {
         'profile',
         'updateUsername',
         {'username': username},
+      );
+}
+
+/// Classé : partie contre un bot joué **par le serveur**, qui valide chaque
+/// coup — l'Elo gagné ne peut donc pas être truqué côté client. Le bot est
+/// choisi d'après l'Elo du joueur (cahier des charges : < 1000 Débutant,
+/// < 1400 Medium, sinon Expert). La partie se suit ensuite comme toute
+/// partie serveur, par `GameEndpoint.watchPartie` ; l'Elo est mis à jour à
+/// sa fin (`ServerGame`).
+/// {@category Endpoint}
+class EndpointRanked extends _isc.EndpointRef {
+  EndpointRanked(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'ranked';
+
+  /// Crée la partie Classé et renvoie son id. Pas de salle ni de stream ici :
+  /// si le client ne vient jamais la suivre, la fin du tour la termine comme
+  /// n'importe quelle partie serveur abandonnée.
+  _ida.Future<_isc.UuidValue> startRanked() =>
+      caller.callServerEndpoint<_isc.UuidValue>(
+        'ranked',
+        'startRanked',
+        {},
       );
 }
 
@@ -582,12 +694,14 @@ class Client extends _isc.ServerpodClientShared {
     jwtRefresh = EndpointJwtRefresh(this);
     bot = EndpointBot(this);
     connection = EndpointConnection(this);
-    devSimulate = EndpointDevSimulate(this);
+    game = EndpointGame(this);
     greeting = EndpointGreeting(this);
     history = EndpointHistory(this);
     leaderboard = EndpointLeaderboard(this);
     live = EndpointLive(this);
+    multiplayer = EndpointMultiplayer(this);
     profile = EndpointProfile(this);
+    ranked = EndpointRanked(this);
     modules = Modules(this);
   }
 
@@ -603,7 +717,7 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointConnection connection;
 
-  late final EndpointDevSimulate devSimulate;
+  late final EndpointGame game;
 
   late final EndpointGreeting greeting;
 
@@ -613,7 +727,11 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointLive live;
 
+  late final EndpointMultiplayer multiplayer;
+
   late final EndpointProfile profile;
+
+  late final EndpointRanked ranked;
 
   late final Modules modules;
 
@@ -625,12 +743,14 @@ class Client extends _isc.ServerpodClientShared {
     'jwtRefresh': jwtRefresh,
     'bot': bot,
     'connection': connection,
-    'devSimulate': devSimulate,
+    'game': game,
     'greeting': greeting,
     'history': history,
     'leaderboard': leaderboard,
     'live': live,
+    'multiplayer': multiplayer,
     'profile': profile,
+    'ranked': ranked,
   };
 
   @override

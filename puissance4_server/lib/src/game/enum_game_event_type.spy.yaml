@@ -1,0 +1,15 @@
+enum: EnumGameEventType
+values:
+  # Salle Multi ouverte, `code` à partager — premier événement de `hostRoom`.
+  - roomCreated
+  # Salle Multi fermée sans adversaire (expirée, ou remplacée par une
+  # nouvelle salle du même hôte) — dernier événement du stream.
+  - roomClosed
+  # Photo complète de la partie : envoyé au démarrage et à chaque
+  # (re)connexion d'un stream à la partie.
+  - gameStarted
+  - moveApplied
+  - opponentDisconnected
+  - opponentReconnected
+  # Dernier événement du stream : `winner`/`endReason` renseignés.
+  - gameOver

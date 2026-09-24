@@ -1,0 +1,12 @@
+enum: EnumGameError
+values:
+  - userNotFound
+  - roomNotFound
+  - ownRoom
+  - alreadyInGame
+  - gameNotFound
+  - notAPlayer
+  - gameOver
+  - notYourTurn
+  - invalidMove
+  - noBotAvailable

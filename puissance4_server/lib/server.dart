@@ -9,6 +9,7 @@ import 'package:serverpod_cloud_storage/serverpod_cloud_storage.dart';
 import 'src/bot/bot_seed.dart';
 import 'src/cache_busting.dart';
 import 'src/generated/serverpod.dart';
+import 'src/game/server_game.dart';
 import 'src/profile/user_provisioning.dart';
 import 'src/web/routes/app_config_route.dart';
 
@@ -125,5 +126,7 @@ void run(List<String> args) async {
   // Seed/refresh reference data that isn't user-generated (cf. E5).
   await pod.withSession((session) async {
     await seedBots(session);
+    // Reprogramme les rappels des parties serveur perdus avec l'arrêt.
+    await ServerGame.resumePending(session);
   });
 }

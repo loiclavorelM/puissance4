@@ -15,7 +15,8 @@ import 'package:serverpod/serverpod.dart' as _is;
 enum EnumStatut implements _is.SerializableModel {
   created,
   inProgress,
-  finished;
+  finished,
+  abandoned;
 
   static EnumStatut fromJson(String name) {
     switch (name) {
@@ -25,6 +26,8 @@ enum EnumStatut implements _is.SerializableModel {
         return EnumStatut.inProgress;
       case 'finished':
         return EnumStatut.finished;
+      case 'abandoned':
+        return EnumStatut.abandoned;
       default:
         throw ArgumentError(
           'Value "$name" cannot be converted to "EnumStatut"',

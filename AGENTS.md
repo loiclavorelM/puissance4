@@ -3,6 +3,23 @@
 This project is a Flutter app (frontend) backed by a Serverpod server (backend). Always build the app's backend with Serverpod.
 Build for multiple users. Authentication uses Serverpod's **native auth module** (`serverpod_auth_idp_*`, email identity provider + JWT sessions), already wired up by the `serverpod create` scaffold in `puissance4_server/lib/server.dart` and the generated `email_idp_endpoint.dart`/`jwt_refresh_endpoint.dart` — do NOT bridge to Firebase Auth. On the Flutter side, sign-in/sign-up/sign-out go through `SignInWidget` and `client.auth.*` (see the `serverpod-auth` skill), never custom endpoints. Game-specific profile data (username, thumbnail, Elo) lives in our own `User` model, linked to the module's `AuthUser` via a nullable `authUser` relation (nullable so a local guest — E0 — can exist before ever signing in).
 
+## The app
+
+Puissance 4 (Connect Four) with three game modes, all rendered by **one** game screen:
+
+- **Normal** — vs a bot running on the phone, playable offline. Stored in `OfflineMatchResult` (`database: sync`, serverpod_offline_sync). No Elo.
+- **Classé** — vs a bot played **by the server** (`RankedEndpoint`), which validates every move; Elo (K = 32) updated at the end with an `EloHistory` row.
+- **Multijoueur** — 1v1 via a 6-char room code (`MultiplayerEndpoint`), real time over Serverpod streams. No Elo.
+- **Replay** of any finished game from the history (moves are stored for every mode).
+
+Key pieces:
+
+- `puissance4_rules/` — pure-Dart workspace package shared by server and app: Connect Four rules (`Connect4Rules`) and the placeholder bot AI (`HeuristicBot`, `BotStrength.fromElo`) until the RL models (E5) land. Tests: `dart test` in that package.
+- Flutter `features/game/`: `GameScreen` only reads a `GameSnapshot` from a `GameEngine` passed in a `GameLaunch`. Engines: `LocalGameEngine` (rules on the phone, seats = human or on-device `BotBrain`), `ServerGameEngine` (server decides — Multi & Classé), `ReplayGameEngine` (moves from history). Never build a mode-specific board or game screen.
+- Server `lib/src/game/`: `ServerGame` (Multi + Classé state machine, DB is the source of truth, row locks, idempotent scheduled checks), `GameEndpoint` (`watchPartie`, `playMove`, `abandon`, `getActivePartie`), `GameStream`/`followPartie` (per-client stream + presence).
+- **No ghost games**: a server `Partie` is only created once both sides are known (Multi rooms live in memory while the host's stream is open), and every `inProgress` game always has a scheduled end (60 s per move, 15 s disconnect grace, `resumePending` at boot). Games cancelled before any human move end as `EnumStatut.abandoned` (excluded from history/stats/Elo).
+- **Redis/cluster-ready**: only `GameScheduler` (`server_game_config.dart`) and `RoomStore` (`multiplayer_config.dart`) are in-memory; swap them for shared implementations when enabling Redis.
+
 ## Architecture
 
 Follow **MVVM, feature-first**, in both packages — see `doc/03-Backlog-Epics-UserStories.md` for the feature list and `doc/latex/cahier-des-charges.tex` for the full rationale:
@@ -55,4 +72,3 @@ If the user asks you to test the app:
 
 The app is launched from `puissance4_flutter/lib/driver.dart`, which starts the Flutter driver extension with text entry emulation turned off so the app stays usable by hand. To let the driver type, set `enableTextEntryEmulation: true` there and `hot_restart` the app.
 
-IMPORTANT: After building the first version of the app, update this AGENTS.md file with information about the app we're building. KEEP the info about the MCP server and the checklist. Remove this paragraph.

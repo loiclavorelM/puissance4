@@ -1,0 +1,5 @@
+class: GamePlayerInfo
+fields:
+  username: String
+  elo: int
+  isBot: bool, default=false
