@@ -1,0 +1,146 @@
+{
+  "__className__": "serverpod.DatabaseMigration",
+  "actions": [
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "deleteTable",
+      "deleteTable": "offline_match_result"
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationAction",
+      "type": "createTable",
+      "createTable": {
+        "__className__": "serverpod.TableDefinition",
+        "name": "offline_match_result",
+        "dartName": "OfflineMatchResult",
+        "module": "puissance4",
+        "schema": "public",
+        "columns": [
+          {
+            "__className__": "serverpod.ColumnDefinition",
+            "name": "id",
+            "fieldName": "id",
+            "columnType": 7,
+            "isNullable": false,
+            "columnDefault": "random_v7",
+            "dartType": "UuidValue?"
+          },
+          {
+            "__className__": "serverpod.ColumnDefinition",
+            "name": "spaceId",
+            "fieldName": "spaceId",
+            "columnType": 6,
+            "isNullable": true,
+            "dartType": "int?"
+          },
+          {
+            "__className__": "serverpod.ColumnDefinition",
+            "name": "status",
+            "fieldName": "status",
+            "columnType": 0,
+            "isNullable": false,
+            "dartType": "protocol:EnumStatut"
+          },
+          {
+            "__className__": "serverpod.ColumnDefinition",
+            "name": "result",
+            "fieldName": "result",
+            "columnType": 0,
+            "isNullable": true,
+            "dartType": "protocol:EnumMatchResult?"
+          },
+          {
+            "__className__": "serverpod.ColumnDefinition",
+            "name": "botId",
+            "fieldName": "botId",
+            "columnType": 7,
+            "isNullable": false,
+            "dartType": "UuidValue"
+          },
+          {
+            "__className__": "serverpod.ColumnDefinition",
+            "name": "botName",
+            "fieldName": "botName",
+            "columnType": 0,
+            "isNullable": false,
+            "dartType": "String"
+          },
+          {
+            "__className__": "serverpod.ColumnDefinition",
+            "name": "playedAs",
+            "fieldName": "playedAs",
+            "columnType": 0,
+            "isNullable": false,
+            "dartType": "protocol:EnumColor"
+          },
+          {
+            "__className__": "serverpod.ColumnDefinition",
+            "name": "moves",
+            "fieldName": "moves",
+            "columnType": 8,
+            "isNullable": false,
+            "dartType": "List<int>"
+          },
+          {
+            "__className__": "serverpod.ColumnDefinition",
+            "name": "playedAt",
+            "fieldName": "playedAt",
+            "columnType": 4,
+            "isNullable": false,
+            "dartType": "DateTime"
+          },
+          {
+            "__className__": "serverpod.ColumnDefinition",
+            "name": "reconciled",
+            "fieldName": "reconciled",
+            "columnType": 1,
+            "isNullable": false,
+            "columnDefault": "false",
+            "dartType": "bool"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "__className__": "serverpod.ForeignKeyDefinition",
+            "constraintName": "offline_match_result_fk_0",
+            "columns": [
+              "spaceId"
+            ],
+            "referenceTable": "offline_sync_spaces",
+            "referenceTableSchema": "public",
+            "referenceColumns": [
+              "id"
+            ],
+            "onUpdate": 3,
+            "onDelete": 4
+          }
+        ],
+        "indexes": [],
+        "managed": true
+      }
+    }
+  ],
+  "warnings": [
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "columnDropped",
+      "message": "Column \"botLevel\" of table \"offline_match_result\" will be dropped.",
+      "table": "offline_match_result",
+      "columns": [
+        "botLevel"
+      ],
+      "destrucive": true
+    },
+    {
+      "__className__": "serverpod.DatabaseMigrationWarning",
+      "type": "tableDropped",
+      "message": "One or more columns are added to table \"offline_match_result\" which cannot be added in a table migration. The complete table will be deleted and recreated.",
+      "table": "offline_match_result",
+      "columns": [
+        "status"
+      ],
+      "destrucive": true
+    }
+  ],
+  "migrationApiVersion": 1
+}

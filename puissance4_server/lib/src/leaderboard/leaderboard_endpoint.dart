@@ -2,6 +2,7 @@ import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart';
 
 import '../generated/protocol.dart';
+import '../live/live_notifier.dart';
 
 /// Classement par Elo (E8) — uniquement des `User`, jamais de `Bot` (son
 /// `elo` ne sert qu'au matchmaking de difficulté, cf. plan Classement).
@@ -13,6 +14,27 @@ class LeaderboardEndpoint extends Endpoint {
     Session session, {
     int limit = 100,
     int offset = 0,
+  }) async {
+    // Même page demandée par tous les clients à chaque événement
+    // `leaderboardChanged` : mise en cache locale, vidée par
+    // `notifyLeaderboardChanged` à chaque changement d'Elo/pseudo. La durée
+    // de vie ne sert que de filet (ex. un nouveau compte, qui n'invalide
+    // pas).
+    final page = await session.caches.local.get<List<LeaderboardEntryDto>>(
+      'leaderboard-$limit-$offset',
+      CacheMissHandler(
+        () => _loadPage(session, limit: limit, offset: offset),
+        lifetime: const Duration(minutes: 1),
+        group: leaderboardCacheGroup,
+      ),
+    );
+    return page ?? [];
+  }
+
+  Future<List<LeaderboardEntryDto>> _loadPage(
+    Session session, {
+    required int limit,
+    required int offset,
   }) async {
     final users = await User.db.find(
       session,

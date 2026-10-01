@@ -135,17 +135,17 @@ Critères d'acceptation :
 - Détection victoire (4 alignés), égalité (plateau plein).
 
 Tickets :
-- [ ] T4.1.1 — UI du plateau + placement des pions — `owner:B`
-- [ ] T4.1.2 — Logique de jeu (règles, détection victoire/égalité) — `owner:B`
-- [ ] T4.1.3 — Écran de fin de partie (victoire/défaite/nul) — `owner:B`
+- [x] T4.1.1 — UI du plateau + placement des pions — `owner:B`
+- [x] T4.1.2 — Logique de jeu (règles, détection victoire/égalité) — `owner:B`
+- [x] T4.1.3 — Écran de fin de partie (victoire/défaite/nul) — `owner:B`
 
 ### US4.2 — En tant que menu principal, je veux lancer l'écran de jeu avec des paramètres typés, afin que jeu et menu se développent indépendamment.
 Critères d'acceptation :
 - `GameLaunchParams` (cf. cahier des charges §6.1) implémenté et respecté par les deux côtés.
 
 Tickets :
-- [ ] T4.2.1 — Implémentation des classes `GameLaunchParams` / `PlayerInfo` / enums — `owner:B`
-- [ ] T4.2.2 — Câblage du menu principal vers l'écran de jeu selon ce contrat — `owner:A`
+- [x] T4.2.1 — Implémentation des classes `GameLaunchParams` / `PlayerInfo` / enums — `owner:B`
+- [x] T4.2.2 — Câblage du menu principal vers l'écran de jeu selon ce contrat — `owner:A`
 
 ---
 
@@ -183,14 +183,25 @@ Tickets :
 
 ---
 
-## E6 — *(retiré)* Mode Ligue / Classé vs bot
+## E6 — Mode Classé vs bot serveur *(réintroduit)*
+`area:backend` `area:frontend`
 
-Abandonné : un mode "Ligue" séparé (bot choisi par le serveur selon l'Elo du
-joueur) n'a plus lieu d'être — l'Elo n'a de sens que pour comparer deux
-vrais joueurs, pas pour calibrer un adversaire IA à niveaux fixes. Un seul
-mode solo reste : **Solo** (ex-"Normal", `E5`/`US5.1`), sans Elo, choix du
-niveau de bot à la main, jouable hors-ligne. Le système d'Elo est déplacé
-dans `E7`, où il a vraiment sa place (comparer deux joueurs humains).
+D'abord retiré (l'Elo n'aurait de sens qu'entre humains), puis réintroduit
+sous une autre forme : le bot est joué **par le serveur**, qui valide chaque
+coup — l'Elo gagné contre lui ne peut donc pas être truqué côté client, ce qui
+n'était pas le cas du "Ligue" joué en local puis remonté. Le mode Normal reste
+le mode solo hors-ligne, sans Elo.
+
+### US6.1 — En tant que joueur, je veux affronter un bot adapté à mon Elo, afin de faire progresser mon classement.
+Critères d'acceptation :
+- Bot choisi par le serveur selon l'Elo (< 1000 Débutant, < 1400 Medium, sinon Expert).
+- Elo recalculé en fin de partie (K = 32) avec une entrée `EloHistory` ; partie annulée sans effet si aucun coup n'a été joué.
+- Mêmes garanties anti-parties fantômes que le Multi (délai par coup, délai de grâce).
+
+Tickets :
+- [x] T6.1.1 — `RankedEndpoint.startRanked` + bot serveur (`HeuristicBot` partagé) — `area:backend`
+- [x] T6.1.2 — Calcul Elo + `EloHistory` dans la transaction de fin de partie — `area:backend`
+- [x] T6.1.3 — Écran Classé (Elo, adversaire annoncé, reprise d'une partie en cours) — `area:frontend`
 
 ---
 
@@ -202,8 +213,8 @@ Critères d'acceptation :
 - Génération d'un code unique, écran "en attente d'un adversaire".
 
 Tickets :
-- [ ] T7.1.1 — Endpoint `createOnlineMatch` (génération du code, session en attente) — `owner:B` `area:backend`
-- [ ] T7.1.2 — UI "Créer une partie" (affichage code, copier, statut) — `owner:A`/`owner:B`
+- [x] T7.1.1 — Endpoint `createOnlineMatch` (génération du code, session en attente) — `owner:B` `area:backend`
+- [x] T7.1.2 — UI "Créer une partie" (affichage code, copier, statut) — `owner:A`/`owner:B`
 
 ### US7.2 — En tant que joueur, je veux rejoindre une partie avec un code, afin de jouer contre mon ami en temps réel.
 Critères d'acceptation :
@@ -211,9 +222,9 @@ Critères d'acceptation :
 - Les coups des deux joueurs sont synchronisés en direct.
 
 Tickets :
-- [ ] T7.2.1 — Endpoint/stream `joinOnlineMatch` (Serverpod streams) — `owner:B` `area:backend`
-- [ ] T7.2.2 — UI "Rejoindre une partie" + branchement du plateau sur le stream — `owner:B`
-- [ ] T7.2.3 — Gestion déconnexion/abandon d'un joueur (y compris perte de connexion de son propre côté — pas de pause possible en Multijoueur, cf. E10) — `owner:B` `area:backend`
+- [x] T7.2.1 — Endpoint/stream `joinOnlineMatch` (Serverpod streams) — `owner:B` `area:backend`
+- [x] T7.2.2 — UI "Rejoindre une partie" + branchement du plateau sur le stream — `owner:B`
+- [x] T7.2.3 — Gestion déconnexion/abandon d'un joueur (y compris perte de connexion de son propre côté — pas de pause possible en Multijoueur, cf. E10) — `owner:B` `area:backend`
 
 ### US7.3 — En tant que joueur, je veux que mon Elo soit mis à jour après une partie multijoueur, afin que mon classement reflète mon niveau face à d'autres humains.
 Critères d'acceptation :
@@ -221,7 +232,7 @@ Critères d'acceptation :
 - Reprend le principe de `US0.3` : si un résultat multijoueur a été enregistré hors-ligne (perte de connexion en cours de partie), le recalcul reste un traitement serveur séquentiel, trié par horodatage.
 
 Tickets :
-- [ ] T7.3.1 — Calcul Elo (formule + K-factor) côté serveur — `owner:B` `area:backend`
+- [x] T7.3.1 — Calcul Elo (formule + K-factor) côté serveur — `owner:B` `area:backend`
 - [ ] T7.3.2 — Câblage du recalcul Elo à la fin d'une partie multijoueur (`joinOnlineMatch`/fin de stream) — `owner:B` `area:backend`
 
 ---
@@ -247,7 +258,7 @@ Critères d'acceptation :
 - Liste triée (plus récent en premier), filtrable par mode (Normal/Classé/Multi).
 
 Tickets :
-- [ ] T9.1.1 — Enregistrement systématique du résultat en fin de partie (tous modes) — `owner:B` `area:backend`
+- [x] T9.1.1 — Enregistrement systématique du résultat en fin de partie (tous modes) — `owner:B` `area:backend`
 - [ ] T9.1.2 — Endpoint `getMatchHistory` (pagination + filtre par mode) — `owner:B` `area:backend`
 - [ ] T9.1.3 — UI écran Historique (filtres, liste) — `owner:A`
 
@@ -329,8 +340,8 @@ Critères d'acceptation :
 - Fonctionnalité de revue avec IA non disponible en mode invité local hors-ligne (E0) : elle nécessite une connexion réseau (cf. US14.3).
 
 Tickets :
-- [ ] T14.1.1 — Étendre le modèle de partie (`.spy.yaml`, dépend de E9/T9.1.1) pour stocker la séquence ordonnée des coups — `owner:B` `area:backend`
-- [ ] T14.1.2 — Adapter l'enregistrement en fin de partie pour capturer chaque coup au fil de la partie (pas seulement le résultat final) — `owner:B` `area:backend`
+- [x] T14.1.1 — Étendre le modèle de partie (`.spy.yaml`, dépend de E9/T9.1.1) pour stocker la séquence ordonnée des coups — `owner:B` `area:backend`
+- [x] T14.1.2 — Adapter l'enregistrement en fin de partie pour capturer chaque coup au fil de la partie (pas seulement le résultat final) — `owner:B` `area:backend`
 
 ### US14.2 — En tant que joueur, je veux revoir une partie terminée coup par coup et voir le coup que le modèle Expert aurait recommandé à chaque position, afin de comprendre mes erreurs.
 Critères d'acceptation :
@@ -340,9 +351,9 @@ Critères d'acceptation :
 - Fonctionnalité masquée/désactivée si le modèle Expert n'est pas disponible localement.
 
 Tickets :
-- [ ] T14.2.1 — UI écran "Revue de partie" (navigation coup par coup, reconstruction du plateau) — `owner:A`
+- [x] T14.2.1 — UI écran "Revue de partie" (navigation coup par coup, reconstruction du plateau) — `owner:A`
 - [ ] T14.2.2 — Réexécution du modèle Expert local sur chaque position historique pour obtenir le coup recommandé (réutilise T5.1.3) — `owner:B`
-- [ ] T14.2.3 — Endpoint Serverpod pour récupérer la séquence de coups d'une partie donnée (extension de `getMatchHistory`) — `owner:B` `area:backend`
+- [x] T14.2.3 — Endpoint Serverpod pour récupérer la séquence de coups d'une partie donnée (extension de `getMatchHistory`) — `owner:B` `area:backend`
 
 ### US14.3 — En tant que joueur, je veux obtenir une explication en langage naturel de pourquoi le coup recommandé était préférable, afin de mieux comprendre la stratégie du jeu.
 Critères d'acceptation :

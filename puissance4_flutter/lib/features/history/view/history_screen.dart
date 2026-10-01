@@ -3,16 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/coming_soon_tab.dart';
+import '../../game/view/game_screen.dart';
+import '../../game/viewmodel/game_home_viewmodel.dart';
 import '../model/history_item.dart';
 import '../viewmodel/history_viewmodel.dart';
 
 /// Onglet "Historique" (E9) — reprend `maquette-6.png` : chips de filtre par
 /// mode au-dessus d'une liste fusionnant `Partie` (Multi/Classé, serveur) et
 /// `OfflineMatchResult` (Normal, local) — voir `history_viewmodel.dart`.
-/// Le replay (E14) n'est pas construit : chaque ligne est déjà tappable pour
-/// ne pas avoir à retoucher la liste plus tard, mais l'action reste un
-/// SnackBar "Bientôt disponible", comme les modes de `GameHomeScreen`.
+/// Toucher une ligne rejoue la partie coup par coup (E14) dans l'écran de
+/// partie commun.
 class HistoryScreen extends ConsumerWidget {
   const HistoryScreen({super.key});
 
@@ -159,13 +159,45 @@ class _HistoryList extends StatelessWidget {
   }
 }
 
-class _HistoryTile extends StatelessWidget {
+class _HistoryTile extends ConsumerWidget {
   const _HistoryTile({required this.item});
 
   final HistoryItem item;
 
+  Future<void> _openReplay(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    try {
+      final launch = await ref
+          .read(historyReplayRepositoryProvider)
+          .launchFor(
+            item,
+            myUsername: ref.read(gameHomeViewModelProvider).username,
+          );
+      if (launch == null) {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Les coups de cette partie n'ont pas été enregistrés.",
+            ),
+          ),
+        );
+        return;
+      }
+      await navigator.push(
+        MaterialPageRoute(builder: (_) => GameScreen(launch: launch)),
+      );
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Replay indisponible pour le moment (réseau ?).'),
+        ),
+      );
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final adversaire = item.mode == EnumType.multi
         ? '@${item.adversaire}'
         : item.adversaire;
@@ -175,7 +207,7 @@ class _HistoryTile extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () => showComingSoonSnackBar(context),
+        onTap: () => _openReplay(context, ref),
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Row(

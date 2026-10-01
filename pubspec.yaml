@@ -8,4 +8,5 @@ workspace:
   - puissance4_client
   - puissance4_server
   - puissance4_flutter
+  - puissance4_rules
 

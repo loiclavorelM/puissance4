@@ -3,12 +3,12 @@ import 'dart:io';
 import 'package:serverpod_auth_idp_server/core.dart';
 import 'package:serverpod_auth_idp_server/providers/anonymous.dart';
 import 'package:serverpod_auth_idp_server/providers/email.dart';
-import 'package:serverpod_auth_idp_server/providers/google.dart';
 import 'package:serverpod_cloud_storage/serverpod_cloud_storage.dart';
 
 import 'src/bot/bot_seed.dart';
 import 'src/cache_busting.dart';
 import 'src/generated/serverpod.dart';
+import 'src/game/server_game.dart';
 import 'src/profile/user_provisioning.dart';
 import 'src/web/routes/app_config_route.dart';
 
@@ -40,12 +40,6 @@ void run(List<String> args) async {
       // Used to give guest players (E0) a real AuthUser as soon as they get a
       // connection, before they create a permanent account.
       AnonymousIdpConfig(),
-      // Google sign-in: reads `googleClientSecret` from config/passwords.yaml.
-      // Requires real OAuth credentials from the Google Cloud console — see
-      // https://docs.serverpod.dev/concepts/authentication/providers/google/setup
-      // A placeholder value is set in passwords.yaml so the server can start;
-      // replace it with real credentials before actually using Google sign-in.
-      GoogleIdpConfigFromPasswords(),
     ],
     // Creates the game-profile `User` row as soon as an `AuthUser` is
     // created, for every provider — see US1.2 (`T1.2.1`/`T1.2.2`).
@@ -119,11 +113,38 @@ void run(List<String> args) async {
     ),
   );
 
+  // Les streams de partie attendront la fin de `resumePending` (plus bas)
+  // avant de s'attacher.
+  ServerGame.holdStreamsUntilResumed();
+
   // Start the server.
   await pod.start();
 
-  // Seed/refresh reference data that isn't user-generated (cf. E5).
+  // Chaque étape à part : l'échec de l'une ne doit pas priver le serveur de
+  // l'autre (des bots pour le Classé, des parties reprises).
   await pod.withSession((session) async {
-    await seedBots(session);
+    // Seed/refresh reference data that isn't user-generated (cf. E5).
+    try {
+      await seedBots(session);
+    } catch (error, stackTrace) {
+      session.log(
+        'Bot seeding failed',
+        level: LogLevel.error,
+        exception: error,
+        stackTrace: stackTrace,
+      );
+    }
+    // Reprogramme les rappels des parties serveur perdus avec l'arrêt, et
+    // libère les streams de partie qui l'attendent (même en cas d'échec).
+    try {
+      await ServerGame.resumePending(session);
+    } catch (error, stackTrace) {
+      session.log(
+        'Resuming server games failed',
+        level: LogLevel.error,
+        exception: error,
+        stackTrace: stackTrace,
+      );
+    }
   });
 }

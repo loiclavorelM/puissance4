@@ -47,3 +47,7 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# URL du serveur propre à chaque poste (ex. IP locale pour un vrai
+# téléphone). Absent : http://localhost:8080. Voir assets/config.example.json.
+/assets/config.json

@@ -28,42 +28,109 @@ AGENTS.md).
   Crée le `User` de jeu (username/photo/Elo) au premier appel si celui-ci n'existe
   pas encore pour cet `authUserId` (pas de méthode de création séparée).
 - `getUserSummary(idUser: Guid) -> UserSummaryDto`
-- `updateProfile(username: String?, photo: ByteData?) -> UserProfileDto`
+- `updateUsername(username: String) -> UserProfileDto`
+  3 à 20 caractères `[A-Za-z0-9_-]`, unique (insensible à la casse). Lève
+  `ProfileUpdateException(reason: invalidUsername | usernameTaken)`.
+- `updateProfilePhoto(...)` — *à venir* (US2.1/T2.1.3) : upload Serverpod
+  séparé qui remplit `User.thumbnailPath`.
 
 ### Bot — `BotEndpoint` (`client.bot`), `lib/src/bot/`
 - `getBotLevels() -> List<BotDto>`
 - `getLatestModel(idBot: Guid) -> BotModelManifestDto`
 
-### Partie — `PartieEndpoint` (`client.partie`), `lib/src/game/`
-(dossier `game`, comme côté Flutter — la classe reste nommée d'après la ressource
-qu'elle expose, pas de contrainte que dossier et nom de classe soient identiques)
-- `createPartieMulti() -> PartieDto`
-  Statut `created`, génère `code`.
-- `joinPartieMulti(code: String) -> Stream<PartieDto>`
-  Rejoint via le code ; diffuse l'état de la partie en temps réel (les deux joueurs
-  s'abonnent au même stream).
-- `createPartieNormal(idBot: Guid) -> PartieDto`
-- `createPartieRanked() -> PartieDto`
-  Le bot est choisi côté serveur selon l'Elo courant du joueur (pas de `idBot`).
-- `playMove(idPartie: Guid, colonne: int) -> Stream<PartieDto>`
-  Mode Multi uniquement — le coup est validé et rediffusé aux deux joueurs abonnés.
-- `reportPartieResult(idPartie: Guid, moves: List<int>, winner: EnumPlayer) -> PartieDto`
-  Mode Normal/Classé — la partie contre le bot est jouée 100 % en local (inférence
-  on-device), le résultat final est remonté en un seul appel. Si Classé, recalcule
-  l'Elo et crée une entrée `EloHistory`.
-- `abandonPartie(idPartie: Guid) -> void`
-  Abandon explicite en mode Multi (déconnexion réseau détectée par le stream
-  lui-même, pas besoin d'appel dédié dans ce cas).
-- `getPartie(idPartie: Guid) -> PartieDto`
-  Retourne aussi `moves`, réutilisé tel quel pour l'écran de revue de partie (E14) —
-  pas de méthode dédiée pour récupérer la séquence de coups.
+### Partie serveur — `GameEndpoint` (`client.game`), `lib/src/game/`
+Commun aux deux modes joués **sur le serveur**, seul juge de chaque coup :
+Multi (deux humains) et Classé (un humain contre un bot serveur). Le mode
+Normal, lui, se joue entièrement sur le téléphone (règles et IA locales,
+résultat dans `OfflineMatchResult`) : pas d'endpoint.
+
+Principe anti-parties fantômes : une `Partie` serveur ne naît que complète
+(ses deux camps connus), directement `inProgress`, et a toujours une fin
+programmée — délai par coup (60 s), délai de grâce après déconnexion (15 s).
+Tous les streams émettent des `GameEvent` portant l'état complet.
+- `watchPartie(partieId: Guid) -> Stream<GameEvent>`
+  `gameStarted` (photo complète) puis `moveApplied` / `opponentDisconnected` /
+  `opponentReconnected` / `gameOver`. Sert aussi à revenir après une coupure.
+- `getActivePartie() -> Guid?` — partie serveur en cours à reprendre (une seule
+  par joueur, tous modes confondus).
+- `playMove(partieId: Guid, column: int) -> void`
+  Coup validé (tour, colonne, victoire), rediffusé en `moveApplied` ou
+  `gameOver`. En Classé, le bot serveur répond ~0,6 s plus tard.
+- `abandon(partieId: Guid) -> void`
+  L'adversaire gagne ; partie annulée (`abandoned`) si l'appelant n'a joué aucun
+  coup.
+
+Fins de partie (`GameEvent.endReason`) : `connectFour`, `boardFull`, `forfeit`,
+`disconnect` (absent > 15 s), `timeout` (> 60 s pour jouer), `cancelled` (statut
+`abandoned`, hors historique/stats/Elo). Règle unique pour les trois façons de
+quitter (abandon, déconnexion, temps) : la partie est annulée si le joueur qui
+quitte n'a encore joué aucun coup, sinon son adversaire gagne. En Multi, elle
+est aussi annulée si les deux joueurs sont partis ; en Classé, le joueur au
+trait perd au temps même s'il a fermé l'app.
+Une seule partie serveur par joueur, garantie sous verrou consultatif
+PostgreSQL à la création (deux lancements simultanés n'en créent qu'une).
+Au redémarrage (`ServerGameConfig.singleServer`), tout humain déjà passé par
+une partie en cours repart « parti maintenant » avec un délai de grâce
+complet, et le joueur au trait retrouve un tour complet ; les streams qui
+arrivent pendant cette remise à zéro attendent sa fin. Erreurs : `GameException(reason: EnumGameError)` —
+`roomNotFound`, `ownRoom`, `alreadyInGame` (+ `partieId`), `notYourTurn`,
+`invalidMove`, `gameOver`, `noBotAvailable`…
+
+Prêt pour Redis/cluster : état des parties en base (verrou `FOR UPDATE`),
+événements via `session.messages` (portée `auto`), rappels idempotents. Seuls
+`GameScheduler` (`server_game_config.dart`) et `RoomStore`
+(`multiplayer_config.dart`) sont à remplacer par des implémentations partagées.
+
+### Multijoueur — `MultiplayerEndpoint` (`client.multiplayer`), `lib/src/multiplayer/`
+La **salle** (code d'attente) n'est jamais en base et ne vit que tant que le
+stream de l'hôte est ouvert ; la `Partie` n'est créée qu'à l'arrivée de
+l'adversaire.
+- `hostRoom() -> Stream<GameEvent>`
+  `roomCreated` (code, expiration 10 min), puis `gameStarted` et la suite de la
+  partie sur le même stream. Fermer le stream ferme la salle ; à expiration :
+  `roomClosed`. Ouvrir une 2ᵉ salle ferme la 1ʳᵉ.
+- `joinRoom(code: String) -> Stream<GameEvent>`
+  Réserve la salle (atomique : un seul invité l'obtient), crée les 2 `Player` +
+  la `Partie`, couleurs tirées au sort, puis suit la partie.
+  Si l'invité est refusé parce qu'il est déjà en partie, la salle est rendue à
+  l'hôte, qui continue d'attendre.
+
+Le Multi ne change pas l'Elo.
+
+### Classé — `RankedEndpoint` (`client.ranked`), `lib/src/ranked/`
+- `startRanked() -> Guid`
+  Crée une partie `classe` contre le bot choisi d'après l'Elo du joueur
+  (< 1000 Débutant, < 1400 Medium, sinon Expert — `BotStrength.fromElo`),
+  couleurs tirées au sort. Se suit ensuite par `GameEndpoint.watchPartie`.
+  En fin de partie (`finished`), l'Elo du joueur est recalculé contre l'Elo
+  virtuel du bot (K = 32, `ranked/elo.dart`) dans la même transaction, avec une
+  ligne `EloHistory` ; `GameEvent.eloVariation` la renvoie au joueur.
+
+L'IA des bots (`HeuristicBot`, paquet partagé `puissance4_rules`) est la même
+sur le téléphone (Normal) et sur le serveur (Classé), en attendant les modèles
+RL (E5).
 
 ### History — `HistoryEndpoint` (`client.history`), `lib/src/history/`
 - `getListHistories(typePartie: EnumType?, limit: int, offset: int) -> List<HistoryDto>`
 - `getHistory(idPartie: Guid) -> HistoryDto`
+- `getReplay(idPartie: Guid) -> ReplayDto`
+  Coups + joueurs d'une partie Multi/Classé pour la rejouer (E14) ; réservé aux
+  joueurs de la partie (`GameException(notAPlayer)` sinon). Les parties Normal
+  se rejouent depuis `OfflineMatchResult.moves`, en local.
 
 ### Classement — `LeaderboardEndpoint` (`client.leaderboard`), `lib/src/leaderboard/`
-- `getLeaderboard(limit: int, offset: int) -> List<UserSummaryDto>`
+- `getLeaderboard(limit: int, offset: int) -> List<LeaderboardEntryDto>`
+  Page mise en cache côté serveur (`session.caches.local`, groupe
+  `leaderboard`), vidée à chaque changement d'Elo/pseudo.
+- `getMyRank() -> LeaderboardEntryDto`
+
+### Temps réel — `LiveEndpoint` (`client.live`), `lib/src/live/`
+- `watchUpdates() -> Stream<LiveEvent>`
+  Stream (WebSocket) ouvert par le client tant qu'il est connecté. Émet
+  `LiveEvent(type: profileChanged | historyChanged | leaderboardChanged)` —
+  sans payload : le client recharge la donnée concernée (cache local puis
+  réseau). Alimenté par `session.messages` via `live_notifier.dart` : canal
+  `live.user.<authUserId>` (profil/historique) et `live.leaderboard` (tous).
 
 ### Revue de partie IA `[optionnel]` — `ReviewEndpoint` (`client.review`), `lib/src/review/`
 - `explainMove(idPartie: Guid, moveIndex: int) -> ExplainMoveResultDto`
@@ -100,20 +167,39 @@ BotModelManifestDto
   string version
   string downloadUrl
 
-PlayerDto                 // exactement un des deux champs rempli
-  Guid id
-  BotDto? bot
-  UserSummaryDto? user
+GamePlayerInfo            // un camp d'une partie serveur
+  string username         // nom du bot si isBot
+  int elo
+  bool isBot
 
-PartieDto
-  Guid id
+GameEvent                 // streams de partie serveur, état complet à chaque fois
+  EnumGameEventType type  // roomCreated, roomClosed, gameStarted, moveApplied,
+                          // opponentDisconnected, opponentReconnected, gameOver
   string? code
+  DateTime? roomExpiresAt
+  Guid? partieId
+  EnumType? typePartie
+  EnumColor? yourColor    // renseigné par le stream du destinataire
+  GamePlayerInfo? rouge
+  GamePlayerInfo? jaune
+  List<int>? moves
+  DateTime? turnDeadline
+  EnumOutcome? winner
+  EnumGameEndReason? endReason
+  EnumColor? aboutColor   // joueur concerné par (dé)connexion
+  bool? opponentConnected // sur gameStarted : adversaire présent ?
+  int? eloVariation       // Classé, sur gameOver
+
+ReplayDto
+  Guid id
   EnumType typePartie
-  PlayerDto playerRouge
-  PlayerDto playerJaune
-  EnumPlayer? winner
-  EnumStatut status
+  DateTime date
   List<int> moves
+  GamePlayerInfo rouge
+  GamePlayerInfo jaune
+  EnumColor playedAs
+  EnumOutcome? winner
+  EnumGameEndReason? endReason
 
 HistoryDto
   Guid id
@@ -143,10 +229,13 @@ dupliqués ici, pour éviter les divergences entre les deux fichiers).
 
 ## Endpoints ajoutés (manquants dans le brouillon initial)
 
-- `reportPartieResult` — sans elle, aucune partie Normale/Classée ne peut jamais
-  être conclue côté serveur ni mettre à jour l'Elo (E6).
-- `joinPartieMulti` — `createPartieMulti` générait un code mais rien ne permettait
-  au second joueur de rejoindre (E7).
-- `playMove` — aucune méthode ne permettait de jouer un coup en Multijoueur (E7).
-- `abandonPartie` — gestion explicite de l'abandon (E7/T7.2.3).
+- `GameEndpoint` + `MultiplayerEndpoint` (E7) — remplacent `createPartieMulti`/
+  `joinPartieMulti`/`playMove`/`abandonPartie` : la partie n'est plus créée à
+  l'ouverture de la salle mais à l'arrivée de l'adversaire, pour éviter les
+  parties fantômes.
+- `RankedEndpoint.startRanked` — remplace `createPartieRanked` +
+  `reportPartieResult` : le Classé est joué coup par coup sur le serveur (bot
+  serveur) au lieu d'être joué en local puis remonté, pour que l'Elo ne puisse
+  pas être truqué.
+- `HistoryEndpoint.getReplay` — remplace `getPartie` pour la revue (E14).
 - `explainMove` — feature de revue de partie IA (E14).

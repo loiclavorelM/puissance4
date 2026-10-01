@@ -1,0 +1,7 @@
+# Ce qui a changé côté serveur — le client s'en sert pour savoir quel écran
+# recharger (voir LiveEndpoint.watchUpdates).
+enum: EnumLiveEventType
+values:
+  - profileChanged
+  - historyChanged
+  - leaderboardChanged

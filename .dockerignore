@@ -1,0 +1,17 @@
+# Contexte de `docker build -f puissance4_server/Dockerfile .` (racine du
+# workspace).
+
+# Secrets : l'image copie tout `config/`, ils y seraient sinon embarqués.
+# Les passer au conteneur par variables d'environnement à la place :
+# SERVERPOD_DATABASE_PASSWORD, SERVERPOD_SERVICE_SECRET, et
+# SERVERPOD_PASSWORD_<nom> pour les autres (ex.
+# SERVERPOD_PASSWORD_jwtHmacSha512PrivateKey).
+**/config/passwords.yaml
+**/config/google_client_secret.json
+**/config/firebase_service_account_key.json
+**/.env
+
+# Artefacts locaux : recréés par la build, et ils alourdiraient le contexte.
+**/.dart_tool/
+**/build/
+.git/

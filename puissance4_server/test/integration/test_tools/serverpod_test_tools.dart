@@ -13,14 +13,21 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _ida;
 import 'dart:io' as _idi;
+import 'package:puissance4_server/src/generated/bot/bot.dart' as _iyz5ninx;
 import 'package:puissance4_server/src/generated/game/enum_type.dart'
     as _ijl03sjm;
+import 'package:puissance4_server/src/generated/game/game_event.dart'
+    as _iylml733;
 import 'package:puissance4_server/src/generated/greetings/greeting.dart'
     as _ic4bze0k;
 import 'package:puissance4_server/src/generated/history/history_dto.dart'
     as _islja9se;
+import 'package:puissance4_server/src/generated/history/replay_dto.dart'
+    as _iqf9pig4;
 import 'package:puissance4_server/src/generated/leaderboard/leaderboard_dto.dart'
     as _i5549tex;
+import 'package:puissance4_server/src/generated/live/live_event.dart'
+    as _ifw32v1t;
 import 'package:puissance4_server/src/generated/profile/user_profile_dto.dart'
     as _is7wjsnn;
 import 'package:serverpod/serverpod.dart' as _is;
@@ -159,13 +166,13 @@ class TestEndpoints {
 
   late final _EmailIdpEndpoint emailIdp;
 
-  late final _GoogleIdpEndpoint googleIdp;
-
   late final _JwtRefreshEndpoint jwtRefresh;
+
+  late final _BotEndpoint bot;
 
   late final _ConnectionEndpoint connection;
 
-  late final _DevSimulateEndpoint devSimulate;
+  late final _GameEndpoint game;
 
   late final _GreetingEndpoint greeting;
 
@@ -173,7 +180,13 @@ class TestEndpoints {
 
   late final _LeaderboardEndpoint leaderboard;
 
+  late final _LiveEndpoint live;
+
+  late final _MultiplayerEndpoint multiplayer;
+
   late final _ProfileEndpoint profile;
+
+  late final _RankedEndpoint ranked;
 }
 
 class _InternalTestEndpoints extends TestEndpoints
@@ -191,11 +204,11 @@ class _InternalTestEndpoints extends TestEndpoints
       endpoints,
       serializationManager,
     );
-    googleIdp = _GoogleIdpEndpoint(
+    jwtRefresh = _JwtRefreshEndpoint(
       endpoints,
       serializationManager,
     );
-    jwtRefresh = _JwtRefreshEndpoint(
+    bot = _BotEndpoint(
       endpoints,
       serializationManager,
     );
@@ -203,7 +216,7 @@ class _InternalTestEndpoints extends TestEndpoints
       endpoints,
       serializationManager,
     );
-    devSimulate = _DevSimulateEndpoint(
+    game = _GameEndpoint(
       endpoints,
       serializationManager,
     );
@@ -219,7 +232,19 @@ class _InternalTestEndpoints extends TestEndpoints
       endpoints,
       serializationManager,
     );
+    live = _LiveEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    multiplayer = _MultiplayerEndpoint(
+      endpoints,
+      serializationManager,
+    );
     profile = _ProfileEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    ranked = _RankedEndpoint(
       endpoints,
       serializationManager,
     );
@@ -544,117 +569,6 @@ class _EmailIdpEndpoint {
   }
 }
 
-class _GoogleIdpEndpoint {
-  _GoogleIdpEndpoint(
-    this._endpointDispatch,
-    this._serializationManager,
-  );
-
-  final _is.EndpointDispatch _endpointDispatch;
-
-  final _is.SerializationManager _serializationManager;
-
-  _ida.Future<_iacs.AuthSuccess> login(
-    _ist.TestSessionBuilder sessionBuilder, {
-    required String idToken,
-    required String? accessToken,
-  }) async {
-    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'googleIdp',
-            method: 'login',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'googleIdp',
-          methodName: 'login',
-          parameters: _ist.testObjectToJson({
-            'idToken': idToken,
-            'accessToken': accessToken,
-          }),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _ida.Future<_iacs.AuthSuccess>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
-  _ida.Future<_iacs.AuthSuccess> loginWithCode(
-    _ist.TestSessionBuilder sessionBuilder, {
-    required String code,
-    required String codeVerifier,
-    required String redirectUri,
-  }) async {
-    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'googleIdp',
-            method: 'loginWithCode',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'googleIdp',
-          methodName: 'loginWithCode',
-          parameters: _ist.testObjectToJson({
-            'code': code,
-            'codeVerifier': codeVerifier,
-            'redirectUri': redirectUri,
-          }),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _ida.Future<_iacs.AuthSuccess>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
-  _ida.Future<bool> hasAccount(_ist.TestSessionBuilder sessionBuilder) async {
-    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'googleIdp',
-            method: 'hasAccount',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'googleIdp',
-          methodName: 'hasAccount',
-          parameters: _ist.testObjectToJson({}),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _ida.Future<bool>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-}
-
 class _JwtRefreshEndpoint {
   _JwtRefreshEndpoint(
     this._endpointDispatch,
@@ -689,6 +603,47 @@ class _JwtRefreshEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<_iacs.AuthSuccess>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _BotEndpoint {
+  _BotEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<List<_iyz5ninx.Bot>> getBots(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'bot',
+            method: 'getBots',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'bot',
+          methodName: 'getBots',
+          parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_iyz5ninx.Bot>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -736,8 +691,8 @@ class _ConnectionEndpoint {
   }
 }
 
-class _DevSimulateEndpoint {
-  _DevSimulateEndpoint(
+class _GameEndpoint {
+  _GameEndpoint(
     this._endpointDispatch,
     this._serializationManager,
   );
@@ -746,21 +701,119 @@ class _DevSimulateEndpoint {
 
   final _is.SerializationManager _serializationManager;
 
-  _ida.Future<void> simulatePartie(
+  _ida.Future<_is.UuidValue?> getActivePartie(
     _ist.TestSessionBuilder sessionBuilder,
   ) async {
     return _ist.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
           (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'devSimulate',
-            method: 'simulatePartie',
+            endpoint: 'game',
+            method: 'getActivePartie',
           );
       try {
         var _localCallContext = await _endpointDispatch.getMethodCallContext(
           createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'devSimulate',
-          methodName: 'simulatePartie',
+          endpointPath: 'game',
+          methodName: 'getActivePartie',
           parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_is.UuidValue?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Stream<_iylml733.GameEvent> watchPartie(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue partieId,
+  ) {
+    var _localTestStreamManager = _ist.TestStreamManager<_iylml733.GameEvent>();
+    _ist.callStreamFunctionAndHandleExceptions(
+      () async {
+        var _localUniqueSession =
+            (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+              endpoint: 'game',
+              method: 'watchPartie',
+            );
+        var _localCallContext = await _endpointDispatch
+            .getMethodStreamCallContext(
+              createSessionCallback: (_) => _localUniqueSession,
+              endpointPath: 'game',
+              methodName: 'watchPartie',
+              arguments: {'partieId': partieId},
+              requestedInputStreams: [],
+              serializationManager: _serializationManager,
+            );
+        await _localTestStreamManager.callStreamMethod(
+          _localCallContext,
+          _localUniqueSession,
+          {},
+        );
+      },
+      _localTestStreamManager.outputStreamController,
+    );
+    return _localTestStreamManager.outputStreamController.stream;
+  }
+
+  _ida.Future<void> playMove(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue partieId,
+    int column,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'game',
+            method: 'playMove',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'game',
+          methodName: 'playMove',
+          parameters: _ist.testObjectToJson({
+            'partieId': partieId,
+            'column': column,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<void>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<void> abandon(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue partieId,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'game',
+            method: 'abandon',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'game',
+          methodName: 'abandon',
+          parameters: _ist.testObjectToJson({'partieId': partieId}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -859,6 +912,37 @@ class _HistoryEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<List<_islja9se.HistoryDto>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<_iqf9pig4.ReplayDto> getReplay(
+    _ist.TestSessionBuilder sessionBuilder, {
+    required _is.UuidValue idPartie,
+  }) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'history',
+            method: 'getReplay',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'history',
+          methodName: 'getReplay',
+          parameters: _ist.testObjectToJson({'idPartie': idPartie}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_iqf9pig4.ReplayDto>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -974,6 +1058,122 @@ class _LeaderboardEndpoint {
   }
 }
 
+class _LiveEndpoint {
+  _LiveEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Stream<_ifw32v1t.LiveEvent> watchUpdates(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) {
+    var _localTestStreamManager = _ist.TestStreamManager<_ifw32v1t.LiveEvent>();
+    _ist.callStreamFunctionAndHandleExceptions(
+      () async {
+        var _localUniqueSession =
+            (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+              endpoint: 'live',
+              method: 'watchUpdates',
+            );
+        var _localCallContext = await _endpointDispatch
+            .getMethodStreamCallContext(
+              createSessionCallback: (_) => _localUniqueSession,
+              endpointPath: 'live',
+              methodName: 'watchUpdates',
+              arguments: {},
+              requestedInputStreams: [],
+              serializationManager: _serializationManager,
+            );
+        await _localTestStreamManager.callStreamMethod(
+          _localCallContext,
+          _localUniqueSession,
+          {},
+        );
+      },
+      _localTestStreamManager.outputStreamController,
+    );
+    return _localTestStreamManager.outputStreamController.stream;
+  }
+}
+
+class _MultiplayerEndpoint {
+  _MultiplayerEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Stream<_iylml733.GameEvent> hostRoom(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) {
+    var _localTestStreamManager = _ist.TestStreamManager<_iylml733.GameEvent>();
+    _ist.callStreamFunctionAndHandleExceptions(
+      () async {
+        var _localUniqueSession =
+            (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+              endpoint: 'multiplayer',
+              method: 'hostRoom',
+            );
+        var _localCallContext = await _endpointDispatch
+            .getMethodStreamCallContext(
+              createSessionCallback: (_) => _localUniqueSession,
+              endpointPath: 'multiplayer',
+              methodName: 'hostRoom',
+              arguments: {},
+              requestedInputStreams: [],
+              serializationManager: _serializationManager,
+            );
+        await _localTestStreamManager.callStreamMethod(
+          _localCallContext,
+          _localUniqueSession,
+          {},
+        );
+      },
+      _localTestStreamManager.outputStreamController,
+    );
+    return _localTestStreamManager.outputStreamController.stream;
+  }
+
+  _ida.Stream<_iylml733.GameEvent> joinRoom(
+    _ist.TestSessionBuilder sessionBuilder,
+    String code,
+  ) {
+    var _localTestStreamManager = _ist.TestStreamManager<_iylml733.GameEvent>();
+    _ist.callStreamFunctionAndHandleExceptions(
+      () async {
+        var _localUniqueSession =
+            (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+              endpoint: 'multiplayer',
+              method: 'joinRoom',
+            );
+        var _localCallContext = await _endpointDispatch
+            .getMethodStreamCallContext(
+              createSessionCallback: (_) => _localUniqueSession,
+              endpointPath: 'multiplayer',
+              methodName: 'joinRoom',
+              arguments: {'code': code},
+              requestedInputStreams: [],
+              serializationManager: _serializationManager,
+            );
+        await _localTestStreamManager.callStreamMethod(
+          _localCallContext,
+          _localUniqueSession,
+          {},
+        );
+      },
+      _localTestStreamManager.outputStreamController,
+    );
+    return _localTestStreamManager.outputStreamController.stream;
+  }
+}
+
 class _ProfileEndpoint {
   _ProfileEndpoint(
     this._endpointDispatch,
@@ -1007,6 +1207,78 @@ class _ProfileEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<_is7wjsnn.UserProfileDto>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<_is7wjsnn.UserProfileDto> updateUsername(
+    _ist.TestSessionBuilder sessionBuilder,
+    String username,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'profile',
+            method: 'updateUsername',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'profile',
+          methodName: 'updateUsername',
+          parameters: _ist.testObjectToJson({'username': username}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_is7wjsnn.UserProfileDto>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _RankedEndpoint {
+  _RankedEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<_is.UuidValue> startRanked(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'ranked',
+            method: 'startRanked',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'ranked',
+          methodName: 'startRanked',
+          parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_is.UuidValue>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

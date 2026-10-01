@@ -1,0 +1,5 @@
+# Levée par ProfileEndpoint.updateUsername — le client affiche un message
+# selon `reason` plutôt qu'un texte serveur (l10n E11 côté Flutter).
+exception: ProfileUpdateException
+fields:
+  reason: EnumProfileUpdateError

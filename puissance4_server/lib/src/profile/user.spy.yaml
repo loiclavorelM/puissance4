@@ -15,3 +15,8 @@ indexes:
   user_auth_user_id_unique_idx:
     fields: authUserId
     unique: true
+  # Filet contre les écritures concurrentes ; l'unicité insensible à la
+  # casse est vérifiée dans ProfileEndpoint.updateUsername.
+  user_username_unique_idx:
+    fields: username
+    unique: true

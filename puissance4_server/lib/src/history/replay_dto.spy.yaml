@@ -1,0 +1,14 @@
+# Tout ce qu'il faut pour rejouer une partie serveur coup par coup (E14) —
+# renvoyé par `HistoryEndpoint.getReplay`, uniquement à un de ses joueurs.
+class: ReplayDto
+fields:
+  id: UuidValue
+  typePartie: EnumType
+  date: DateTime
+  moves: List<int>
+  rouge: GamePlayerInfo
+  jaune: GamePlayerInfo
+  # Couleur jouée par l'appelant.
+  playedAs: EnumColor
+  winner: EnumOutcome?
+  endReason: EnumGameEndReason?

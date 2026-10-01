@@ -3,3 +3,7 @@ values:
   - created
   - inProgress
   - finished
+  # Multi uniquement : partie annulée sans vainqueur (aucun coup joué, ou les
+  # deux joueurs partis) — exclue de l'historique et des stats, comme toute
+  # partie non `finished`.
+  - abandoned

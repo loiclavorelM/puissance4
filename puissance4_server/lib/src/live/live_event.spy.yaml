@@ -1,0 +1,7 @@
+# Signal "temps réel" poussé par LiveEndpoint.watchUpdates — volontairement
+# sans payload : le client recharge (depuis son cache puis le réseau) la
+# donnée concernée plutôt que d'appliquer un diff, ce qui reste correct même
+# s'il a raté des événements pendant une déconnexion.
+class: LiveEvent
+fields:
+  type: EnumLiveEventType

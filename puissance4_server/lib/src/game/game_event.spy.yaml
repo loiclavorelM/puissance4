@@ -1,0 +1,29 @@
+# Événement des streams de partie serveur (Multi et Classé — cf.
+# `GameEndpoint`, `MultiplayerEndpoint`). Les événements de partie portent
+# toujours l'état complet (`moves`, trait, échéance) : le client remplace son
+# état au lieu d'appliquer un delta, ce qui tolère un message perdu (la
+# diffusion Redis est "best effort").
+class: GameEvent
+fields:
+  type: EnumGameEventType
+  code: String?
+  roomExpiresAt: DateTime?
+  partieId: UuidValue?
+  typePartie: EnumType?
+  # Couleur du destinataire — renseignée par son propre stream.
+  yourColor: EnumColor?
+  rouge: GamePlayerInfo?
+  jaune: GamePlayerInfo?
+  moves: List<int>?
+  # Fin du tour en cours : au-delà, le joueur au trait perd au temps.
+  turnDeadline: DateTime?
+  winner: EnumOutcome?
+  endReason: EnumGameEndReason?
+  # Couleur du joueur concerné par `opponentDisconnected`/`opponentReconnected`
+  # (chaque stream ne relaie que ceux qui concernent l'adversaire).
+  aboutColor: EnumColor?
+  # Sur `gameStarted` : l'adversaire est-il là ? Un stream qui revient après
+  # une coupure a manqué ses `opponentDisconnected`/`opponentReconnected`.
+  opponentConnected: bool?
+  # Classé, sur `gameOver` : variation d'Elo du destinataire.
+  eloVariation: int?

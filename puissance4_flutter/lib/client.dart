@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:puissance4_client/puissance4_client.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 import 'package:serverpod_flutter/serverpod_flutter.dart';
@@ -38,16 +37,4 @@ Future<void> initializeClient() async {
         ..connectivityMonitor = FlutterConnectivityMonitor()
         ..authSessionManager = FlutterAuthSessionManager();
   unawaited(client.auth.initialize());
-
-  // Web only: without this, GoogleSignInWidget renders nothing at all (see
-  // GoogleWebSignInService.isInitialized). This is the same kind of
-  // placeholder as `googleClientSecret` in config/passwords.yaml — it makes
-  // the Google button appear, but a tap will fail until it's replaced with
-  // a real "Web application" OAuth client id from the Google Cloud console.
-  if (kIsWeb) {
-    await client.auth.initializeGoogleSignIn(
-      clientId: 'REPLACE_ME.apps.googleusercontent.com',
-      redirectUri: '${Uri.base.origin}/auth.html',
-    );
-  }
 }

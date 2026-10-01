@@ -1,0 +1,56 @@
+import 'dart:async';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../model/game_engine.dart';
+import '../model/game_launch.dart';
+import '../model/game_snapshot.dart';
+import '../model/server_game_repository.dart';
+
+final serverGameRepositoryProvider = Provider<ServerGameRepository>(
+  (ref) => ServerGameRepository(),
+);
+
+final gameViewModelProvider = NotifierProvider.autoDispose
+    .family<GameViewModel, GameSnapshot, GameLaunch>(GameViewModel.new);
+
+/// Partie affichée par `GameScreen`, quel que soit le mode : relaie l'état
+/// du `GameEngine` fourni par le [GameLaunch] et lui transmet les actions.
+/// Fermer l'écran dispose le moteur (et donc le stream d'une partie serveur).
+class GameViewModel
+    extends AutoDisposeFamilyNotifier<GameSnapshot, GameLaunch> {
+  late GameEngine _engine;
+
+  @override
+  GameSnapshot build(GameLaunch launch) {
+    _engine = launch.createEngine(ref);
+    final subscription = _engine.snapshots.listen((s) => state = s);
+    ref.onDispose(() {
+      unawaited(subscription.cancel());
+      _engine.dispose();
+    });
+    return _engine.current;
+  }
+
+  Stream<String> get notices => _engine.notices;
+
+  ReplayControls? get replay => _engine.replay;
+
+  Future<void> play(int column) => _engine.play(column);
+
+  Future<void> abandon() => _engine.abandon();
+
+  /// Replay de la partie qui vient de se terminer, sans appel réseau : tous
+  /// les coups sont déjà là.
+  GameLaunch? replayOfFinishedGame() {
+    final snapshot = state;
+    if (!snapshot.isOver || snapshot.isReplay) return null;
+    return GameLaunch.replay(
+      moves: snapshot.moves,
+      rouge: snapshot.rouge,
+      jaune: snapshot.jaune,
+      myColor: snapshot.myColor,
+      result: snapshot.result,
+    );
+  }
+}

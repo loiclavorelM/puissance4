@@ -21,14 +21,17 @@ import 'package:serverpod_offline_sync_server/serverpod_offline_sync_server.dart
     as _izehhkf5;
 import '../auth/anonymous_idp_endpoint.dart' as _in0zita6;
 import '../auth/email_idp_endpoint.dart' as _iuc1hd5t;
-import '../auth/google_idp_endpoint.dart' as _i71axiz0;
 import '../auth/jwt_refresh_endpoint.dart' as _inwq3ztq;
+import '../bot/bot_endpoint.dart' as _i8l8pxdo;
 import '../connection/connection_endpoint.dart' as _in8dx5ef;
-import '../game/dev_simulate_endpoint.dart' as _iqkago6i;
+import '../game/game_endpoint.dart' as _im5t12sm;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
 import '../history/history_endpoint.dart' as _iqb2o93i;
 import '../leaderboard/leaderboard_endpoint.dart' as _io6aq3ur;
+import '../live/live_endpoint.dart' as _i4k4ewet;
+import '../multiplayer/multiplayer_endpoint.dart' as _iznver3h;
 import '../profile/profile_endpoint.dart' as _i6ky944g;
+import '../ranked/ranked_endpoint.dart' as _iipq9d8b;
 
 class Endpoints extends _is.EndpointDispatch {
   @override
@@ -46,16 +49,16 @@ class Endpoints extends _is.EndpointDispatch {
           'emailIdp',
           null,
         ),
-      'googleIdp': _i71axiz0.GoogleIdpEndpoint()
-        ..initialize(
-          server,
-          'googleIdp',
-          null,
-        ),
       'jwtRefresh': _inwq3ztq.JwtRefreshEndpoint()
         ..initialize(
           server,
           'jwtRefresh',
+          null,
+        ),
+      'bot': _i8l8pxdo.BotEndpoint()
+        ..initialize(
+          server,
+          'bot',
           null,
         ),
       'connection': _in8dx5ef.ConnectionEndpoint()
@@ -64,10 +67,10 @@ class Endpoints extends _is.EndpointDispatch {
           'connection',
           null,
         ),
-      'devSimulate': _iqkago6i.DevSimulateEndpoint()
+      'game': _im5t12sm.GameEndpoint()
         ..initialize(
           server,
-          'devSimulate',
+          'game',
           null,
         ),
       'greeting': _il624ik7.GreetingEndpoint()
@@ -88,10 +91,28 @@ class Endpoints extends _is.EndpointDispatch {
           'leaderboard',
           null,
         ),
+      'live': _i4k4ewet.LiveEndpoint()
+        ..initialize(
+          server,
+          'live',
+          null,
+        ),
+      'multiplayer': _iznver3h.MultiplayerEndpoint()
+        ..initialize(
+          server,
+          'multiplayer',
+          null,
+        ),
       'profile': _i6ky944g.ProfileEndpoint()
         ..initialize(
           server,
           'profile',
+          null,
+        ),
+      'ranked': _iipq9d8b.RankedEndpoint()
+        ..initialize(
+          server,
+          'ranked',
           null,
         ),
     };
@@ -301,78 +322,6 @@ class Endpoints extends _is.EndpointDispatch {
         ),
       },
     );
-    connectors['googleIdp'] = _is.EndpointConnector(
-      name: 'googleIdp',
-      endpoint: endpoints['googleIdp']!,
-      methodConnectors: {
-        'login': _is.MethodConnector(
-          name: 'login',
-          params: {
-            'idToken': _is.ParameterDescription(
-              name: 'idToken',
-              type: _is.getType<String>(),
-              nullable: false,
-            ),
-            'accessToken': _is.ParameterDescription(
-              name: 'accessToken',
-              type: _is.getType<String?>(),
-              nullable: true,
-            ),
-          },
-          call:
-              (
-                _is.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['googleIdp'] as _i71axiz0.GoogleIdpEndpoint).login(
-                    session,
-                    idToken: params['idToken'],
-                    accessToken: params['accessToken'],
-                  ),
-        ),
-        'loginWithCode': _is.MethodConnector(
-          name: 'loginWithCode',
-          params: {
-            'code': _is.ParameterDescription(
-              name: 'code',
-              type: _is.getType<String>(),
-              nullable: false,
-            ),
-            'codeVerifier': _is.ParameterDescription(
-              name: 'codeVerifier',
-              type: _is.getType<String>(),
-              nullable: false,
-            ),
-            'redirectUri': _is.ParameterDescription(
-              name: 'redirectUri',
-              type: _is.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _is.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['googleIdp'] as _i71axiz0.GoogleIdpEndpoint)
-                  .loginWithCode(
-                    session,
-                    code: params['code'],
-                    codeVerifier: params['codeVerifier'],
-                    redirectUri: params['redirectUri'],
-                  ),
-        ),
-        'hasAccount': _is.MethodConnector(
-          name: 'hasAccount',
-          params: {},
-          call:
-              (
-                _is.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['googleIdp'] as _i71axiz0.GoogleIdpEndpoint)
-                  .hasAccount(session),
-        ),
-      },
-    );
     connectors['jwtRefresh'] = _is.EndpointConnector(
       name: 'jwtRefresh',
       endpoint: endpoints['jwtRefresh']!,
@@ -399,6 +348,22 @@ class Endpoints extends _is.EndpointDispatch {
         ),
       },
     );
+    connectors['bot'] = _is.EndpointConnector(
+      name: 'bot',
+      endpoint: endpoints['bot']!,
+      methodConnectors: {
+        'getBots': _is.MethodConnector(
+          name: 'getBots',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['bot'] as _i8l8pxdo.BotEndpoint).getBots(session),
+        ),
+      },
+    );
     connectors['connection'] = _is.EndpointConnector(
       name: 'connection',
       endpoint: endpoints['connection']!,
@@ -416,20 +381,82 @@ class Endpoints extends _is.EndpointDispatch {
         ),
       },
     );
-    connectors['devSimulate'] = _is.EndpointConnector(
-      name: 'devSimulate',
-      endpoint: endpoints['devSimulate']!,
+    connectors['game'] = _is.EndpointConnector(
+      name: 'game',
+      endpoint: endpoints['game']!,
       methodConnectors: {
-        'simulatePartie': _is.MethodConnector(
-          name: 'simulatePartie',
+        'getActivePartie': _is.MethodConnector(
+          name: 'getActivePartie',
           params: {},
           call:
               (
                 _is.Session session,
                 Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['devSimulate'] as _iqkago6i.DevSimulateEndpoint)
-                      .simulatePartie(session),
+              ) async => (endpoints['game'] as _im5t12sm.GameEndpoint)
+                  .getActivePartie(session),
+        ),
+        'playMove': _is.MethodConnector(
+          name: 'playMove',
+          params: {
+            'partieId': _is.ParameterDescription(
+              name: 'partieId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+            'column': _is.ParameterDescription(
+              name: 'column',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['game'] as _im5t12sm.GameEndpoint).playMove(
+                session,
+                params['partieId'],
+                params['column'],
+              ),
+        ),
+        'abandon': _is.MethodConnector(
+          name: 'abandon',
+          params: {
+            'partieId': _is.ParameterDescription(
+              name: 'partieId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['game'] as _im5t12sm.GameEndpoint).abandon(
+                session,
+                params['partieId'],
+              ),
+        ),
+        'watchPartie': _is.MethodStreamConnector(
+          name: 'watchPartie',
+          params: {
+            'partieId': _is.ParameterDescription(
+              name: 'partieId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          streamParams: {},
+          returnType: _is.MethodStreamReturnType.streamType,
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+                Map<String, Stream> streamParams,
+              ) => (endpoints['game'] as _im5t12sm.GameEndpoint).watchPartie(
+                session,
+                params['partieId'],
+              ),
         ),
       },
     );
@@ -491,6 +518,25 @@ class Endpoints extends _is.EndpointDispatch {
                     typePartie: params['typePartie'],
                     limit: params['limit'],
                     offset: params['offset'],
+                  ),
+        ),
+        'getReplay': _is.MethodConnector(
+          name: 'getReplay',
+          params: {
+            'idPartie': _is.ParameterDescription(
+              name: 'idPartie',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['history'] as _iqb2o93i.HistoryEndpoint).getReplay(
+                    session,
+                    idPartie: params['idPartie'],
                   ),
         ),
         'getHistory': _is.MethodConnector(
@@ -557,6 +603,67 @@ class Endpoints extends _is.EndpointDispatch {
         ),
       },
     );
+    connectors['live'] = _is.EndpointConnector(
+      name: 'live',
+      endpoint: endpoints['live']!,
+      methodConnectors: {
+        'watchUpdates': _is.MethodStreamConnector(
+          name: 'watchUpdates',
+          params: {},
+          streamParams: {},
+          returnType: _is.MethodStreamReturnType.streamType,
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+                Map<String, Stream> streamParams,
+              ) => (endpoints['live'] as _i4k4ewet.LiveEndpoint).watchUpdates(
+                session,
+              ),
+        ),
+      },
+    );
+    connectors['multiplayer'] = _is.EndpointConnector(
+      name: 'multiplayer',
+      endpoint: endpoints['multiplayer']!,
+      methodConnectors: {
+        'hostRoom': _is.MethodStreamConnector(
+          name: 'hostRoom',
+          params: {},
+          streamParams: {},
+          returnType: _is.MethodStreamReturnType.streamType,
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+                Map<String, Stream> streamParams,
+              ) => (endpoints['multiplayer'] as _iznver3h.MultiplayerEndpoint)
+                  .hostRoom(session),
+        ),
+        'joinRoom': _is.MethodStreamConnector(
+          name: 'joinRoom',
+          params: {
+            'code': _is.ParameterDescription(
+              name: 'code',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          streamParams: {},
+          returnType: _is.MethodStreamReturnType.streamType,
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+                Map<String, Stream> streamParams,
+              ) => (endpoints['multiplayer'] as _iznver3h.MultiplayerEndpoint)
+                  .joinRoom(
+                    session,
+                    params['code'],
+                  ),
+        ),
+      },
+    );
     connectors['profile'] = _is.EndpointConnector(
       name: 'profile',
       endpoint: endpoints['profile']!,
@@ -570,6 +677,41 @@ class Endpoints extends _is.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async => (endpoints['profile'] as _i6ky944g.ProfileEndpoint)
                   .getMyProfile(session),
+        ),
+        'updateUsername': _is.MethodConnector(
+          name: 'updateUsername',
+          params: {
+            'username': _is.ParameterDescription(
+              name: 'username',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6ky944g.ProfileEndpoint)
+                  .updateUsername(
+                    session,
+                    params['username'],
+                  ),
+        ),
+      },
+    );
+    connectors['ranked'] = _is.EndpointConnector(
+      name: 'ranked',
+      endpoint: endpoints['ranked']!,
+      methodConnectors: {
+        'startRanked': _is.MethodConnector(
+          name: 'startRanked',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['ranked'] as _iipq9d8b.RankedEndpoint)
+                  .startRanked(session),
         ),
       },
     );

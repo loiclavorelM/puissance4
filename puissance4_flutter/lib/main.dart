@@ -10,6 +10,7 @@ import 'features/history/view/history_screen.dart';
 import 'features/history/viewmodel/history_viewmodel.dart';
 import 'features/leaderboard/view/leaderboard_screen.dart';
 import 'features/leaderboard/viewmodel/leaderboard_viewmodel.dart';
+import 'features/live/viewmodel/live_updates_provider.dart';
 import 'features/offline/model/server_connection_pinger.dart';
 import 'features/offline/model/server_connection_tracker.dart';
 import 'features/offline/viewmodel/offline_sync_provider.dart';
@@ -121,18 +122,17 @@ class _MainShellState extends ConsumerState<_MainShell> {
 
   void _openTab(int index) {
     setState(() => _selectedIndex = index);
-    // `historyListProvider`/`leaderboardProvider` restent vivants en
-    // permanence (l'IndexedStack ne démonte jamais leur écran), donc rien ne
-    // les refait tourner tout seuls quand une partie est simulée pendant
-    // qu'on est sur un autre onglet — on force un refetch à chaque fois
-    // qu'on y revient plutôt que de disperser des `ref.invalidate` dans
-    // chaque action qui crée une partie (dev aujourd'hui, vrai moteur de jeu
-    // plus tard).
+    // Les changements serveur arrivent déjà en temps réel
+    // (`liveUpdatesProvider`) ; ce refetch à l'ouverture de l'onglet reste un
+    // filet pour ce qui n'est pas diffusé (parties Normal synchronisées
+    // depuis un autre appareil, nouveaux joueurs au classement). Le cache
+    // local reste affiché pendant le rechargement, donc pas de spinner.
     if (index == _leaderboardTabIndex) {
       ref.invalidate(leaderboardProvider);
     }
     if (index == _historyTabIndex) {
-      ref.invalidate(historyListProvider);
+      ref.invalidate(serverHistoryProvider);
+      ref.invalidate(offlineHistoryProvider);
     }
   }
 
@@ -148,6 +148,7 @@ class _MainShellState extends ConsumerState<_MainShell> {
     // connectée/en invité — sans ça, rien ne le construit puisqu'aucune
     // vue n'a besoin de sa valeur (`void`), seulement de son effet de bord.
     ref.watch(offlineSyncOnReconnectProvider);
+    ref.watch(liveUpdatesProvider);
 
     final screens = [
       GameHomeScreen(onOpenSettings: _openSettings),

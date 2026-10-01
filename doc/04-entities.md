@@ -59,10 +59,15 @@ Guid playerJaune FK
 EnumPlayer winner
 EnumStatut status
 moves: List<int>
+// Multi et Classé : présence des joueurs humains (stream ouvert / heure de
+// départ) et raison de fin — cf. doc/05-endpoints.md, GameEndpoint.
+Guid? rougeConnectionId, DateTime? rougeDisconnectedAt
+Guid? jauneConnectionId, DateTime? jauneDisconnectedAt
+EnumGameEndReason? endReason
 {Champs d'audits}
 ```
 
 ## Enum
 EnumPlayer { jaune, rouge, draw }
-EnumStatut { created, in_progress, finished }
+EnumStatut { created, in_progress, finished, abandoned }  // abandoned : partie annulée, sans vainqueur (tous modes)
 EnumType  {Multi, Normal, Classe}

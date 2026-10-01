@@ -1,11 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
+import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
+import '../../../client.dart';
 import '../../auth/viewmodel/auth_viewmodel.dart';
+import '../../offline/viewmodel/local_cache_provider.dart';
 import '../model/leaderboard_repository.dart';
 
 final leaderboardRepositoryProvider = Provider<LeaderboardRepository>(
-  (ref) => LeaderboardRepository(),
+  (ref) => LeaderboardRepository(ref.watch(localCacheProvider)),
 );
 
 /// Combine la page top-N et le rang du joueur courant — deux appels séparés
@@ -19,19 +22,21 @@ class LeaderboardState {
 }
 
 /// Vide tant qu'il n'y a pas de session serveur — même limitation déjà
-/// acceptée pour `historyListProvider`/`myProfileProvider`.
-final leaderboardProvider = FutureProvider<LeaderboardState?>((ref) async {
+/// acceptée pour `historyListProvider`/`myProfileProvider`. Cache d'abord,
+/// puis serveur ; relancé sur chaque `leaderboardChanged` temps réel.
+final leaderboardProvider = StreamProvider<LeaderboardState?>((ref) {
   final isAuthenticated =
       ref.watch(authViewModelProvider).status == AuthStatus.serverAuthenticated;
-  if (!isAuthenticated) return null;
+  final authUserId = client.auth.authInfo?.authUserId;
+  if (!isAuthenticated || authUserId == null) return Stream.value(null);
 
-  final repository = ref.read(leaderboardRepositoryProvider);
-  final results = await Future.wait([
-    repository.fetchTop(),
-    repository.fetchMyRank(),
-  ]);
-  return LeaderboardState(
-    entries: results[0] as List<LeaderboardEntryDto>,
-    myRank: results[1] as LeaderboardEntryDto,
-  );
+  return ref
+      .read(leaderboardRepositoryProvider)
+      .watchLeaderboard(authUserId)
+      .map(
+        (snapshot) => LeaderboardState(
+          entries: snapshot.entries,
+          myRank: snapshot.myRank,
+        ),
+      );
 });

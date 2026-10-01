@@ -9,23 +9,33 @@ emailIdp:
   - verifyPasswordResetCode:
   - finishPasswordReset:
   - hasAccount:
-googleIdp:
-  - login:
-  - loginWithCode:
-  - hasAccount:
 jwtRefresh:
   - refreshAccessToken:
+bot:
+  - getBots:
 connection:
   - ping:
-devSimulate:
-  - simulatePartie:
+game:
+  - getActivePartie:
+  - watchPartie:
+  - playMove:
+  - abandon:
 greeting:
   - hello:
 history:
   - getListHistories:
+  - getReplay:
   - getHistory:
 leaderboard:
   - getLeaderboard:
   - getMyRank:
+live:
+  - watchUpdates:
+multiplayer:
+  - hostRoom:
+  - joinRoom:
 profile:
   - getMyProfile:
+  - updateUsername:
+ranked:
+  - startRanked:

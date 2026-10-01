@@ -12,6 +12,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:puissance4_server/src/generated/protocol.dart' as _irho11n9;
 import 'package:serverpod/serverpod.dart' as _is;
+import '../game/enum_game_end_reason.dart' as _iuugnpks;
 import '../game/enum_outcome.dart' as _ilk7rg3u;
 import '../game/enum_statut.dart' as _irc493lf;
 import '../game/enum_type.dart' as _iu5mz6ho;
@@ -29,6 +30,11 @@ abstract class Partie
     required this.moves,
     DateTime? createdAt,
     this.updatedAt,
+    this.rougeConnectionId,
+    this.rougeDisconnectedAt,
+    this.jauneConnectionId,
+    this.jauneDisconnectedAt,
+    this.endReason,
   }) : createdAt = createdAt ?? DateTime.now();
 
   factory Partie({
@@ -42,6 +48,11 @@ abstract class Partie
     required List<int> moves,
     DateTime? createdAt,
     DateTime? updatedAt,
+    _is.UuidValue? rougeConnectionId,
+    DateTime? rougeDisconnectedAt,
+    _is.UuidValue? jauneConnectionId,
+    DateTime? jauneDisconnectedAt,
+    _iuugnpks.EnumGameEndReason? endReason,
   }) = _PartieImpl;
 
   factory Partie.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -76,6 +87,31 @@ abstract class Partie
       updatedAt: jsonSerialization['updatedAt'] == null
           ? null
           : _is.DateTimeJsonExtension.fromJson(jsonSerialization['updatedAt']),
+      rougeConnectionId: jsonSerialization['rougeConnectionId'] == null
+          ? null
+          : _is.UuidValueJsonExtension.fromJson(
+              jsonSerialization['rougeConnectionId'],
+            ),
+      rougeDisconnectedAt: jsonSerialization['rougeDisconnectedAt'] == null
+          ? null
+          : _is.DateTimeJsonExtension.fromJson(
+              jsonSerialization['rougeDisconnectedAt'],
+            ),
+      jauneConnectionId: jsonSerialization['jauneConnectionId'] == null
+          ? null
+          : _is.UuidValueJsonExtension.fromJson(
+              jsonSerialization['jauneConnectionId'],
+            ),
+      jauneDisconnectedAt: jsonSerialization['jauneDisconnectedAt'] == null
+          ? null
+          : _is.DateTimeJsonExtension.fromJson(
+              jsonSerialization['jauneDisconnectedAt'],
+            ),
+      endReason: jsonSerialization['endReason'] == null
+          ? null
+          : _iuugnpks.EnumGameEndReason.fromJson(
+              (jsonSerialization['endReason'] as String),
+            ),
     );
   }
 
@@ -104,6 +140,16 @@ abstract class Partie
 
   DateTime? updatedAt;
 
+  _is.UuidValue? rougeConnectionId;
+
+  DateTime? rougeDisconnectedAt;
+
+  _is.UuidValue? jauneConnectionId;
+
+  DateTime? jauneDisconnectedAt;
+
+  _iuugnpks.EnumGameEndReason? endReason;
+
   @override
   _is.Table<_is.UuidValue?> get table => t;
 
@@ -121,6 +167,11 @@ abstract class Partie
     List<int>? moves,
     DateTime? createdAt,
     DateTime? updatedAt,
+    _is.UuidValue? rougeConnectionId,
+    DateTime? rougeDisconnectedAt,
+    _is.UuidValue? jauneConnectionId,
+    DateTime? jauneDisconnectedAt,
+    _iuugnpks.EnumGameEndReason? endReason,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -136,6 +187,15 @@ abstract class Partie
       'moves': moves.toJson(),
       'createdAt': createdAt.toJson(),
       if (updatedAt != null) 'updatedAt': updatedAt?.toJson(),
+      if (rougeConnectionId != null)
+        'rougeConnectionId': rougeConnectionId?.toJson(),
+      if (rougeDisconnectedAt != null)
+        'rougeDisconnectedAt': rougeDisconnectedAt?.toJson(),
+      if (jauneConnectionId != null)
+        'jauneConnectionId': jauneConnectionId?.toJson(),
+      if (jauneDisconnectedAt != null)
+        'jauneDisconnectedAt': jauneDisconnectedAt?.toJson(),
+      if (endReason != null) 'endReason': endReason?.toJson(),
     };
   }
 
@@ -153,6 +213,15 @@ abstract class Partie
       'moves': moves.toJson(),
       'createdAt': createdAt.toJson(),
       if (updatedAt != null) 'updatedAt': updatedAt?.toJson(),
+      if (rougeConnectionId != null)
+        'rougeConnectionId': rougeConnectionId?.toJson(),
+      if (rougeDisconnectedAt != null)
+        'rougeDisconnectedAt': rougeDisconnectedAt?.toJson(),
+      if (jauneConnectionId != null)
+        'jauneConnectionId': jauneConnectionId?.toJson(),
+      if (jauneDisconnectedAt != null)
+        'jauneDisconnectedAt': jauneDisconnectedAt?.toJson(),
+      if (endReason != null) 'endReason': endReason?.toJson(),
     };
   }
 
@@ -198,6 +267,11 @@ class _PartieImpl extends Partie {
     required List<int> moves,
     DateTime? createdAt,
     DateTime? updatedAt,
+    _is.UuidValue? rougeConnectionId,
+    DateTime? rougeDisconnectedAt,
+    _is.UuidValue? jauneConnectionId,
+    DateTime? jauneDisconnectedAt,
+    _iuugnpks.EnumGameEndReason? endReason,
   }) : super._(
          id: id,
          code: code,
@@ -209,6 +283,11 @@ class _PartieImpl extends Partie {
          moves: moves,
          createdAt: createdAt,
          updatedAt: updatedAt,
+         rougeConnectionId: rougeConnectionId,
+         rougeDisconnectedAt: rougeDisconnectedAt,
+         jauneConnectionId: jauneConnectionId,
+         jauneDisconnectedAt: jauneDisconnectedAt,
+         endReason: endReason,
        );
 
   /// Returns a shallow copy of this [Partie]
@@ -226,6 +305,11 @@ class _PartieImpl extends Partie {
     List<int>? moves,
     DateTime? createdAt,
     Object? updatedAt = _Undefined,
+    Object? rougeConnectionId = _Undefined,
+    Object? rougeDisconnectedAt = _Undefined,
+    Object? jauneConnectionId = _Undefined,
+    Object? jauneDisconnectedAt = _Undefined,
+    Object? endReason = _Undefined,
   }) {
     return Partie(
       id: id is _is.UuidValue? ? id : this.id,
@@ -238,6 +322,21 @@ class _PartieImpl extends Partie {
       moves: moves ?? this.moves.map((e0) => e0).toList(),
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt is DateTime? ? updatedAt : this.updatedAt,
+      rougeConnectionId: rougeConnectionId is _is.UuidValue?
+          ? rougeConnectionId
+          : this.rougeConnectionId,
+      rougeDisconnectedAt: rougeDisconnectedAt is DateTime?
+          ? rougeDisconnectedAt
+          : this.rougeDisconnectedAt,
+      jauneConnectionId: jauneConnectionId is _is.UuidValue?
+          ? jauneConnectionId
+          : this.jauneConnectionId,
+      jauneDisconnectedAt: jauneDisconnectedAt is DateTime?
+          ? jauneDisconnectedAt
+          : this.jauneDisconnectedAt,
+      endReason: endReason is _iuugnpks.EnumGameEndReason?
+          ? endReason
+          : this.endReason,
     );
   }
 }
@@ -302,6 +401,38 @@ class PartieUpdateTable extends _is.UpdateTable<PartieTable> {
         table.updatedAt,
         value,
       );
+
+  _is.ColumnValue<_is.UuidValue, _is.UuidValue> rougeConnectionId(
+    _is.UuidValue? value,
+  ) => _is.ColumnValue(
+    table.rougeConnectionId,
+    value,
+  );
+
+  _is.ColumnValue<DateTime, DateTime> rougeDisconnectedAt(DateTime? value) =>
+      _is.ColumnValue(
+        table.rougeDisconnectedAt,
+        value,
+      );
+
+  _is.ColumnValue<_is.UuidValue, _is.UuidValue> jauneConnectionId(
+    _is.UuidValue? value,
+  ) => _is.ColumnValue(
+    table.jauneConnectionId,
+    value,
+  );
+
+  _is.ColumnValue<DateTime, DateTime> jauneDisconnectedAt(DateTime? value) =>
+      _is.ColumnValue(
+        table.jauneDisconnectedAt,
+        value,
+      );
+
+  _is.ColumnValue<_iuugnpks.EnumGameEndReason, _iuugnpks.EnumGameEndReason>
+  endReason(_iuugnpks.EnumGameEndReason? value) => _is.ColumnValue(
+    table.endReason,
+    value,
+  );
 }
 
 class PartieTable extends _is.Table<_is.UuidValue?> {
@@ -347,6 +478,27 @@ class PartieTable extends _is.Table<_is.UuidValue?> {
       'updatedAt',
       this,
     );
+    rougeConnectionId = _is.ColumnUuid(
+      'rougeConnectionId',
+      this,
+    );
+    rougeDisconnectedAt = _is.ColumnDateTime(
+      'rougeDisconnectedAt',
+      this,
+    );
+    jauneConnectionId = _is.ColumnUuid(
+      'jauneConnectionId',
+      this,
+    );
+    jauneDisconnectedAt = _is.ColumnDateTime(
+      'jauneDisconnectedAt',
+      this,
+    );
+    endReason = _is.ColumnEnum(
+      'endReason',
+      this,
+      _is.EnumSerialization.byName,
+    );
   }
 
   late final PartieUpdateTable updateTable;
@@ -369,6 +521,16 @@ class PartieTable extends _is.Table<_is.UuidValue?> {
 
   late final _is.ColumnDateTime updatedAt;
 
+  late final _is.ColumnUuid rougeConnectionId;
+
+  late final _is.ColumnDateTime rougeDisconnectedAt;
+
+  late final _is.ColumnUuid jauneConnectionId;
+
+  late final _is.ColumnDateTime jauneDisconnectedAt;
+
+  late final _is.ColumnEnum<_iuugnpks.EnumGameEndReason> endReason;
+
   @override
   List<_is.Column> get columns => [
     id,
@@ -381,6 +543,11 @@ class PartieTable extends _is.Table<_is.UuidValue?> {
     moves,
     createdAt,
     updatedAt,
+    rougeConnectionId,
+    rougeDisconnectedAt,
+    jauneConnectionId,
+    jauneDisconnectedAt,
+    endReason,
   ];
 }
 

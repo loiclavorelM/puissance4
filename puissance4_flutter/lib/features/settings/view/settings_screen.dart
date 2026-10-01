@@ -4,30 +4,43 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../auth/viewmodel/auth_viewmodel.dart';
 import '../../offline/view/server_connection_indicator.dart';
+import '../../profile/view/edit_profile_screen.dart';
+import '../../profile/view/profile_avatar.dart';
+import '../../profile/viewmodel/profile_provider.dart';
+import '../model/app_preferences.dart';
+import '../viewmodel/preferences_viewmodel.dart';
 
-/// "Réglages" (E2/E11) — pas encore implémenté, mais garde les deux éléments
-/// déjà fonctionnels déplacés de l'ancien menu placeholder : l'indicateur de
-/// connexion serveur et la déconnexion (cf. maquette, qui place justement
-/// "Se déconnecter" ici). Pas d'onglet dédié : poussé en route depuis
-/// l'icône engrenage de l'écran Jouer (`_MainShell._openSettings`), d'où le
-/// bouton retour explicite ci-dessous — pas de nav bar ici pour en sortir.
+/// "Réglages" (E2/E11) — maquette p.7 : COMPTE (pseudo modifiable),
+/// PRÉFÉRENCES (langue, thème sombre — mémorisés mais pas encore appliqués),
+/// déconnexion. Pas d'onglet dédié : poussé en route depuis l'icône
+/// engrenage de l'écran Jouer (`_MainShell._openSettings`), d'où le bouton
+/// retour explicite ci-dessous — pas de nav bar ici pour en sortir.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ColoredBox(
-      color: AppColors.background,
-      child: SafeArea(
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
               child: Row(
                 children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  ),
+                  const SizedBox(width: 4),
+                  const Text(
+                    'Réglages',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 22,
+                    ),
                   ),
                   const Spacer(),
                   const ServerConnectionIndicator(),
@@ -35,50 +48,250 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
             Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      'Réglages',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 22,
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+                children: [
+                  const _SectionTitle('COMPTE'),
+                  const _AccountCard(),
+                  const _SectionTitle('PRÉFÉRENCES'),
+                  const _PreferencesCard(),
+                  const Padding(
+                    padding: EdgeInsets.only(top: 8, left: 4),
+                    child: Text(
+                      'Traduction et thème clair arrivent bientôt — '
+                      'ton choix est déjà mémorisé.',
+                      style: TextStyle(color: Colors.white38, fontSize: 12),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  OutlinedButton(
+                    onPressed: () {
+                      // `signOut()` passe `authViewModelProvider` à
+                      // `unauthenticated` de façon synchrone (avant son
+                      // premier `await`), donc `_AuthGate` a déjà
+                      // basculé sur `LoginScreen` en dessous au moment
+                      // du pop ci-après — sans ce pop, cette route
+                      // poussée depuis l'icône engrenage (voir
+                      // `_MainShell._openSettings`) resterait affichée
+                      // par-dessus indéfiniment.
+                      ref.read(authViewModelProvider.notifier).signOut();
+                      Navigator.of(context).pop();
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      side: const BorderSide(color: AppColors.primary),
+                      minimumSize: const Size.fromHeight(52),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Pas encore implémenté',
-                      style: TextStyle(color: Colors.white38, fontSize: 14),
+                    child: const Text(
+                      'Se déconnecter',
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 32),
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        // `signOut()` passe `authViewModelProvider` à
-                        // `unauthenticated` de façon synchrone (avant son
-                        // premier `await`), donc `_AuthGate` a déjà
-                        // basculé sur `LoginScreen` en dessous au moment
-                        // du pop ci-après — sans ce pop, cette route
-                        // poussée depuis l'icône engrenage (voir
-                        // `_MainShell._openSettings`) resterait affichée
-                        // par-dessus indéfiniment.
-                        ref.read(authViewModelProvider.notifier).signOut();
-                        Navigator.of(context).pop();
-                      },
-                      icon: const Icon(Icons.logout, color: Colors.white70),
-                      label: const Text(
-                        'Se déconnecter',
-                        style: TextStyle(color: Colors.white70),
-                      ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Center(
+                    child: Text(
+                      'Puissance 4 RL · v0.1 · Serverpod',
+                      style: TextStyle(color: Colors.white38, fontSize: 12),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _AccountCard extends ConsumerWidget {
+  const _AccountCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final auth = ref.watch(authViewModelProvider);
+    final profile = ref.watch(myProfileProvider).valueOrNull;
+    final username =
+        profile?.username ?? auth.guestProfile?.username ?? 'Joueur';
+    // Invité local : aucun User serveur à modifier (pas d'authUserId).
+    final isLocalGuest = auth.status == AuthStatus.localGuest;
+
+    return _Card(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              ProfileAvatar(
+                username: username,
+                thumbnailUrl: profile?.thumbnailUrl,
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      username,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    if (isLocalGuest)
+                      const Text(
+                        'Connexion au serveur requise pour modifier',
+                        style: TextStyle(color: Colors.white38, fontSize: 12),
+                      ),
+                  ],
+                ),
+              ),
+              TextButton(
+                onPressed: profile == null
+                    ? null
+                    : () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const EditProfileScreen(),
+                        ),
+                      ),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  disabledForegroundColor: Colors.white24,
+                ),
+                child: const Text(
+                  'Modifier',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PreferencesCard extends ConsumerWidget {
+  const _PreferencesCard();
+
+  Future<void> _pickLanguage(
+    BuildContext context,
+    WidgetRef ref,
+    AppLanguage current,
+  ) async {
+    final picked = await showModalBottomSheet<AppLanguage>(
+      context: context,
+      backgroundColor: AppColors.card,
+      builder: (context) => SafeArea(
+        child: RadioGroup<AppLanguage>(
+          groupValue: current,
+          onChanged: (language) => Navigator.of(context).pop(language),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final language in AppLanguage.values)
+                RadioListTile<AppLanguage>(
+                  value: language,
+                  activeColor: AppColors.primary,
+                  title: Text(
+                    language.label,
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (picked != null) {
+      await ref.read(preferencesViewModelProvider.notifier).setLanguage(picked);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final prefs =
+        ref.watch(preferencesViewModelProvider).valueOrNull ??
+        AppPreferences.defaults;
+
+    return _Card(
+      children: [
+        ListTile(
+          title: const Text('Langue', style: _rowTitleStyle),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                prefs.language.label,
+                style: const TextStyle(color: Colors.white60),
+              ),
+              const Icon(Icons.chevron_right, color: Colors.white38),
+            ],
+          ),
+          onTap: () => _pickLanguage(context, ref, prefs.language),
+        ),
+        const Divider(height: 1, color: AppColors.fieldFill),
+        SwitchListTile(
+          title: const Text('Thème sombre', style: _rowTitleStyle),
+          value: prefs.darkTheme,
+          activeThumbColor: Colors.white,
+          activeTrackColor: AppColors.primary,
+          onChanged: (value) => ref
+              .read(preferencesViewModelProvider.notifier)
+              .setDarkTheme(value),
+        ),
+      ],
+    );
+  }
+}
+
+const _rowTitleStyle = TextStyle(
+  color: Colors.white,
+  fontWeight: FontWeight.w600,
+);
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 20, 4, 8),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white60,
+          fontWeight: FontWeight.bold,
+          fontSize: 12,
+          letterSpacing: 0.8,
+        ),
+      ),
+    );
+  }
+}
+
+class _Card extends StatelessWidget {
+  const _Card({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.card,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: AppColors.fieldFill),
+      ),
+      child: Column(children: children),
     );
   }
 }
