@@ -63,24 +63,27 @@ Développer une application mobile de \textbf{Puissance 4} permettant à un joue
   \item s'authentifier et gérer un profil (photo prise via la caméra) ;
   \item affronter un bot dont l'intelligence est un modèle entraîné par
         \textbf{apprentissage par renforcement (RL)} sur Google Colab, avec plusieurs
-        niveaux de difficulté ;
+        niveaux de difficulté, soit librement sur le téléphone (mode
+        \textbf{Normal}), soit en partie \textbf{Classée} jouée par le serveur ;
   \item affronter un autre joueur en ligne, en temps réel, via un code de partie
         \textit{(extension optionnelle, cf. ci-dessous)} ;
   \item progresser dans un classement basé sur un système \textbf{Elo} ;
-  \item consulter un historique de ses parties et un classement global ;
+  \item consulter un historique de ses parties, les \textbf{revoir coup par coup},
+        et consulter un classement global ;
   \item bénéficier d'un comportement \textit{context-aware} basé sur les capteurs de
         mouvement du téléphone (secousse, position à plat).
 \end{itemize}
 
-L'application doit être fonctionnelle hors-ligne pour les parties contre le bot
-(l'inférence du modèle est embarquée), et nécessite une connexion pour
-l'authentification, le multijoueur en ligne et la synchronisation des scores.
+L'application doit être fonctionnelle hors-ligne pour les parties \textbf{Normales}
+contre le bot (l'IA est embarquée), et nécessite une connexion pour
+l'authentification, le mode Classé, le multijoueur en ligne et la synchronisation
+des scores.
 
 \paragraph{Socle obligatoire vs. extensions optionnelles.} Pour limiter le risque
 du projet dans le cadre du cours, deux fonctionnalités sont traitées comme des
 \textbf{extensions optionnelles}, à implémenter après un socle stable
-(authentification, profil, jeu contre bot avec les 3 niveaux RL, Elo, leaderboard,
-historique) :
+(authentification, profil, jeu contre bot avec les 3 niveaux RL, mode Classé et Elo,
+leaderboard, historique) :
 \begin{itemize}[leftmargin=1.5em]
   \item le \textbf{mode Multijoueur en ligne} (1 vs 1 en temps réel via Serverpod,
         section~\ref{sec:multijoueur}) ;
@@ -95,14 +98,16 @@ ne conditionnent pas la validation du cours si le temps venait à manquer.
 \subsection{Mode invité local (hors-ligne dès l'installation) --- optionnel}
 \label{sec:invite}
 \begin{itemize}[leftmargin=1.5em]
-  \item Au tout premier lancement, sans réseau, l'app génère un
-        \textbf{identifiant local} (UUID sur l'appareil) --- aucun appel réseau, pas
-        même une tentative de connexion au serveur d'authentification (créer un
-        compte nécessite un appel réseau).
+  \item Au tout premier lancement, l'app crée un \textbf{profil invité local} sans
+        attendre le réseau. Dès que le serveur est joignable, cet invité est
+        promu silencieusement en \textbf{session anonyme} Serverpod (provider
+        \texttt{anonymous} du module d'auth), sans formulaire ; il pourra plus tard
+        lier un email ou un compte Google.
   \item Le joueur peut immédiatement jouer contre le \textbf{bot par défaut}
         (modèle embarqué dans les assets de l'app), et consulter ses stats/historique
         stockés en local (mécanisme détaillé ci-dessous) ; pas de classement global,
-        pas de mode Classé ni Multijoueur sans réseau.
+        pas de mode Classé ni Multijoueur sans réseau (ces boutons sont désactivés
+        tant que le serveur est injoignable).
   \item Les stats/historique du joueur invité sont persistés localement via le
         mécanisme \textbf{natif} de Serverpod 4.0 : l'annotation \texttt{database:
         sync} sur un modèle \texttt{.spy.yaml}, associée au module
@@ -111,29 +116,29 @@ ne conditionnent pas la validation du cours si le temps venait à manquer.
         via des \textbf{CRDT} (\textit{conflict-free replicated data types}) dès que
         le réseau revient, y compris en temps réel via les streams Serverpod. Aucune
         queue ni endpoint de synchronisation fait main (type \texttt{migrateLocalData}
-        / \texttt{syncPendingResults}) n'est nécessaire pour la persistance de base.
-  \item Au premier login réussi, les enregistrements locaux synchronisés sont
-        ré-associés au compte Serverpod authentifié ; le serveur devient ensuite la
-        source de vérité. Le même modèle \texttt{sync} sert à un joueur \textbf{déjà
-        connecté} qui perd sa connexion en cours de partie \textbf{Normale ou
-        Classée}.
-  \item \textit{Limite du CRDT pour l'Elo} : la réplication CRDT ne garantit pas
-        d'ordre applicatif entre plusieurs résultats. Le recalcul d'Elo restant un
-        traitement \textbf{séquentiel} dépendant de l'ordre chronologique, un
-        traitement serveur est déclenché à la réception des résultats synchronisés :
-        il les trie par horodatage avant de recalculer l'Elo pas à pas. On ne lance
-        pas de \textbf{nouvelle} partie Classée si l'absence de réseau est déjà
-        détectée.
+        / \texttt{syncPendingResults}) n'est nécessaire. Le modèle concerné est
+        \texttt{OfflineMatchResult} (parties Normales : résultat, bot, couleur et
+        liste des coups).
+  \item La synchronisation est rattachée à l'utilisateur authentifié : la session
+        de synchronisation est ouverte avec l'identifiant de l'\texttt{AuthUser}
+        (session anonyme ou compte), ce qui place chaque partie dans le bon
+        \textit{space} CRDT dès sa création ; le serveur est ensuite la source de
+        vérité.
+  \item Seules les parties \textbf{Normales} passent par ce mécanisme. Elles ne
+        modifient pas l'Elo : aucun recalcul d'Elo n'est donc nécessaire à la
+        synchronisation. Les parties \textbf{Classées} sont jouées sur le serveur
+        (section~\ref{sec:bot}) et ne peuvent pas être lancées hors-ligne.
   \item Cette fonctionnalité étant marquée \textbf{expérimentale} par Serverpod en
-        version 4.0, un spike de validation technique (sur un modèle simple) est
-        prévu avant son adoption complète (cf. section~\ref{sec:risques}).
+        version 4.0, elle a d'abord été validée par un spike technique sur un
+        modèle simple avant son adoption (cf. section~\ref{sec:risques}).
 \end{itemize}
 
 \subsection{Authentification --- module natif Serverpod}
 \begin{itemize}[leftmargin=1.5em]
   \item Connexion / inscription via le module d'authentification natif de Serverpod
-        (\texttt{serverpod\_auth\_idp}, provider email/mot de passe), déjà configuré
-        par défaut dans le projet généré par \texttt{serverpod create}. Côté client,
+        (\texttt{serverpod\_auth\_idp}), avec trois providers : \textbf{email/mot de
+        passe} (déjà configuré par le projet généré par \texttt{serverpod create}),
+        \textbf{Google} et \textbf{anonyme} (joueur invité). Côté client,
         l'écran de connexion utilise le \texttt{SignInWidget} fourni par
         \texttt{serverpod\_auth\_idp\_flutter}.
   \item Session persistante entre les lancements de l'application, gérée par
@@ -155,31 +160,40 @@ ne conditionnent pas la validation du cours si le temps venait à manquer.
 \end{itemize}
 
 \subsection{Mode de jeu --- 1 vs 1 contre un bot IA}
+\label{sec:bot}
 \begin{itemize}[leftmargin=1.5em]
   \item Le bot utilise un modèle de RL entraîné en amont sur Google Colab
-        (Q-learning / DQN sur le Puissance 4).
+        (Q-learning / DQN sur le Puissance 4). En attendant ces modèles, un bot
+        \textbf{heuristique} (\texttt{HeuristicBot}) sert de remplaçant ; il vit
+        dans un paquet Dart partagé (\texttt{puissance4\_rules}) utilisé à la fois
+        par l'application et par le serveur, avec les règles du jeu.
   \item \textbf{3 niveaux} : Débutant, Medium, Expert.
-  \item \textbf{Mode Normal} : le joueur choisit librement le niveau du bot.
-  \item \textbf{Mode Ligue / Classé} : matchmaking automatique --- le niveau du bot
-        proposé dépend de l'Elo courant du joueur (cf. section~\ref{sec:elo}).
-  \item \textbf{Inférence 100\,\% locale} (TensorFlow Lite ou ONNX Runtime) : le
-        modèle exporté depuis Colab est embarqué et exécuté sur l'appareil, ce qui
-        permet de jouer hors-ligne.
+  \item \textbf{Mode Normal} : le joueur choisit librement le niveau du bot. La
+        partie se joue \textbf{entièrement sur le téléphone} (règles et IA locales),
+        donc hors-ligne ; elle ne modifie pas l'Elo.
+  \item \textbf{Mode Classé} : le niveau du bot est choisi par le serveur selon
+        l'Elo courant du joueur (cf. section~\ref{sec:elo}). La partie est
+        \textbf{jouée par le serveur} : il valide chaque coup du joueur, fait jouer
+        le bot et calcule le résultat. Un client modifié ne peut donc pas falsifier
+        un résultat ni gagner d'Elo indûment. Le Classé nécessite une connexion.
+  \item \textbf{Inférence locale} (TensorFlow Lite ou ONNX Runtime) pour le mode
+        Normal : le modèle exporté depuis Colab est embarqué et exécuté sur
+        l'appareil, ce qui permet de jouer hors-ligne.
   \item Serverpod héberge et \textbf{versionne} les modèles entraînés ; l'application
         télécharge et met en cache le modèle courant de chaque niveau, ce qui permet
         de mettre à jour le bot sans publier une nouvelle version de l'app.
-  \item \textit{Limite connue} : en mode Classé, l'inférence tournant côté client,
-        un joueur malveillant pourrait falsifier un résultat avant de le transmettre
-        au serveur. Ce risque est assumé pour ce projet (cf. section~\ref{sec:risques}).
 \end{itemize}
 
 \subsection{Mode multijoueur en ligne --- optionnel}
 \label{sec:multijoueur}
 \begin{itemize}[leftmargin=1.5em]
-  \item Un joueur crée une partie et obtient un code à partager ; un second joueur
-        rejoint avec ce code.
+  \item Un joueur crée une salle et obtient un \textbf{code de 6 caractères} à
+        partager (valable 10 minutes) ; un second joueur rejoint avec ce code. Les
+        couleurs sont tirées au sort.
   \item L'état de la partie est synchronisé en temps réel entre les deux appareils
-        via les \textbf{streams} de Serverpod (pas de \textit{polling}).
+        via les \textbf{streams} de Serverpod (pas de \textit{polling}). Le serveur
+        valide chaque coup.
+  \item Le Multijoueur ne modifie pas l'Elo.
   \item Remplace le mode ``2 joueurs en local sur le même appareil'' envisagé
         initialement.
 \end{itemize}
@@ -188,33 +202,42 @@ ne conditionnent pas la validation du cours si le temps venait à manquer.
 \begin{itemize}[leftmargin=1.5em]
   \item \textbf{Reset par secousse} (accéléromètre) : secouer le téléphone
         réinitialise la partie en cours. Actif uniquement en mode Normal (partie
-        non classée contre un bot) ; désactivé en Ligue et en Multijoueur pour ne
+        non classée contre un bot) ; désactivé en Classé et en Multijoueur pour ne
         pas permettre d'annuler une partie qui affecte l'Elo ou implique un autre
         joueur réel.
   \item \textbf{Détection ``posé à plat''} (accéléromètre / gyroscope) : lorsque le
         téléphone est posé à plat pendant une partie, l'application la met
-        automatiquement \textbf{en pause}. Actif uniquement contre un bot (Normal ou
-        Ligue) --- \textbf{pas de pause en Multijoueur} (partie en direct contre un
-        autre joueur, pas de mécanisme de pause côté serveur). C'est ce comportement
+        automatiquement \textbf{en pause}. Actif uniquement en mode \textbf{Normal}
+        --- \textbf{pas de pause en Classé ni en Multijoueur} : ces parties sont
+        jouées par le serveur, qui impose un délai par coup (pas de mécanisme de
+        pause côté serveur). C'est ce comportement
         réactif, sans action explicite de l'utilisateur, qui rend l'application
         \textit{context-aware}.
 \end{itemize}
 
 \subsection{Classement --- Leaderboard}
-Classement global des joueurs (avec photo de profil), par Elo (mode Ligue) et/ou par
-nombre de victoires par niveau de bot (mode Normal). Données lues depuis Serverpod
-(PostgreSQL).
+Classement global des joueurs (avec photo de profil), trié par Elo (mode Classé), avec
+la position du joueur courant. Données lues depuis Serverpod (PostgreSQL), mises en
+cache côté serveur et côté client, et rafraîchies en direct (stream Serverpod) dès
+qu'un Elo ou un pseudo change.
 
 \subsection{Historique des parties}
-Chaque partie terminée (Multijoueur, Normal, Ligue) est enregistrée : date, mode,
+Chaque partie terminée (Multijoueur, Normal, Classé) est enregistrée : date, mode,
 adversaire (niveau de bot ou joueur distant), résultat, variation d'Elo le cas
-échéant. Écran dédié, parties les plus récentes en premier.
+échéant, ainsi que la \textbf{séquence complète des coups}. Écran dédié, parties les
+plus récentes en premier, filtrable par mode. Une partie annulée avant tout coup du
+joueur (statut \texttt{abandoned}) n'apparaît pas dans l'historique ni dans les
+statistiques.
+
+Depuis l'historique, chaque partie peut être \textbf{rejouée} coup par coup (premier,
+précédent, suivant, dernier, lecture automatique), sur le même écran de jeu que les
+parties en direct.
 
 \subsection{Revue de partie post-match avec IA --- optionnel}
 \label{sec:revue}
 \begin{itemize}[leftmargin=1.5em]
-  \item Après une partie terminée, le joueur peut la revoir \textbf{coup par coup} et
-        voir, pour chaque coup, celui que recommanderait le modèle \textbf{Expert}
+  \item En plus du replay coup par coup (section précédente), le joueur peut voir,
+        pour chaque coup, celui que recommanderait le modèle \textbf{Expert}
         (le modèle RL le plus fort, déjà embarqué localement pour le mode Bot, cf.
         section~\ref{sec:archi}) --- le modèle est réexécuté \textbf{localement} sur
         l'appareil pour cette recommandation, sans nouvel endpoint serveur.
@@ -226,8 +249,8 @@ adversaire (niveau de bot ou joueur distant), résultat, variation d'Elo le cas
   \item Cette fonctionnalité nécessite une connexion réseau (appel au serveur pour
         l'explication) ; elle est donc \textbf{indisponible en mode invité local /
         hors-ligne} (section~\ref{sec:invite}).
-  \item Prérequis : la séquence complète des coups d'une partie doit être enregistrée
-        (extension de l'historique des parties, au-delà du seul résultat final).
+  \item Prérequis (réalisé) : la séquence complète des coups de chaque partie est
+        enregistrée, pour tous les modes.
 \end{itemize}
 
 \section{Système Elo}
@@ -263,7 +286,7 @@ Elo virtuel --- Bot Expert & 1600 \\
 \caption{Paramètres du système Elo}
 \end{table}
 
-\textbf{Seuils de matchmaking (mode Ligue) :}
+\textbf{Seuils de matchmaking (mode Classé) :}
 \begin{itemize}[leftmargin=1.5em]
   \item Elo $< 1000$ $\rightarrow$ Bot Débutant
   \item $1000 \le$ Elo $< 1400$ $\rightarrow$ Bot Medium
@@ -274,6 +297,11 @@ Elo virtuel --- Bot Expert & 1600 \\
 $E \approx 0.24$, soit un nouvel Elo $\approx 1000 + 32(1-0.24) \approx 1024$. En cas
 de défaite, l'Elo descend à $\approx 992$. Le mode Multijoueur n'affecte pas l'Elo
 dans cette version.
+
+L'Elo est recalculé \textbf{par le serveur}, dans la même transaction que la fin de
+la partie Classée, et chaque variation est conservée dans une table
+\texttt{EloHistory}. Une partie annulée avant tout coup du joueur n'a aucun effet sur
+l'Elo.
 
 \section{Architecture technique}
 \label{sec:archi}
@@ -287,12 +315,15 @@ dans cette version.
   box/.style={draw, rounded corners, align=center, minimum height=1cm, minimum width=3.1cm, font=\small, fill=gray!5}
 ]
 \node[box] (app) {Application Flutter\\(client mobile)};
-\node[box, left=of app] (onnx) {Inférence locale\\TFLite / ONNX};
-\node[box, below=of app] (serverpod) {Serverpod\\(backend Dart, auth incluse)};
+\node[box, left=of app] (onnx) {Inférence locale\\TFLite / ONNX (Normal)};
+\node[box, right=of app] (sqlite) {SQLite locale\\(\texttt{offline\_sync})};
+\node[box, below=of app] (serverpod) {Serverpod\\(backend Dart, auth incluse,\\bot du mode Classé)};
 \node[box, below left=of serverpod] (postgres) {PostgreSQL};
 \node[box, below right=of serverpod] (model) {Stockage \& versioning\\des modèles RL};
 
 \draw[-{Latex}] (app) -- (onnx);
+\draw[-{Latex}] (app) -- (sqlite);
+\draw[{Latex}-{Latex}, dashed] (sqlite) |- node[draw=none,right,pos=0.25,font=\scriptsize]{sync CRDT} (serverpod);
 \draw[-{Latex}] (app) -- node[draw=none,left,font=\scriptsize]{RPC / streams / auth} (serverpod);
 \draw[-{Latex}] (serverpod) -- (postgres);
 \draw[-{Latex}] (serverpod) -- (model);
@@ -305,8 +336,14 @@ dans cette version.
 \subsection{Backend Serverpod}
 Serverpod expose des \textbf{endpoints} typés (RPC) et des \textbf{streams} temps
 réel, avec un schéma PostgreSQL généré automatiquement à partir des modèles de
-données Dart. Il gère : profils joueurs, Elo, leaderboard, historique des parties,
-sessions de multijoueur en ligne, et le stockage/versioning des modèles RL exportés.
+données Dart. Il gère : profils joueurs, Elo, leaderboard, historique et replay des
+parties, les parties \textbf{Multijoueur et Classées} (dont il est le seul juge), et le
+stockage/versioning des modèles RL exportés.
+
+Le code serveur est organisé par fonctionnalité (\texttt{lib/src/<feature>/}, un
+groupe d'endpoints par epic). Les règles du jeu et le bot sont dans un paquet Dart
+partagé avec l'application (\texttt{puissance4\_rules}), ce qui garantit que le
+téléphone et le serveur appliquent exactement les mêmes règles.
 
 \subsection{Authentification côté serveur}
 L'authentification est entièrement gérée par le module natif
@@ -319,7 +356,7 @@ appel authentifié qui en a besoin. Toutes les requêtes authentifiées passent 
 \subsection{Inférence IA locale}
 Le modèle entraîné sur Colab est exporté au format \texttt{.tflite} ou \texttt{.onnx}
 et exécuté sur l'appareil via \texttt{tflite\_flutter} ou \texttt{onnxruntime}. Aucun
-appel réseau n'est nécessaire pour jouer contre le bot une fois le modèle
+appel réseau n'est nécessaire pour jouer contre le bot en mode Normal une fois le modèle
 téléchargé --- ce qui garantit le fonctionnement hors-ligne. Un modèle par défaut
 (niveau Medium) est \textbf{embarqué dans les assets} de l'app, pour permettre une
 partie dès l'installation, avant tout téléchargement via Serverpod. Le modèle
@@ -328,12 +365,46 @@ localement (sans appel réseau) pour la fonction de revue de partie
 (section~\ref{sec:revue}) : seule la génération de l'explication textuelle associée
 sollicite le serveur.
 
-\subsection{Multijoueur temps réel}
-Le multijoueur utilise les \textbf{streams Serverpod} pour synchroniser l'état de la
-partie (plateau, tour courant, résultat) entre les deux clients connectés à la même
-session, identifiée par un code de partie. Si l'un des deux joueurs perd sa
-connexion réseau en cours de partie, celle-ci est considérée abandonnée (pas de
-mécanisme de pause en Multijoueur) et l'adversaire en est notifié.
+\subsection{Parties serveur (Multijoueur et Classé) en temps réel}
+Les modes Multijoueur et Classé partagent le même moteur serveur. Chaque client suit
+la partie via un \textbf{stream Serverpod} qui émet à chaque changement l'état
+complet (plateau, tour courant, échéance du coup, présence de l'adversaire,
+résultat, variation d'Elo). La base PostgreSQL est la source de vérité, chaque coup
+est appliqué sous verrou de ligne, et un joueur ne peut avoir qu'une seule partie
+serveur en cours (il peut la reprendre après une coupure).
+
+\paragraph{Pas de parties fantômes.} Une partie serveur n'est créée que lorsque ses
+deux camps sont connus : en Multijoueur, la salle d'attente ne vit qu'en mémoire,
+tant que le stream de l'hôte est ouvert, et la partie naît à l'arrivée du second
+joueur. Toute partie en cours a toujours une fin programmée :
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{60 s} maximum pour jouer un coup (défaite au temps) ;
+  \item \textbf{15 s} de délai de grâce après une déconnexion : l'adversaire est
+        prévenu, et le joueur peut revenir avant la fin du délai ;
+  \item au redémarrage du serveur, les parties en cours sont reprises avec des délais
+        complets.
+\end{itemize}
+Règle unique pour les trois façons de quitter (abandon, déconnexion, temps) : si le
+joueur qui quitte n'a encore joué \textbf{aucun coup}, la partie est
+\textbf{annulée} (statut \texttt{abandoned}, sans effet sur l'historique, les stats
+ni l'Elo) ; sinon son adversaire gagne. En Multijoueur, la partie est aussi annulée
+si les deux joueurs sont partis.
+
+\paragraph{Montée en charge.} Seuls deux composants sont en mémoire : le planificateur
+des échéances (\texttt{GameScheduler}) et les salles d'attente (\texttt{RoomStore}).
+Ils sont isolés derrière une interface pour pouvoir être remplacés par une
+implémentation partagée (Redis) si le serveur est déployé sur plusieurs instances.
+
+\subsection{Application Flutter}
+L'application suit une architecture \textbf{MVVM organisée par fonctionnalité}
+(\texttt{lib/features/<feature>/\{model,view,viewmodel\}}), avec Riverpod pour les
+viewmodels. Les éléments transverses du design system (palette de couleurs, petits
+widgets réutilisables) sont regroupés dans \texttt{lib/core/}.
+
+\paragraph{Un seul écran de jeu.} Tous les modes (Normal, Classé, Multijoueur) et le
+replay sont affichés par \textbf{un unique écran de jeu}, qui ne connaît qu'un
+\textit{moteur de partie} (section suivante). Aucun plateau ni écran spécifique à un
+mode n'est développé.
 
 \section{Contrats d'interface entre développeurs}
 
@@ -343,26 +414,46 @@ limiter les conflits d'intégration en fin de projet.
 
 \subsection{Contrat Menu principal $\rightarrow$ Écran de jeu}
 
-\begin{lstlisting}
-enum GameMode { vsBotNormal, vsBotRanked, vsPlayerOnline }
-enum BotLevel { beginner, medium, expert }
+Le contrat initial (un \texttt{GameLaunchParams} décrivant le mode, que l'écran de
+jeu aurait dû interpréter) a été remplacé par un contrat plus simple : chaque écran
+de lancement construit un \texttt{GameLaunch} qui fournit directement le
+\textbf{moteur} de la partie. L'écran de jeu ne fait qu'afficher les
+\texttt{GameSnapshot} émis par ce moteur et lui transmettre les actions du joueur.
 
-class PlayerInfo {
-  final String id;
-  final String displayName;
-  final String? photoUrl;
-  final int elo;
+\begin{lstlisting}
+class GameLaunch {
+  final String title;
+  final GameEngine Function(Ref ref) createEngine;
 }
 
-class GameLaunchParams {
-  final GameMode mode;
-  final BotLevel? botLevel;   // null si mode == vsPlayerOnline
-  final bool ranked;          // true si mode == vsBotRanked
-  final PlayerInfo localPlayer;
-  final PlayerInfo? remotePlayer; // renseigne si mode == vsPlayerOnline
-  final String? matchCode;    // renseigne si mode == vsPlayerOnline
+abstract interface class GameEngine {
+  GameSnapshot get current;
+  Stream<GameSnapshot> get snapshots;
+  Stream<String> get notices;      // coup refuse, erreur reseau...
+  Future<void> play(int column);
+  Future<void> abandon();
+  ReplayControls? get replay;      // non nul pour un replay
+  void dispose();
+}
+
+class GameSnapshot {
+  final GameParticipant rouge, jaune;
+  final EnumColor? myColor;
+  final List<int> moves;
+  final DateTime? turnDeadline;
+  final GameResult? result;        // vainqueur, raison de fin, variation d'Elo
+  final bool acceptsInput, isConnecting, isReconnecting, opponentConnected;
+  final ReplayPosition? replay;
 }
 \end{lstlisting}
+
+Trois implémentations de \texttt{GameEngine} :
+\begin{itemize}[leftmargin=1.5em]
+  \item \texttt{LocalGameEngine} --- règles sur le téléphone, bot embarqué (Normal) ;
+  \item \texttt{ServerGameEngine} --- le serveur décide, via son stream
+        (Classé, Multijoueur) ;
+  \item \texttt{ReplayGameEngine} --- coups lus depuis l'historique (replay).
+\end{itemize}
 
 \subsection{Endpoints Serverpod (aperçu du contrat)}
 
@@ -439,14 +530,8 @@ amont du développement).
 
 \begin{minipage}{0.48\textwidth}
 \centering
-\includegraphics[height=6.5cm]{figures/maquette-7.png}\\[2pt]
-\footnotesize (g) Réglages
-\end{minipage}
-\hfill
-\begin{minipage}{0.48\textwidth}
-\centering
 \includegraphics[height=6.5cm]{figures/maquette-8.png}\\[2pt]
-\footnotesize (h) Écran de jeu
+\footnotesize (g) Écran de jeu
 \end{minipage}
 \caption{Maquettes --- écrans hors-jeu et jeu (2/2)}
 \label{fig:maquettes2}
@@ -454,8 +539,9 @@ amont du développement).
 
 \textit{Note : ces maquettes montrent 4 niveaux de bot (Facile / Normal / Difficile /
 Expert, mélangeant minimax et RL) à titre d'illustration ; le choix retenu pour ce
-projet est de 3 niveaux, tous basés sur des modèles RL (cf. section~4.3), les
-niveaux de l'écran devront être ajustés en conséquence lors de l'implémentation.}
+projet est de 3 niveaux, tous basés sur des modèles RL (cf. section~\ref{sec:bot}),
+et l'écran de sélection implémenté propose bien ces 3 niveaux. L'écran de jeu
+implémenté est commun à tous les modes et au replay.}
 
 \section{Répartition des tâches}
 
@@ -476,12 +562,14 @@ niveaux de l'écran devront être ajustés en conséquence lors de l'implémenta
   \item Setup initial du repo Flutter et du projet Serverpod (endpoints, schéma
         PostgreSQL).
   \item UI de l'écran de jeu et logique du Puissance 4 (règles, victoire/égalité).
-  \item Les 3 sous-modes : Normal, Ligue/Classé, Multijoueur en ligne.
+  \item Les 3 modes : Normal, Classé, Multijoueur en ligne, et le replay.
   \item Reset par secousse (mode Normal uniquement).
   \item Entraînement RL sur Colab (3 niveaux), export, inférence locale, endpoint de
         distribution des modèles.
   \item Système Elo (calcul et persistance Serverpod).
-  \item Enregistrement des résultats de partie (historique).
+  \item Bot du mode Classé joué par le serveur.
+  \item Enregistrement des résultats et des coups de chaque partie (historique,
+        replay).
 \end{itemize}
 
 \section{Lien avec les critères du cours}
@@ -492,8 +580,10 @@ niveaux de l'écran devront être ajustés en conséquence lors de l'implémenta
         automatique) --- au moins deux capteurs, dont un comportement réellement
         adaptatif au contexte physique.
   \item \textbf{Originalité} : modèle de RL entraîné hors-app et exécuté en
-        inférence embarquée (edge AI), matchmaking Elo adaptatif, backend full-stack
-        Dart (Serverpod) gérant multijoueur temps réel et distribution de modèles.
+        inférence embarquée (edge AI), matchmaking Elo adaptatif avec bot joué par
+        le serveur (anti-triche), backend full-stack Dart (Serverpod) gérant
+        multijoueur temps réel, synchronisation hors-ligne (CRDT) et distribution
+        de modèles.
   \item \textbf{l10n} : application prévue en français et anglais au minimum.
 \end{itemize}
 
@@ -501,19 +591,20 @@ niveaux de l'écran devront être ajustés en conséquence lors de l'implémenta
 \label{sec:risques}
 
 \begin{itemize}[leftmargin=1.5em]
-  \item \textbf{Confiance côté client en mode Classé} : un résultat de partie contre
-        le bot est déclaré par le client ; risque de triche assumé pour ce projet.
-  \item \textbf{Cohérence des niveaux de bot} entre le cahier des charges (3 niveaux
-        RL) et les maquettes existantes (4 niveaux, minimax + RL) à clarifier avant
-        implémentation de l'écran de sélection de difficulté.
-  \item \textbf{Protocole temps réel} du multijoueur (reconnexion, abandon/timeout
-        d'un joueur, validité du code de partie) à spécifier plus finement lors du
-        développement du module Serverpod correspondant.
+  \item \textbf{Modèles RL pas encore disponibles} : tant que l'entraînement sur Colab
+        n'est pas terminé, le bot heuristique partagé (\texttt{HeuristicBot}) sert de
+        remplaçant, sur le téléphone comme sur le serveur. Le remplacer ne demande
+        aucun changement de l'écran de jeu ni des endpoints.
   \item \textbf{Caractère expérimental de \texttt{serverpod\_offline\_sync}}
-        (Serverpod 4.0) : fonctionnalité native marquée expérimentale par l'éditeur ;
-        un spike de validation est prévu avant adoption complète pour le mode invité
-        local (cf. section~\ref{sec:invite}), avec un plan de repli (mécanisme fait
-        main) si elle s'avère instable.
+        (Serverpod 4.0) : le spike de validation a été réalisé et le mécanisme est
+        adopté pour les parties Normales. Limite constatée : la synchronisation
+        exige un utilisateur authentifié (session anonyme au minimum) ; les
+        parties jouées sans jamais avoir joint le serveur restent locales tant
+        que la session anonyme n'a pas pu être ouverte.
+  \item \textbf{Déploiement multi-instances} : le planificateur des échéances et les
+        salles d'attente Multijoueur sont en mémoire ; ils devront être remplacés par
+        une implémentation partagée (Redis) si le serveur tourne sur plusieurs
+        instances (cf. section~\ref{sec:archi}).
   \item \textbf{Dépendance réseau de la revue de partie avec IA} : l'explication
         générée par LLM (Ollama cloud) nécessite une connexion et n'est pas
         disponible en mode invité/hors-ligne ; prévoir une gestion explicite des

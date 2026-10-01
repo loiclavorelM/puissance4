@@ -61,9 +61,18 @@ Tous les streams émettent des `GameEvent` portant l'état complet.
   coup.
 
 Fins de partie (`GameEvent.endReason`) : `connectFour`, `boardFull`, `forfeit`,
-`disconnect` (absent > 15 s), `timeout` (> 60 s pour jouer), `cancelled` (aucun
-coup humain joué, ou tous les humains partis → statut `abandoned`, hors
-historique/stats/Elo). Erreurs : `GameException(reason: EnumGameError)` —
+`disconnect` (absent > 15 s), `timeout` (> 60 s pour jouer), `cancelled` (statut
+`abandoned`, hors historique/stats/Elo). Règle unique pour les trois façons de
+quitter (abandon, déconnexion, temps) : la partie est annulée si le joueur qui
+quitte n'a encore joué aucun coup, sinon son adversaire gagne. En Multi, elle
+est aussi annulée si les deux joueurs sont partis ; en Classé, le joueur au
+trait perd au temps même s'il a fermé l'app.
+Une seule partie serveur par joueur, garantie sous verrou consultatif
+PostgreSQL à la création (deux lancements simultanés n'en créent qu'une).
+Au redémarrage (`ServerGameConfig.singleServer`), tout humain déjà passé par
+une partie en cours repart « parti maintenant » avec un délai de grâce
+complet, et le joueur au trait retrouve un tour complet ; les streams qui
+arrivent pendant cette remise à zéro attendent sa fin. Erreurs : `GameException(reason: EnumGameError)` —
 `roomNotFound`, `ownRoom`, `alreadyInGame` (+ `partieId`), `notYourTurn`,
 `invalidMove`, `gameOver`, `noBotAvailable`…
 
@@ -83,6 +92,8 @@ l'adversaire.
 - `joinRoom(code: String) -> Stream<GameEvent>`
   Réserve la salle (atomique : un seul invité l'obtient), crée les 2 `Player` +
   la `Partie`, couleurs tirées au sort, puis suit la partie.
+  Si l'invité est refusé parce qu'il est déjà en partie, la salle est rendue à
+  l'hôte, qui continue d'attendre.
 
 Le Multi ne change pas l'Elo.
 
@@ -176,6 +187,7 @@ GameEvent                 // streams de partie serveur, état complet à chaque 
   EnumOutcome? winner
   EnumGameEndReason? endReason
   EnumColor? aboutColor   // joueur concerné par (dé)connexion
+  bool? opponentConnected // sur gameStarted : adversaire présent ?
   int? eloVariation       // Classé, sur gameOver
 
 ReplayDto
