@@ -33,12 +33,20 @@ class RankedEndpoint extends Endpoint {
       ),
     );
 
-    final partie = await ServerGame.start(
-      session,
-      typePartie: EnumType.classe,
-      first: GameSeat.human(me),
-      second: GameSeat.bot(bot),
-    );
-    return partie.id!;
+    try {
+      final partie = await ServerGame.start(
+        session,
+        typePartie: EnumType.classe,
+        first: GameSeat.human(me),
+        second: GameSeat.bot(bot),
+      );
+      return partie.id!;
+    } on SeatBusyException catch (error) {
+      // Une autre partie a démarré entre `ensureNotInGame` et ici.
+      throw GameException(
+        reason: EnumGameError.alreadyInGame,
+        partieId: error.partieId,
+      );
+    }
   }
 }

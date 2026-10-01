@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
+import 'enum_color_extensions.dart';
 import 'server_game.dart';
 
 /// Stream renvoyé au client, alimenté par [body]. Contrairement à un
@@ -103,7 +104,10 @@ Future<void> followPartie(
         attached.partie,
         seats,
         EnumGameEventType.gameStarted,
-      ).copyWith(yourColor: color),
+      ).copyWith(
+        yourColor: color,
+        opponentConnected: ServerGame.isPresent(attached.partie, color.other),
+      ),
     );
 
     while (!over) {

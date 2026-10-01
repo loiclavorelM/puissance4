@@ -34,32 +34,67 @@ class ServerGameEngine extends GameEngineBase {
     _onEvent(started);
   }
 
-  /// Tentatives de reconnexion espacées de 1, 2, 3, 4 s — sous le délai de
-  /// grâce serveur (15 s).
-  static const maxReconnectAttempts = 4;
+  /// Délai avant la tentative de reconnexion n° [attempt] : 1, 2, 3 s, puis
+  /// toutes les 4 s tant que la partie peut être en cours. On n'abandonne
+  /// jamais de soi-même : c'est le serveur qui termine la partie, et après
+  /// une panne serveur il redonne à chacun un délai de grâce complet.
+  /// Modifiable pour les tests.
+  static Duration Function(int attempt) reconnectDelay = (attempt) =>
+      Duration(seconds: attempt < 4 ? attempt : 4);
+
+  /// Tentatives rapides avant de prévenir le joueur que ça dure.
+  static const _quickReconnectAttempts = 4;
+
+  /// Après une erreur réseau sur mon coup, délai au bout duquel le plateau
+  /// est rendu si le serveur n'a annoncé aucun nouveau coup : le coup n'est
+  /// sans doute jamais arrivé. S'il était arrivé quand même, rejouer est
+  /// simplement refusé (`notYourTurn`). Modifiable pour les tests.
+  static Duration pendingMoveTimeout = const Duration(seconds: 3);
 
   final ServerGameRepository _repository;
   final UuidValue _partieId;
   StreamSubscription<GameEvent>? _subscription;
   var _reconnectAttempts = 0;
-  var _isSending = false;
+
+  /// Nombre de coups au départ de mon coup : l'entrée reste bloquée jusqu'à
+  /// ce que le serveur annonce une partie plus longue. La réponse de
+  /// `playMove` arrive souvent avant `moveApplied` sur le stream ; rouvrir
+  /// l'entrée dès cette réponse laisserait jouer un second coup, refusé.
+  int? _pendingMoveCount;
+  Timer? _pendingMoveTimer;
 
   UuidValue get partieId => _partieId;
 
   @override
   Future<void> play(int column) async {
     if (!current.acceptsInput) return;
-    _isSending = true;
+    _pendingMoveCount = current.moves.length;
     emit(current.copyWith(acceptsInput: false));
     try {
       // Le plateau se met à jour à la réception de `moveApplied`.
       await _repository.playMove(_partieId, column);
-    } catch (error) {
+    } on GameException catch (error) {
+      // Refus du serveur : le coup n'a pas été joué.
+      _pendingMoveCount = null;
       notice(_messageFor(error, 'Coup refusé. Réessaie.'));
-    } finally {
-      _isSending = false;
       emit(current.copyWith(acceptsInput: _acceptsInput(current)));
+    } catch (_) {
+      // Erreur réseau : le coup a pu être joué (seule la réponse s'est
+      // perdue). Le plateau reste bloqué jusqu'au prochain coup annoncé par
+      // le stream, ou jusqu'à [pendingMoveTimeout].
+      notice('Connexion instable — coup en attente de confirmation.');
+      _pendingMoveTimer?.cancel();
+      _pendingMoveTimer = Timer(pendingMoveTimeout, _releasePendingMove);
     }
+  }
+
+  void _releasePendingMove() {
+    final pending = _pendingMoveCount;
+    if (isDisposed || pending == null || current.moves.length > pending) {
+      return;
+    }
+    _pendingMoveCount = null;
+    emit(current.copyWith(acceptsInput: _acceptsInput(current)));
   }
 
   @override
@@ -91,6 +126,11 @@ class ServerGameEngine extends GameEngineBase {
         _reconnectAttempts = 0;
         final over = event.type == EnumGameEventType.gameOver;
         if (over) _subscription = null;
+        final pending = _pendingMoveCount;
+        if (pending != null && (event.moves?.length ?? 0) > pending) {
+          _pendingMoveCount = null;
+          _pendingMoveTimer?.cancel();
+        }
         final snapshot = GameSnapshot(
           rouge: event.rouge != null
               ? GameParticipant.fromInfo(event.rouge!)
@@ -108,8 +148,10 @@ class ServerGameEngine extends GameEngineBase {
                   eloVariation: event.eloVariation,
                 )
               : null,
+          // `gameStarted` arrive aussi après ma propre reconnexion : il dit
+          // si l'adversaire est là, ce que je n'ai pas pu suivre entre-temps.
           opponentConnected: event.type == EnumGameEventType.gameStarted
-              ? true
+              ? event.opponentConnected ?? true
               : current.opponentConnected,
         );
         emit(snapshot.copyWith(acceptsInput: _acceptsInput(snapshot)));
@@ -127,7 +169,7 @@ class ServerGameEngine extends GameEngineBase {
       !snapshot.isOver &&
       !snapshot.isConnecting &&
       !snapshot.isReconnecting &&
-      !_isSending &&
+      _pendingMoveCount == null &&
       snapshot.myColor != null &&
       snapshot.colorToPlay == snapshot.myColor;
 
@@ -149,14 +191,12 @@ class ServerGameEngine extends GameEngineBase {
 
   void _connectionLost() {
     if (isDisposed || current.isOver) return;
-    if (_reconnectAttempts >= maxReconnectAttempts) {
-      emit(current.copyWith(isReconnecting: false, acceptsInput: false));
-      notice('Connexion perdue — la partie sera comptée abandonnée.');
-      return;
-    }
     _reconnectAttempts++;
+    if (_reconnectAttempts == _quickReconnectAttempts + 1) {
+      notice('Connexion perdue — nouvelles tentatives en cours.');
+    }
     emit(current.copyWith(isReconnecting: true, acceptsInput: false));
-    Future<void>.delayed(Duration(seconds: _reconnectAttempts), () {
+    Future<void>.delayed(reconnectDelay(_reconnectAttempts), () {
       if (isDisposed || current.isOver) return;
       _listen(_repository.watchPartie(_partieId));
     });
@@ -178,6 +218,7 @@ class ServerGameEngine extends GameEngineBase {
     // de grâce (l'écran a déjà demandé confirmation et abandonné).
     unawaited(_subscription?.cancel());
     _subscription = null;
+    _pendingMoveTimer?.cancel();
     super.dispose();
   }
 }

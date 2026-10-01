@@ -192,6 +192,58 @@ void main() {
           expect(await EloHistory.db.find(session), isEmpty);
         },
       );
+
+      test(
+        'when the player closes the app on their turn then they still lose on time and lose Elo',
+        () async {
+          ServerGameConfig.turnTimeout = const Duration(seconds: 1);
+          ServerGameConfig.disconnectGrace = const Duration(seconds: 10);
+          final (alice, user) = await signedIn();
+          final partieId = await endpoints.ranked.startRanked(alice);
+          final events = watch(alice, partieId);
+          final before = await myTurn(events);
+          await endpoints.game.playMove(alice, partieId, 3);
+          await waitFor(
+            events,
+            (e) => (e.moves?.length ?? 0) == before.moves!.length + 2,
+          );
+
+          await subscriptions.removeLast().cancel();
+
+          final session = sessionBuilder.build();
+          final deadline = DateTime.now().add(const Duration(seconds: 5));
+          Partie? partie;
+          while (DateTime.now().isBefore(deadline)) {
+            partie = await Partie.db.findById(session, partieId);
+            if (partie!.status != EnumStatut.inProgress) break;
+            await Future<void>.delayed(const Duration(milliseconds: 50));
+          }
+          expect(partie!.status, EnumStatut.finished);
+          expect(partie.endReason, EnumGameEndReason.timeout);
+          expect((await User.db.findById(session, user.id!))!.elo, 992);
+        },
+      );
+
+      test(
+        'when the same player starts twice at once then only one partie is created',
+        () async {
+          final (alice, _) = await signedIn();
+
+          final results = await Future.wait([
+            for (var i = 0; i < 2; i++)
+              endpoints.ranked
+                  .startRanked(alice)
+                  .then<Object>((id) => id, onError: (Object e) => e),
+          ]);
+
+          expect(results.whereType<UuidValue>(), hasLength(1));
+          expect(
+            results.whereType<GameException>().single.reason,
+            EnumGameError.alreadyInGame,
+          );
+          expect(await Partie.db.find(sessionBuilder.build()), hasLength(1));
+        },
+      );
     },
   );
 }

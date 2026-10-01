@@ -115,12 +115,28 @@ class MultiplayerEndpoint extends Endpoint {
         second: GameSeat.human(me),
         code: room.code,
       );
-    } catch (_) {
-      // Salle déjà retirée : libérer l'hôte plutôt que le laisser attendre.
-      await session.messages.postMessage(
-        roomChannel(room.code),
-        GameEvent(type: EnumGameEventType.roomClosed, code: room.code),
-      );
+    } catch (error) {
+      // Invité déjà en partie (lancée entre `ensureNotInGame` et ici) : la
+      // salle n'y est pour rien, elle est rendue à l'hôte qui attend
+      // toujours. Sinon — ou s'il est trop tard pour la rendre —, libérer
+      // l'hôte plutôt que le laisser attendre une salle déjà retirée.
+      final guestBusy = error is SeatBusyException && error.user.id == me.id;
+      if (!guestBusy || !await MultiplayerConfig.rooms.restore(room)) {
+        await session.messages.postMessage(
+          roomChannel(room.code),
+          GameEvent(type: EnumGameEventType.roomClosed, code: room.code),
+        );
+      }
+      if (error is SeatBusyException) {
+        throw guestBusy
+            ? GameException(
+                reason: EnumGameError.alreadyInGame,
+                partieId: error.partieId,
+              )
+            // L'hôte a commencé une autre partie (ex. un Classé depuis un
+            // autre appareil) depuis l'ouverture de sa salle.
+            : GameException(reason: EnumGameError.roomNotFound);
+      }
       rethrow;
     }
     await session.messages.postMessage(

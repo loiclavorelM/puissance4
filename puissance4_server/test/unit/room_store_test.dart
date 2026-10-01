@@ -86,5 +86,31 @@ void main() {
         expect(await store.claim(room.code, guestAuthUserId: guest), isNull);
       },
     );
+
+    test(
+      'when a claimed room is restored then another guest can claim it',
+      () async {
+        final room = await open();
+        final claimed = await store.claim(room.code, guestAuthUserId: guest);
+
+        expect(await store.restore(claimed!), isTrue);
+        expect(
+          (await store.claim(room.code, guestAuthUserId: other))?.code,
+          room.code,
+        );
+      },
+    );
+
+    test(
+      'when the host opened another room meanwhile then the old one is not restored',
+      () async {
+        final room = await open();
+        final claimed = await store.claim(room.code, guestAuthUserId: guest);
+        await open();
+
+        expect(await store.restore(claimed!), isFalse);
+        expect(await store.claim(room.code, guestAuthUserId: other), isNull);
+      },
+    );
   });
 }

@@ -13,6 +13,18 @@ class OfflineGameRepository {
 
   final OfflineSyncSessionHolder _sessionHolder;
 
+  /// Écritures en file, dans l'ordre d'appel : chaque `updateRow` réécrit
+  /// toute la ligne, donc un [recordMoves] encore en cours écraserait un
+  /// [finishGame] arrivé entre-temps (partie restée `inProgress`, résultat
+  /// perdu).
+  Future<void> _writes = Future.value();
+
+  Future<T> _inOrder<T>(Future<T> Function() write) {
+    final result = _writes.then((_) => write());
+    _writes = result.then((_) {}, onError: (_) {});
+    return result;
+  }
+
   /// Crée la partie à l'état `inProgress` et renvoie son id.
   ///
   /// Les parties restées `inProgress` (app fermée en pleine partie) passent
@@ -21,7 +33,7 @@ class OfflineGameRepository {
   Future<UuidValue> createGame({
     required Bot bot,
     required EnumColor playedAs,
-  }) async {
+  }) => _inOrder(() async {
     final session = await _sessionHolder.getOrCreate();
     final stale = await OfflineMatchResult.db.find(
       session,
@@ -45,19 +57,21 @@ class OfflineGameRepository {
       ),
     );
     return row.id!;
-  }
+  });
 
   Future<OfflineMatchResult?> findGame(UuidValue id) async {
     final session = await _sessionHolder.getOrCreate();
     return OfflineMatchResult.db.findById(session, id);
   }
 
-  /// Enregistre les coups au fil de la partie (replay, E14).
-  Future<void> recordMoves(UuidValue id, List<int> moves) async {
+  /// Enregistre les coups au fil de la partie (replay, E14). Sans effet une
+  /// fois la partie close.
+  Future<void> recordMoves(UuidValue id, List<int> moves) => _inOrder(() async {
     final session = await _sessionHolder.getOrCreate();
     final row = await _require(session, id);
+    if (row.status != EnumStatut.inProgress) return;
     await OfflineMatchResult.db.updateRow(session, row.copyWith(moves: moves));
-  }
+  });
 
   /// Clôt la partie : `finished` avec [result], ou `abandoned` si [result]
   /// est `null` (partie annulée).
@@ -67,15 +81,17 @@ class OfflineGameRepository {
     List<int> moves,
   ) async {
     final session = await _sessionHolder.getOrCreate();
-    final row = await _require(session, id);
-    await OfflineMatchResult.db.updateRow(
-      session,
-      row.copyWith(
-        status: result == null ? EnumStatut.abandoned : EnumStatut.finished,
-        result: result,
-        moves: moves,
-      ),
-    );
+    await _inOrder(() async {
+      final row = await _require(session, id);
+      await OfflineMatchResult.db.updateRow(
+        session,
+        row.copyWith(
+          status: result == null ? EnumStatut.abandoned : EnumStatut.finished,
+          result: result,
+          moves: moves,
+        ),
+      );
+    });
     if (result == null) return;
     try {
       await client.offlineSync.syncOnce(session);

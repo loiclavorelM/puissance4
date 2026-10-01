@@ -25,6 +25,13 @@ abstract final class ServerGameConfig {
   static Duration botMoveDelay = const Duration(milliseconds: 600);
 
   static GameScheduler scheduler = LocalTimerScheduler();
+
+  /// Un seul serveur fait tourner les parties : à son redémarrage, tout
+  /// stream d'avant l'arrêt est forcément mort (cf.
+  /// `ServerGame.resumePending`). Passer à `false` avec le passage en
+  /// cluster, en même temps que [scheduler] — pas d'après la config Redis,
+  /// qu'un serveur seul peut aussi activer pour ses caches.
+  static bool singleServer = true;
 }
 
 /// Actions différées des parties serveur. Chacune est idempotente et relit

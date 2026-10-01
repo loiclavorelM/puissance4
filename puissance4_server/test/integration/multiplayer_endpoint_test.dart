@@ -92,6 +92,22 @@ void main() {
 
       Future<List<Partie>> parties() => Partie.db.find(sessionBuilder.build());
 
+      Future<Partie> waitForPresence(
+        UuidValue partieId,
+        bool Function(Partie) test,
+      ) async {
+        final deadline = DateTime.now().add(const Duration(seconds: 5));
+        while (DateTime.now().isBefore(deadline)) {
+          final partie = await Partie.db.findById(
+            sessionBuilder.build(),
+            partieId,
+          );
+          if (test(partie!)) return partie;
+          await Future<void>.delayed(const Duration(milliseconds: 20));
+        }
+        throw TimeoutException('Presence never reached');
+      }
+
       Future<Partie> waitForStatus(
         UuidValue partieId,
         EnumStatut status,
@@ -152,6 +168,7 @@ void main() {
         }
         openStreams.clear();
         scheduler.cancelAll();
+        ServerGame.releaseStreams();
         final session = sessionBuilder.build();
         await Partie.db.deleteWhere(
           session,
@@ -162,6 +179,7 @@ void main() {
           where: (t) => t.id.notEquals(null),
         );
         await User.db.deleteWhere(session, where: (t) => t.id.notEquals(null));
+        await Bot.db.deleteWhere(session, where: (t) => t.id.notEquals(null));
       });
 
       test(
@@ -331,13 +349,14 @@ void main() {
           final carol = await signedInAs('carol');
           final game = await startGame(alice, bob);
           await endpoints.game.playMove(game.rougeSession, game.partieId, 3);
+          await endpoints.game.playMove(game.jauneSession, game.partieId, 4);
           await endpoints.game.abandon(game.jauneSession, game.partieId);
 
           final replay = await endpoints.history.getReplay(
             game.rougeSession,
             idPartie: game.partieId,
           );
-          expect(replay.moves, [3]);
+          expect(replay.moves, [3, 4]);
           expect(replay.playedAs, EnumColor.rouge);
           expect(replay.winner, EnumOutcome.rouge);
           expect(replay.endReason, EnumGameEndReason.forfeit);
@@ -380,6 +399,11 @@ void main() {
             game.rougeSession,
             game.partieId,
             3,
+          );
+          await endpoints.game.playMove(
+            game.jauneSession,
+            game.partieId,
+            4,
           );
 
           await game.jaune.cancel();
@@ -476,9 +500,14 @@ void main() {
             game.partieId,
             3,
           );
+          await endpoints.game.playMove(
+            game.jauneSession,
+            game.partieId,
+            4,
+          );
 
           final over = await game.rouge.next(EnumGameEventType.gameOver);
-          expect(over.winner, EnumOutcome.rouge);
+          expect(over.winner, EnumOutcome.jaune);
           expect(over.endReason, EnumGameEndReason.timeout);
         },
       );
@@ -514,6 +543,139 @@ void main() {
             EnumStatut.abandoned,
           );
           expect(ended.winner, isNull);
+        },
+      );
+
+      test(
+        'when the host started another game after opening the room then the guest cannot join',
+        () async {
+          final alice = await signedInAs('alice');
+          final bob = await signedInAs('bob');
+          await Bot.db.insertRow(
+            sessionBuilder.build(),
+            Bot(botName: 'Medium', elo: 1200, pathModel: '', description: ''),
+          );
+          final host = listen(endpoints.multiplayer.hostRoom(alice));
+          final code = (await host.next(EnumGameEventType.roomCreated)).code!;
+          final ranked = await endpoints.ranked.startRanked(alice);
+
+          final guest = listen(endpoints.multiplayer.joinRoom(bob, code));
+
+          expect(
+            await guest.nextError(),
+            _gameError(EnumGameError.roomNotFound),
+          );
+          await host.next(EnumGameEventType.roomClosed);
+          expect((await parties()).map((p) => p.id), [ranked]);
+        },
+      );
+
+      test(
+        'when a player abandons before playing any move then the partie is cancelled even if the opponent played',
+        () async {
+          final alice = await signedInAs('alice');
+          final bob = await signedInAs('bob');
+          final game = await startGame(alice, bob);
+          await endpoints.game.playMove(game.rougeSession, game.partieId, 3);
+
+          await endpoints.game.abandon(game.jauneSession, game.partieId);
+
+          final over = await game.rouge.next(EnumGameEventType.gameOver);
+          expect(over.winner, isNull);
+          expect(over.endReason, EnumGameEndReason.cancelled);
+          await waitForStatus(game.partieId, EnumStatut.abandoned);
+        },
+      );
+
+      test(
+        'when a player reconnects while the opponent is away then gameStarted says so',
+        () async {
+          ServerGameConfig.disconnectGrace = const Duration(seconds: 10);
+          final alice = await signedInAs('alice');
+          final bob = await signedInAs('bob');
+          final game = await startGame(alice, bob);
+          await endpoints.game.playMove(game.rougeSession, game.partieId, 3);
+          await game.jaune.cancel();
+          await game.rouge.next(EnumGameEventType.opponentDisconnected);
+          await game.rouge.cancel();
+
+          final back = listen(
+            endpoints.game.watchPartie(game.rougeSession, game.partieId),
+          );
+          final resumed = await back.next(EnumGameEventType.gameStarted);
+
+          expect(resumed.opponentConnected, isFalse);
+          expect(game.jaune.all.last.opponentConnected, isTrue);
+        },
+      );
+
+      test(
+        'when the server restarts after an outage then players get a fresh grace period and turn, and a stream opened at boot survives',
+        () async {
+          ServerGameConfig.disconnectGrace = const Duration(seconds: 10);
+          final alice = await signedInAs('alice');
+          final bob = await signedInAs('bob');
+          final game = await startGame(alice, bob);
+          await endpoints.game.playMove(game.rougeSession, game.partieId, 3);
+          await endpoints.game.playMove(game.jauneSession, game.partieId, 4);
+          await game.rouge.cancel();
+          await game.jaune.cancel();
+          await waitForPresence(
+            game.partieId,
+            (p) => p.rougeConnectionId == null && p.jauneConnectionId == null,
+          );
+          // Simule un arrêt d'une heure : rappels perdus, Rouge encore marqué
+          // connecté (stream mort avec le serveur), Jaune déjà en délai de
+          // grâce au moment de la panne.
+          scheduler.cancelAll();
+          final session = sessionBuilder.build();
+          final hourAgo = DateTime.now().toUtc().subtract(
+            const Duration(hours: 1),
+          );
+          final partie = await Partie.db.findById(session, game.partieId);
+          await Partie.db.updateRow(
+            session,
+            partie!.copyWith(
+              updatedAt: hourAgo,
+              rougeConnectionId: const Uuid().v4obj(),
+              rougeDisconnectedAt: null,
+              jauneDisconnectedAt: hourAgo,
+            ),
+          );
+
+          ServerGame.holdStreamsUntilResumed();
+          // Client qui se reconnecte dès l'ouverture du serveur.
+          final back = listen(
+            endpoints.game.watchPartie(game.rougeSession, game.partieId),
+          );
+          await ServerGame.resumePending(sessionBuilder.build());
+          final resumed = await back.next(EnumGameEventType.gameStarted);
+
+          final bootTime = DateTime.now().toUtc().subtract(
+            const Duration(seconds: 5),
+          );
+          expect(resumed.turnDeadline!.isAfter(DateTime.now().toUtc()), isTrue);
+          final saved = await Partie.db.findById(session, game.partieId);
+          expect(saved!.status, EnumStatut.inProgress);
+          // La connexion ouverte au démarrage n'est pas effacée.
+          expect(saved.rougeConnectionId, isNotNull);
+          expect(saved.rougeDisconnectedAt, isNull);
+          expect(saved.jauneDisconnectedAt!.isAfter(bootTime), isTrue);
+        },
+      );
+
+      test(
+        'when a player who has not moved yet runs out of time then the partie is cancelled like an abandon',
+        () async {
+          ServerGameConfig.turnTimeout = const Duration(milliseconds: 400);
+          final alice = await signedInAs('alice');
+          final bob = await signedInAs('bob');
+          final game = await startGame(alice, bob);
+          await endpoints.game.playMove(game.rougeSession, game.partieId, 3);
+
+          final over = await game.rouge.next(EnumGameEventType.gameOver);
+          expect(over.winner, isNull);
+          expect(over.endReason, EnumGameEndReason.cancelled);
         },
       );
     },

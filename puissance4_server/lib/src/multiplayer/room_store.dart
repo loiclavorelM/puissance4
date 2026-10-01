@@ -49,6 +49,11 @@ abstract interface class RoomStore {
   /// Ferme la salle [code] si elle appartient encore à [hostAuthUserId] (le
   /// stream de l'hôte se ferme sans adversaire).
   Future<void> remove(String code, UuidValue hostAuthUserId);
+
+  /// Rend à son hôte une salle obtenue par [claim] que l'invité n'a pas pu
+  /// utiliser. `false` si c'est trop tard (expirée, code repris, ou l'hôte a
+  /// déjà ouvert une autre salle) : l'appelant la ferme alors pour de bon.
+  Future<bool> restore(Room room);
 }
 
 /// [RoomStore] en mémoire du serveur : une `Map` qu'aucun `await` ne
@@ -117,6 +122,19 @@ class InMemoryRoomStore implements RoomStore {
     if (_byCode[code]?.hostAuthUserId != hostAuthUserId) return;
     _byCode.remove(code);
     _codeByHost.remove(hostAuthUserId);
+  }
+
+  @override
+  Future<bool> restore(Room room) async {
+    _purgeExpired();
+    if (!room.expiresAt.isAfter(DateTime.now().toUtc()) ||
+        _byCode.containsKey(room.code) ||
+        _codeByHost.containsKey(room.hostAuthUserId)) {
+      return false;
+    }
+    _byCode[room.code] = room;
+    _codeByHost[room.hostAuthUserId] = room.code;
+    return true;
   }
 
   /// Filet de sécurité : le stream de l'hôte ferme déjà sa salle à

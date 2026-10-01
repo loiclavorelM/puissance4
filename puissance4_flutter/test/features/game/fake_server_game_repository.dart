@@ -10,6 +10,9 @@ class FakeServerGameRepository implements ServerGameRepository {
   var abandoned = 0;
   UuidValue? activePartie;
 
+  /// Erreur levée par le prochain `playMove` (après avoir, ou non, joué).
+  Object? nextPlayError;
+
   StreamController<GameEvent> get lastWatch => watches.last;
 
   @override
@@ -23,8 +26,12 @@ class FakeServerGameRepository implements ServerGameRepository {
   Future<UuidValue?> getActivePartie() async => activePartie;
 
   @override
-  Future<void> playMove(UuidValue partieId, int column) async =>
-      played.add(column);
+  Future<void> playMove(UuidValue partieId, int column) async {
+    final error = nextPlayError;
+    nextPlayError = null;
+    if (error != null) throw error;
+    played.add(column);
+  }
 
   @override
   Future<void> abandon(UuidValue partieId) async => abandoned++;
@@ -42,6 +49,7 @@ GameEvent gameEvent(
   List<int> moves, {
   EnumColor yourColor = EnumColor.rouge,
   bool opponentIsBot = false,
+  bool? opponentConnected,
 }) => GameEvent(
   type: type,
   partieId: testPartieId,
@@ -50,4 +58,5 @@ GameEvent gameEvent(
   jaune: GamePlayerInfo(username: 'bob', elo: 1200, isBot: opponentIsBot),
   moves: moves,
   turnDeadline: DateTime.now().add(const Duration(seconds: 60)),
+  opponentConnected: opponentConnected,
 );

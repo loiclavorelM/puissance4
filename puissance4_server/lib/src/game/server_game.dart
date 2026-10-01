@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:isolate';
 import 'dart:math';
 
 import 'package:puissance4_rules/puissance4_rules.dart';
@@ -29,6 +31,16 @@ class GameSeat {
       isBot ? Player(botId: bot!.id) : Player(userId: user!.id);
 }
 
+/// Levée par [ServerGame.start] : [user] a déjà la partie [partieId] en
+/// cours. Chaque appelant la traduit en `GameException` selon qui est
+/// concerné (lui-même, ou l'hôte d'une salle Multi).
+class SeatBusyException implements Exception {
+  const SeatBusyException(this.user, this.partieId);
+
+  final User user;
+  final UuidValue partieId;
+}
+
 /// Les deux camps d'une partie serveur.
 class GameSeats {
   const GameSeats({required this.rouge, required this.jaune});
@@ -45,13 +57,6 @@ class GameSeats {
       : jaune.user?.id == userId
       ? EnumColor.jaune
       : null;
-
-  /// Nombre de coups joués par des humains — une partie où aucun humain n'a
-  /// encore joué est annulée plutôt que perdue.
-  int humanMoveCount(List<int> moves) => [
-    for (var i = 0; i < moves.length; i++)
-      if (!of(i.isEven ? EnumColor.rouge : EnumColor.jaune).isBot) i,
-  ].length;
 }
 
 /// Logique d'une partie jouée sur le serveur (Multi : deux humains ; Classé :
@@ -82,11 +87,13 @@ abstract final class ServerGame {
   /// Partie serveur (Multi ou Classé) en cours de [userId], ou `null`.
   static Future<Partie?> findActivePartie(
     Session session,
-    UuidValue userId,
-  ) async {
+    UuidValue userId, {
+    Transaction? transaction,
+  }) async {
     final players = await Player.db.find(
       session,
       where: (t) => t.userId.equals(userId),
+      transaction: transaction,
     );
     if (players.isEmpty) return null;
     final playerIds = players.map((p) => p.id!).toSet();
@@ -97,10 +104,13 @@ abstract final class ServerGame {
           t.status.equals(EnumStatut.inProgress) &
           (t.playerRougeId.inSet(playerIds) | t.playerJauneId.inSet(playerIds)),
       orderBy: (t) => t.createdAt.desc(),
+      transaction: transaction,
     );
   }
 
   /// Une seule partie serveur en cours par joueur, tous modes confondus.
+  /// Refus rapide avant d'ouvrir une salle ou de chercher un bot ; la
+  /// garantie elle-même est tenue par [start], sous verrou.
   static Future<void> ensureNotInGame(Session session, User user) async {
     final active = await findActivePartie(session, user.id!);
     if (active != null) {
@@ -141,7 +151,8 @@ abstract final class ServerGame {
 
   /// Crée une partie serveur, directement `inProgress` avec ses deux camps —
   /// seul endroit où une `Partie` Multi ou Classé naît. Couleurs tirées au
-  /// sort ; Rouge commence (si c'est un bot, il joue aussitôt).
+  /// sort ; Rouge commence (si c'est un bot, il joue aussitôt). Lève
+  /// [SeatBusyException] si un des humains a déjà une partie en cours.
   static Future<Partie> start(
     Session session, {
     required EnumType typePartie,
@@ -153,6 +164,7 @@ abstract final class ServerGame {
     final rouge = firstIsRouge ? first : second;
     final jaune = firstIsRouge ? second : first;
     final partie = await session.db.transaction((transaction) async {
+      await _claimSeats(session, [first, second], transaction);
       final rougePlayer = await Player.db.insertRow(
         session,
         rouge.asPlayer,
@@ -177,7 +189,10 @@ abstract final class ServerGame {
         transaction: transaction,
       );
     });
-    _scheduleTurn(partie, GameSeats(rouge: rouge, jaune: jaune));
+    _scheduleTurn(
+      partie,
+      botToPlay: _isBotTurn(partie, GameSeats(rouge: rouge, jaune: jaune)),
+    );
     return partie;
   }
 
@@ -203,7 +218,8 @@ abstract final class ServerGame {
   }
 
   /// Le tour court depuis le dernier coup : `updatedAt` n'est touché que par
-  /// les coups (et la création/fin), jamais par la présence.
+  /// les coups (et la création/fin, ou un redémarrage du serveur — cf.
+  /// [resumePending]), jamais par la présence.
   static DateTime turnDeadline(Partie partie) =>
       (partie.updatedAt ?? partie.createdAt).add(ServerGameConfig.turnTimeout);
 
@@ -215,6 +231,7 @@ abstract final class ServerGame {
     UuidValue partieId,
     EnumColor color,
   ) async {
+    await _resuming?.future.timeout(_maxResumeWait, onTimeout: () {});
     final connectionId = const Uuid().v4obj();
     var wasDisconnected = false;
     final partie = await session.db.transaction((transaction) async {
@@ -309,27 +326,48 @@ abstract final class ServerGame {
     int moveCount,
   ) async {
     final partie = await Partie.db.findById(session, partieId);
-    if (partie == null) return;
+    if (partie == null ||
+        partie.status != EnumStatut.inProgress ||
+        partie.moves.length != moveCount) {
+      return;
+    }
     final seats = await ServerGame.seats(session, partie);
+    final seat = seats.of(Connect4Rules.discToPlay(partie.moves).color);
+    if (!seat.isBot) return;
+
+    // Colonne choisie avant la transaction : la position ne peut plus
+    // changer qu'en ajoutant un coup, ce que [moveCount] revérifie sous
+    // verrou.
+    final column = await _botColumn(
+      BotStrength.fromElo(seat.bot!.elo),
+      partie.moves,
+    );
 
     final updated = await session.db.transaction((transaction) async {
       final partie = await _lock(session, partieId, transaction);
-      final seat = seats.of(Connect4Rules.discToPlay(partie.moves).color);
       if (partie.status != EnumStatut.inProgress ||
-          partie.moves.length != moveCount ||
-          !seat.isBot) {
+          partie.moves.length != moveCount) {
         return null;
       }
-      final column = HeuristicBot(
-        BotStrength.fromElo(seat.bot!.elo),
-      ).chooseColumn(partie.moves);
       return _applyMove(session, partie, seats, column, transaction);
     });
     if (updated != null) await _afterMove(session, updated, seats);
   }
 
+  /// Expert dans un isolate à part : sa recherche explore des milliers de
+  /// positions et bloquerait sinon tout le serveur (requêtes et streams).
+  /// Débutant et Medium répondent en quelques microsecondes : lancer un
+  /// isolate coûterait plus cher que le calcul. Fonction séparée pour que
+  /// la closure envoyée à l'isolate ne capture que [strength] et [moves].
+  static Future<int> _botColumn(BotStrength strength, List<int> moves) async =>
+      strength == BotStrength.expert
+      ? Isolate.run(() => HeuristicBot(strength).chooseColumn(moves))
+      : HeuristicBot(strength).chooseColumn(moves);
+
   /// Abandon explicite : l'adversaire gagne, sauf si l'appelant n'a encore
-  /// joué aucun coup (partie annulée). Sans effet si la partie est finie.
+  /// joué aucun coup (partie annulée) — même si l'adversaire a déjà joué.
+  /// Même règle au temps et à la déconnexion : quitter ne rapporte jamais
+  /// plus d'une façon que d'une autre. Sans effet si la partie est finie.
   static Future<void> abandon(
     Session session,
     UuidValue partieId,
@@ -339,7 +377,7 @@ abstract final class ServerGame {
     await _resolve(session, partieId, seats, (partie, _) {
       _end(
         partie,
-        winner: seats.humanMoveCount(partie.moves) == 0
+        winner: _moveCountOf(color, partie.moves) == 0
             ? null
             : color.other.asOutcome,
         reason: EnumGameEndReason.forfeit,
@@ -350,21 +388,26 @@ abstract final class ServerGame {
 
   /// Rappel [GameScheduler.scheduleTurnTimeout] : si la partie en est
   /// toujours à [moveCount] coups, le joueur au trait perd au temps — ou la
-  /// partie est annulée si aucun humain n'a joué ou que tous sont partis.
+  /// partie est annulée s'il n'a encore joué aucun coup (même règle que
+  /// [abandon] et [checkDisconnect]), ou en Multi si les deux joueurs sont
+  /// partis.
   static Future<void> checkTurnTimeout(
     Session session,
     UuidValue partieId,
     int moveCount,
   ) async {
-    await _resolve(session, partieId, null, (partie, seats) {
+    await _resolve(session, partieId, null, (partie, _) {
       if (partie.moves.length != moveCount) return false;
-      final humansGone = [EnumColor.rouge, EnumColor.jaune]
-          .where((c) => !seats.of(c).isBot)
-          .every((c) => _isGone(partie, c, Duration.zero));
+      // Pas en Classé : le seul humain y est toujours celui au trait (le
+      // bot répond aussitôt). Parti ou non, il perd au temps — sinon fermer
+      // l'app dans une partie perdue éviterait la perte d'Elo.
+      final humansGone =
+          partie.typePartie == EnumType.multi &&
+          EnumColor.values.every((c) => _isGone(partie, c, Duration.zero));
       final late = Connect4Rules.discToPlay(partie.moves).color;
       _end(
         partie,
-        winner: seats.humanMoveCount(partie.moves) == 0 || humansGone
+        winner: _moveCountOf(late, partie.moves) == 0 || humansGone
             ? null
             : late.other.asOutcome,
         reason: EnumGameEndReason.timeout,
@@ -375,12 +418,12 @@ abstract final class ServerGame {
 
   /// Rappel [GameScheduler.scheduleDisconnectCheck] : un joueur toujours
   /// absent après le délai de grâce perd par abandon — ou la partie est
-  /// annulée si les deux sont partis ou qu'aucun humain n'a joué.
+  /// annulée si les deux sont partis ou que le partant n'a joué aucun coup.
   static Future<void> checkDisconnect(
     Session session,
     UuidValue partieId,
   ) async {
-    await _resolve(session, partieId, null, (partie, seats) {
+    await _resolve(session, partieId, null, (partie, _) {
       final grace = ServerGameConfig.disconnectGrace;
       final rougeGone = _isGone(partie, EnumColor.rouge, grace);
       final jauneGone = _isGone(partie, EnumColor.jaune, grace);
@@ -389,7 +432,7 @@ abstract final class ServerGame {
       _end(
         partie,
         winner:
-            (rougeGone && jauneGone) || seats.humanMoveCount(partie.moves) == 0
+            (rougeGone && jauneGone) || _moveCountOf(loser, partie.moves) == 0
             ? null
             : loser.other.asOutcome,
         reason: EnumGameEndReason.disconnect,
@@ -398,47 +441,163 @@ abstract final class ServerGame {
     });
   }
 
+  /// Posé par [holdStreamsUntilResumed] : les streams attendent sa fin avant
+  /// de s'attacher à une partie ([attach]).
+  static Completer<void>? _resuming;
+
+  /// Attente maximale d'un stream bloqué par [holdStreamsUntilResumed] : si
+  /// [resumePending] ne venait jamais, les parties restent jouables.
+  static const _maxResumeWait = Duration(seconds: 30);
+
+  /// À appeler avant `pod.start()` quand [resumePending] suit : sans ça, un
+  /// client qui se reconnecte dès l'ouverture du serveur enregistrerait une
+  /// connexion que la remise à zéro de [resumePending] effacerait aussitôt.
+  static void holdStreamsUntilResumed() => _resuming ??= Completer<void>();
+
+  /// Libère les streams retenus — fait par [resumePending] ; exposé pour les
+  /// tests qui s'arrêteraient avant.
+  static void releaseStreams() {
+    _resuming?.complete();
+    _resuming = null;
+  }
+
   /// Au démarrage du serveur : les rappels en mémoire d'avant l'arrêt sont
   /// perdus, on les reprogramme pour chaque partie serveur encore en cours.
-  /// N'annule rien directement — sûr même si d'autres serveurs du cluster
-  /// font tourner ces parties.
+  /// N'annule rien directement.
+  ///
+  /// Si [ServerGameConfig.singleServer] : tous les streams d'avant l'arrêt
+  /// sont morts avec le serveur. Chaque humain déjà passé par la partie
+  /// (connecté, ou déjà en délai de grâce) repart « parti maintenant », avec
+  /// un délai de grâce complet pour revenir, et le joueur au trait retrouve
+  /// un tour complet : la panne n'est pas de leur fait. En cluster, ces
+  /// streams peuvent vivre sur un autre serveur, donc rien n'est touché.
   static Future<void> resumePending(Session session) async {
-    final parties = await Partie.db.find(
-      session,
-      where: (t) =>
-          t.typePartie.inSet(liveTypes) &
-          t.status.equals(EnumStatut.inProgress),
-    );
-    final now = DateTime.now().toUtc();
-    Duration until(DateTime at) =>
-        at.isAfter(now) ? at.difference(now) : Duration.zero;
-
-    for (final partie in parties) {
-      final seats = await ServerGame.seats(session, partie);
-      final scheduler = ServerGameConfig.scheduler;
-      scheduler.scheduleTurnTimeout(
-        partie.id!,
-        partie.moves.length,
-        until(turnDeadline(partie)),
+    try {
+      if (ServerGameConfig.singleServer) await _resetAfterReboot(session);
+      final parties = await Partie.db.find(
+        session,
+        where: (t) =>
+            t.typePartie.inSet(liveTypes) &
+            t.status.equals(EnumStatut.inProgress),
       );
-      if (seats.of(Connect4Rules.discToPlay(partie.moves).color).isBot) {
-        scheduler.scheduleBotMove(
-          partie.id!,
-          partie.moves.length,
-          Duration.zero,
+      if (parties.isEmpty) return;
+      final botPlayerIds = {
+        for (final player in await Player.db.find(
+          session,
+          where: (t) =>
+              t.id.inSet(<UuidValue>{
+                for (final p in parties) ...[p.playerRougeId, p.playerJauneId],
+              }) &
+              t.botId.notEquals(null),
+        ))
+          player.id!,
+      };
+
+      final now = DateTime.now().toUtc();
+      Duration until(DateTime at) =>
+          at.isAfter(now) ? at.difference(now) : Duration.zero;
+      for (final partie in parties) {
+        final toPlay = Connect4Rules.discToPlay(partie.moves).color;
+        _scheduleTurn(
+          partie,
+          botToPlay: botPlayerIds.contains(
+            toPlay == EnumColor.rouge
+                ? partie.playerRougeId
+                : partie.playerJauneId,
+          ),
+          turnDelay: until(turnDeadline(partie)),
+          botDelay: Duration.zero,
         );
-      }
-      for (final color in EnumColor.values) {
-        final disconnectedAt = _disconnectedAt(partie, color);
-        if (_connectionId(partie, color) == null && disconnectedAt != null) {
-          scheduler.scheduleDisconnectCheck(
-            partie.id!,
-            until(disconnectedAt.add(ServerGameConfig.disconnectGrace)),
-          );
+        for (final color in EnumColor.values) {
+          final disconnectedAt = _disconnectedAt(partie, color);
+          if (_connectionId(partie, color) == null && disconnectedAt != null) {
+            ServerGameConfig.scheduler.scheduleDisconnectCheck(
+              partie.id!,
+              until(disconnectedAt.add(ServerGameConfig.disconnectGrace)),
+            );
+          }
         }
       }
+    } finally {
+      releaseStreams();
     }
   }
+
+  /// Voir [resumePending] : un `UPDATE` par couleur puis un pour le tour,
+  /// sans parcourir les parties une à une. Un bot, comme un humain jamais
+  /// arrivé, n'a ni connexion ni départ : il n'est pas touché.
+  static Future<void> _resetAfterReboot(Session session) async {
+    final now = DateTime.now().toUtc();
+    Expression liveInProgress(PartieTable t) =>
+        t.typePartie.inSet(liveTypes) & t.status.equals(EnumStatut.inProgress);
+    await session.db.transaction((transaction) async {
+      for (final rouge in [true, false]) {
+        await Partie.db.updateWhere(
+          session,
+          columnValues: (t) => rouge
+              ? [t.rougeConnectionId(null), t.rougeDisconnectedAt(now)]
+              : [t.jauneConnectionId(null), t.jauneDisconnectedAt(now)],
+          where: (t) {
+            final connection = rouge
+                ? t.rougeConnectionId
+                : t.jauneConnectionId;
+            final left = rouge ? t.rougeDisconnectedAt : t.jauneDisconnectedAt;
+            return liveInProgress(t) &
+                (connection.notEquals(null) | left.notEquals(null));
+          },
+          transaction: transaction,
+          noReturn: true,
+        );
+      }
+      await Partie.db.updateWhere(
+        session,
+        columnValues: (t) => [t.updatedAt(now)],
+        where: liveInProgress,
+        transaction: transaction,
+        noReturn: true,
+      );
+    });
+  }
+
+  /// Une seule partie serveur en cours par humain de [seats], même face à
+  /// deux créations simultanées : verrou consultatif par joueur
+  /// (`pg_advisory_xact_lock`, tenu jusqu'à la fin de [transaction]), puis
+  /// vérification. Verrous pris dans un ordre fixe, pour que deux créations
+  /// croisées (A+B et B+A) ne s'interbloquent pas.
+  static Future<void> _claimSeats(
+    Session session,
+    List<GameSeat> seats,
+    Transaction transaction,
+  ) async {
+    final users = [for (final seat in seats) ?seat.user]
+      ..sort((a, b) => a.id!.uuid.compareTo(b.id!.uuid));
+    for (final user in users) {
+      await session.db.unsafeExecute(
+        'SELECT pg_advisory_xact_lock(hashtextextended(@key, 0))',
+        parameters: QueryParameters.named({
+          'key': 'partie.user.${user.id!.uuid}',
+        }),
+        transaction: transaction,
+      );
+    }
+    for (final user in users) {
+      final active = await findActivePartie(
+        session,
+        user.id!,
+        transaction: transaction,
+      );
+      if (active != null) throw SeatBusyException(user, active.id!);
+    }
+  }
+
+  /// Joueur toujours présent sur la partie (stream ouvert, jamais arrivé,
+  /// ou bot) — pour la photo envoyée à un stream qui (re)vient.
+  static bool isPresent(Partie partie, EnumColor color) =>
+      !_isGone(partie, color, Duration.zero);
+
+  /// Coups joués par [color] : Rouge joue les indices pairs.
+  static int _moveCountOf(EnumColor color, List<int> moves) =>
+      color == EnumColor.rouge ? (moves.length + 1) ~/ 2 : moves.length ~/ 2;
 
   static Future<(Partie, GameSeats, EnumColor)> loadAsPlayer(
     Session session,
@@ -503,24 +662,35 @@ abstract final class ServerGame {
       partieChannel(partie.id!),
       snapshot(partie, seats, EnumGameEventType.moveApplied),
     );
-    _scheduleTurn(partie, seats);
+    _scheduleTurn(partie, botToPlay: _isBotTurn(partie, seats));
   }
 
-  static void _scheduleTurn(Partie partie, GameSeats seats) {
+  /// Seul endroit qui programme la suite d'un tour : sa fin après
+  /// [turnDelay] (un tour complet par défaut) et, si [botToPlay], le coup du
+  /// bot après [botDelay].
+  static void _scheduleTurn(
+    Partie partie, {
+    required bool botToPlay,
+    Duration? turnDelay,
+    Duration? botDelay,
+  }) {
     final scheduler = ServerGameConfig.scheduler;
     scheduler.scheduleTurnTimeout(
       partie.id!,
       partie.moves.length,
-      ServerGameConfig.turnTimeout,
+      turnDelay ?? ServerGameConfig.turnTimeout,
     );
-    if (seats.of(Connect4Rules.discToPlay(partie.moves).color).isBot) {
+    if (botToPlay) {
       scheduler.scheduleBotMove(
         partie.id!,
         partie.moves.length,
-        ServerGameConfig.botMoveDelay,
+        botDelay ?? ServerGameConfig.botMoveDelay,
       );
     }
   }
+
+  static bool _isBotTurn(Partie partie, GameSeats seats) =>
+      seats.of(Connect4Rules.discToPlay(partie.moves).color).isBot;
 
   /// Applique [decide] sous verrou à une partie encore en cours ; s'il
   /// renvoie `true` (il a appelé [_end]), enregistre et annonce la fin.

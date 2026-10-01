@@ -35,6 +35,7 @@ abstract class GameEvent
     this.winner,
     this.endReason,
     this.aboutColor,
+    this.opponentConnected,
     this.eloVariation,
   });
 
@@ -52,6 +53,7 @@ abstract class GameEvent
     _ilk7rg3u.EnumOutcome? winner,
     _iuugnpks.EnumGameEndReason? endReason,
     _ik9tqcac.EnumColor? aboutColor,
+    bool? opponentConnected,
     int? eloVariation,
   }) = _GameEventImpl;
 
@@ -114,6 +116,11 @@ abstract class GameEvent
           : _ik9tqcac.EnumColor.fromJson(
               (jsonSerialization['aboutColor'] as String),
             ),
+      opponentConnected: jsonSerialization['opponentConnected'] == null
+          ? null
+          : _isc.BoolJsonExtension.fromJson(
+              jsonSerialization['opponentConnected'],
+            ),
       eloVariation: jsonSerialization['eloVariation'] as int?,
     );
   }
@@ -144,6 +151,8 @@ abstract class GameEvent
 
   _ik9tqcac.EnumColor? aboutColor;
 
+  bool? opponentConnected;
+
   int? eloVariation;
 
   /// Returns a shallow copy of this [GameEvent]
@@ -163,6 +172,7 @@ abstract class GameEvent
     _ilk7rg3u.EnumOutcome? winner,
     _iuugnpks.EnumGameEndReason? endReason,
     _ik9tqcac.EnumColor? aboutColor,
+    bool? opponentConnected,
     int? eloVariation,
   });
   @override
@@ -182,6 +192,7 @@ abstract class GameEvent
       if (winner != null) 'winner': winner?.toJson(),
       if (endReason != null) 'endReason': endReason?.toJson(),
       if (aboutColor != null) 'aboutColor': aboutColor?.toJson(),
+      if (opponentConnected != null) 'opponentConnected': opponentConnected,
       if (eloVariation != null) 'eloVariation': eloVariation,
     };
   }
@@ -203,6 +214,7 @@ abstract class GameEvent
       if (winner != null) 'winner': winner?.toJson(),
       if (endReason != null) 'endReason': endReason?.toJson(),
       if (aboutColor != null) 'aboutColor': aboutColor?.toJson(),
+      if (opponentConnected != null) 'opponentConnected': opponentConnected,
       if (eloVariation != null) 'eloVariation': eloVariation,
     };
   }
@@ -230,6 +242,7 @@ class _GameEventImpl extends GameEvent {
     _ilk7rg3u.EnumOutcome? winner,
     _iuugnpks.EnumGameEndReason? endReason,
     _ik9tqcac.EnumColor? aboutColor,
+    bool? opponentConnected,
     int? eloVariation,
   }) : super._(
          type: type,
@@ -245,6 +258,7 @@ class _GameEventImpl extends GameEvent {
          winner: winner,
          endReason: endReason,
          aboutColor: aboutColor,
+         opponentConnected: opponentConnected,
          eloVariation: eloVariation,
        );
 
@@ -266,6 +280,7 @@ class _GameEventImpl extends GameEvent {
     Object? winner = _Undefined,
     Object? endReason = _Undefined,
     Object? aboutColor = _Undefined,
+    Object? opponentConnected = _Undefined,
     Object? eloVariation = _Undefined,
   }) {
     return GameEvent(
@@ -296,6 +311,9 @@ class _GameEventImpl extends GameEvent {
       aboutColor: aboutColor is _ik9tqcac.EnumColor?
           ? aboutColor
           : this.aboutColor,
+      opponentConnected: opponentConnected is bool?
+          ? opponentConnected
+          : this.opponentConnected,
       eloVariation: eloVariation is int? ? eloVariation : this.eloVariation,
     );
   }

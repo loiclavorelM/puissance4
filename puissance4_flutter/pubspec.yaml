@@ -78,7 +78,10 @@ flutter:
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/assets-and-images/#from-packages
   assets:
-    - assets/config.json
+    # Dossier plutôt que `assets/config.json` : ce fichier est local à chaque
+    # poste (ignoré par git) et peut manquer — l'app retombe alors sur
+    # http://localhost:8080 (`getServerUrl`).
+    - assets/
 
   # To add custom fonts to your application, add a fonts section here,
   # in this "flutter" section. Each entry in this list should have a

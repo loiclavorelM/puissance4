@@ -22,5 +22,8 @@ fields:
   # Couleur du joueur concerné par `opponentDisconnected`/`opponentReconnected`
   # (chaque stream ne relaie que ceux qui concernent l'adversaire).
   aboutColor: EnumColor?
+  # Sur `gameStarted` : l'adversaire est-il là ? Un stream qui revient après
+  # une coupure a manqué ses `opponentDisconnected`/`opponentReconnected`.
+  opponentConnected: bool?
   # Classé, sur `gameOver` : variation d'Elo du destinataire.
   eloVariation: int?

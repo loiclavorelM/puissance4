@@ -120,13 +120,38 @@ void run(List<String> args) async {
     ),
   );
 
+  // Les streams de partie attendront la fin de `resumePending` (plus bas)
+  // avant de s'attacher.
+  ServerGame.holdStreamsUntilResumed();
+
   // Start the server.
   await pod.start();
 
-  // Seed/refresh reference data that isn't user-generated (cf. E5).
+  // Chaque étape à part : l'échec de l'une ne doit pas priver le serveur de
+  // l'autre (des bots pour le Classé, des parties reprises).
   await pod.withSession((session) async {
-    await seedBots(session);
-    // Reprogramme les rappels des parties serveur perdus avec l'arrêt.
-    await ServerGame.resumePending(session);
+    // Seed/refresh reference data that isn't user-generated (cf. E5).
+    try {
+      await seedBots(session);
+    } catch (error, stackTrace) {
+      session.log(
+        'Bot seeding failed',
+        level: LogLevel.error,
+        exception: error,
+        stackTrace: stackTrace,
+      );
+    }
+    // Reprogramme les rappels des parties serveur perdus avec l'arrêt, et
+    // libère les streams de partie qui l'attendent (même en cas d'échec).
+    try {
+      await ServerGame.resumePending(session);
+    } catch (error, stackTrace) {
+      session.log(
+        'Resuming server games failed',
+        level: LogLevel.error,
+        exception: error,
+        stackTrace: stackTrace,
+      );
+    }
   });
 }
