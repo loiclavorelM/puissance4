@@ -29,6 +29,21 @@ android {
         versionName = flutter.versionName
     }
 
+    // Deux apps installables côte à côte : `prod` (serveur Serverpod Cloud) et
+    // `dev` (serveur local, cf. `serverUrl` dans lib/client.dart).
+    flavorDimensions += "env"
+    productFlavors {
+        create("dev") {
+            dimension = "env"
+            applicationIdSuffix = ".dev"
+            manifestPlaceholders["appName"] = "Puissance 4 Dev"
+        }
+        create("prod") {
+            dimension = "env"
+            manifestPlaceholders["appName"] = "Puissance 4"
+        }
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
