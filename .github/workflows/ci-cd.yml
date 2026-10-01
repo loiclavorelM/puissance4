@@ -1,24 +1,22 @@
-# Pipeline unique : lint ∥ tests → build (web + APK prod) → déploiement.
+# Pipeline de mise en production, lancée uniquement par un push sur
+# production : lint ∥ tests → build (web + APK prod signé) → déploiement
+# Serverpod Cloud → release GitHub de l'APK.
 #
-# - Push sur main/develop et pull requests : lint et tests seulement.
-# - Push sur production : lint, tests, puis build de l'app web et de l'APK
-#   prod (artefacts téléchargeables depuis l'onglet Actions), puis
-#   déploiement sur Serverpod Cloud.
-#
-# Secret requis pour le déploiement : SERVERPOD_CLOUD_TOKEN
-# (`scloud auth create-token`, puis Settings → Secrets → Actions).
+# Secrets requis :
+# - SERVERPOD_CLOUD_TOKEN (`scloud auth create-token`) ;
+# - ANDROID_KEYSTORE_BASE64 et ANDROID_KEYSTORE_PASSWORD : clé de signature
+#   de l'APK (même clé à chaque build, pour que les mises à jour s'installent
+#   par-dessus la version précédente).
 name: CI/CD
 
 on:
   push:
-    branches: [main, develop, production]
-  pull_request:
-    branches: [main, develop, production]
-  workflow_dispatch:
+    branches: [production]
 
+# Les runs se suivent sans s'interrompre : chacun va jusqu'au bout.
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: production
+  cancel-in-progress: false
 
 env:
   # Mêmes versions qu'en local : le code généré et le lockfile en dépendent.
@@ -113,7 +111,6 @@ jobs:
   build:
     name: Build (web + APK prod)
     needs: [lint, test]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/production'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -138,9 +135,30 @@ jobs:
         working-directory: puissance4_flutter
         run: flutter build web --base-href / --output ../puissance4_server/web/app
 
+      # key.properties est lu par android/app/build.gradle.kts. Sans les
+      # secrets, on échoue plutôt que de publier un APK signé en debug.
+      - name: Set up APK signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ]; then
+            echo "::error::Secrets ANDROID_KEYSTORE_BASE64 / ANDROID_KEYSTORE_PASSWORD manquants."
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload-keystore.jks"
+          cat > puissance4_flutter/android/key.properties <<EOF
+          storePassword=$KEYSTORE_PASSWORD
+          keyPassword=$KEYSTORE_PASSWORD
+          keyAlias=upload
+          storeFile=$RUNNER_TEMP/upload-keystore.jks
+          EOF
+
+      # Numéro de build = numéro du run : chaque APK a un versionCode plus
+      # grand que le précédent, donc s'installe en mise à jour.
       - name: Build prod APK
         working-directory: puissance4_flutter
-        run: flutter build apk --flavor prod --release
+        run: flutter build apk --flavor prod --release --build-number=${{ github.run_number }}
 
       - uses: actions/upload-artifact@v4
         with:
@@ -157,15 +175,10 @@ jobs:
   deploy:
     name: Deploy to Serverpod Cloud
     needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/production'
     runs-on: ubuntu-latest
     environment:
       name: production
       url: https://puissance4.serverpod.space/
-    # Un seul déploiement à la fois, jamais interrompu en cours de route.
-    concurrency:
-      group: deploy-production
-      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
 
@@ -193,3 +206,29 @@ jobs:
         env:
           SCLOUD_TOKEN: ${{ secrets.SERVERPOD_CLOUD_TOKEN }}
         run: scloud deploy --non-interactive --no-auto-cli-upgrade --token "$SCLOUD_TOKEN"
+
+  release:
+    name: Publish APK (GitHub Release)
+    # Après le déploiement : l'APK publié parle au serveur déjà à jour.
+    needs: deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: puissance4-prod-apk
+
+      # Release « build-N » sur le commit déployé : l'APK se télécharge et
+      # s'installe directement depuis le téléphone.
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: build-${{ github.run_number }}
+        run: |
+          mv app-prod-release.apk "puissance4-$TAG.apk"
+          gh release create "$TAG" "puissance4-$TAG.apk" \
+            --repo "${{ github.repository }}" \
+            --target "${{ github.sha }}" \
+            --title "Puissance 4 — $TAG" \
+            --notes "APK prod (serveur https://puissance4.api.serverpod.space/), commit ${{ github.sha }}."
