@@ -1,8 +1,9 @@
 # Pipeline unique : lint ∥ tests → build (web + APK prod) → déploiement.
 #
-# - Pull requests et push sur develop : lint, tests, build (artefacts
-#   téléchargeables depuis l'onglet Actions).
-# - Push sur main : idem, puis déploiement sur Serverpod Cloud.
+# - Push sur main/develop et pull requests : lint et tests seulement.
+# - Push sur production : lint, tests, puis build de l'app web et de l'APK
+#   prod (artefacts téléchargeables depuis l'onglet Actions), puis
+#   déploiement sur Serverpod Cloud.
 #
 # Secret requis pour le déploiement : SERVERPOD_CLOUD_TOKEN
 # (`scloud auth create-token`, puis Settings → Secrets → Actions).
@@ -10,9 +11,9 @@ name: CI/CD
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, production]
   pull_request:
-    branches: [main, develop]
+    branches: [main, develop, production]
   workflow_dispatch:
 
 concurrency:
@@ -112,6 +113,7 @@ jobs:
   build:
     name: Build (web + APK prod)
     needs: [lint, test]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/production'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -155,7 +157,7 @@ jobs:
   deploy:
     name: Deploy to Serverpod Cloud
     needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/production'
     runs-on: ubuntu-latest
     environment:
       name: production
