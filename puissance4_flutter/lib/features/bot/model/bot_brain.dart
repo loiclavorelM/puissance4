@@ -11,7 +11,7 @@ abstract interface class BotBrain {
 class HeuristicBotBrain implements BotBrain {
   const HeuristicBotBrain(this.strength);
 
-  /// Niveau d'après l'Elo virtuel du bot choisi (`bots_seed.yaml`).
+  /// Niveau d'après l'Elo virtuel du bot choisi (`botSeeds` côté serveur).
   HeuristicBotBrain.forElo(int elo) : this(BotStrength.fromElo(elo));
 
   final BotStrength strength;

@@ -289,8 +289,8 @@ class EndpointJwtRefresh extends _iacc.EndpointRefreshJwtTokens {
       );
 }
 
-/// Liste des bots jouables en mode Normal (E5) — alimentée par
-/// `bots_seed.yaml`. Pas de connexion requise : ce n'est pas une donnée
+/// Liste des bots jouables en mode Normal (E5) — alimentée par `botSeeds`
+/// (`bot_seed.dart`). Pas de connexion requise : ce n'est pas une donnée
 /// personnelle, et un invité local doit pouvoir voir les niveaux proposés.
 /// {@category Endpoint}
 class EndpointBot extends _isc.EndpointRef {

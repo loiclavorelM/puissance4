@@ -8,7 +8,7 @@ enum BotStrength {
   medium,
   expert;
 
-  /// Niveau d'un bot d'après son Elo virtuel (`bots_seed.yaml` : 800 /
+  /// Niveau d'un bot d'après son Elo virtuel (`botSeeds` du serveur : 800 /
   /// 1200 / 1600) — mêmes seuils que le choix du bot en Classé.
   static BotStrength fromElo(int elo) => elo < 1000
       ? BotStrength.beginner
