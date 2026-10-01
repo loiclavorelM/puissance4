@@ -61,6 +61,9 @@ dependency_overrides:
 
 # The following section is specific to Flutter.
 flutter:
+  # Flavor utilisée quand `--flavor` n'est pas précisé (Android : `dev` ou
+  # `prod`, cf. android/app/build.gradle.kts).
+  default-flavor: dev
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

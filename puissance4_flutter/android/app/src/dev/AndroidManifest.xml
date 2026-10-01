@@ -1,0 +1,6 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Le serveur local est en HTTP (http://<IP du PC>:8080), qu'Android
+         refuse par défaut hors debug. La flavor prod, elle, n'utilise que
+         HTTPS. -->
+    <application android:usesCleartextTraffic="true"/>
+</manifest>

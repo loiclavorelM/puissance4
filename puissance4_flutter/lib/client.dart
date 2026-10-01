@@ -1,21 +1,25 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart' show appFlavor;
 import 'package:puissance4_client/puissance4_client.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 import 'package:serverpod_flutter/serverpod_flutter.dart';
 
 import 'features/offline/model/server_connection_tracker.dart';
 
-// When you are running the app on a physical device, you need to set the
-// server URL to the IP address of your computer. You can find the IP
-// address by running `ipconfig` on Windows or `ifconfig` on Mac/Linux.
+/// Serveur de production (Serverpod Cloud), utilisé par la flavor `prod`.
+const prodServerUrl = 'https://puissance4.api.serverpod.space/';
+
+// Flavor `prod` (Android) : toujours [prodServerUrl].
 //
-// You can set the variable when running or building your app like this:
-// E.g. `flutter run --dart-define=SERVER_URL=https://api.example.com/`.
-//
-// Otherwise, the server URL is fetched from the assets/config.json file or
-// defaults to http://$localhost:8080/ if not found.
-final serverUrl = getServerUrl();
+// Flavor `dev` et web : `getServerUrl()` — `--dart-define=SERVER_URL=...` si
+// donné, sinon assets/config.json, sinon http://$localhost:8080/. Sur un vrai
+// téléphone, passer l'IP du PC (`ip addr` sous Linux) :
+// `flutter run --flavor dev --dart-define=SERVER_URL=http://192.168.1.84:8080/`.
+// L'app web déployée reçoit son config.json du serveur qui la sert.
+final serverUrl = appFlavor == 'prod'
+    ? Future.value(prodServerUrl)
+    : getServerUrl();
 
 /// Sets up a global client object that can be used to talk to the server from
 /// anywhere in our app. The client is generated from your server code
