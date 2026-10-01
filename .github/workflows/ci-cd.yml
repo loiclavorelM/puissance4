@@ -1,0 +1,193 @@
+# Pipeline unique : lint ∥ tests → build (web + APK prod) → déploiement.
+#
+# - Pull requests et push sur develop : lint, tests, build (artefacts
+#   téléchargeables depuis l'onglet Actions).
+# - Push sur main : idem, puis déploiement sur Serverpod Cloud.
+#
+# Secret requis pour le déploiement : SERVERPOD_CLOUD_TOKEN
+# (`scloud auth create-token`, puis Settings → Secrets → Actions).
+name: CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Mêmes versions qu'en local : le code généré et le lockfile en dépendent.
+  FLUTTER_VERSION: '3.47.4'
+  SERVERPOD_VERSION: '4.0.0'
+
+jobs:
+  lint:
+    name: Lint (format, analyze, code généré, migrations)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze
+        run: dart analyze --fatal-infos
+
+      - name: Install Serverpod CLI
+        run: |
+          dart install serverpod_cli $SERVERPOD_VERSION
+          echo "$HOME/.local/state/Dart/install/bin" >> "$GITHUB_PATH"
+
+      # Un modèle ou un endpoint modifié sans régénérer, ou sans créer sa
+      # migration, laisserait des fichiers modifiés : on refuse.
+      - name: Check generated code is up to date
+        working-directory: puissance4_server
+        run: serverpod generate
+
+      - name: Check migrations are up to date
+        working-directory: puissance4_server
+        run: serverpod create-migration
+
+      - name: Fail on uncommitted changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git status --short
+            echo "::error::Code généré ou migration pas à jour : lancer serverpod generate / create-migration et commiter."
+            exit 1
+          fi
+
+  test:
+    name: Tests (rules, server, app)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Test rules
+        working-directory: puissance4_rules
+        run: dart test
+
+      # passwords.yaml n'est pas versionné : valeurs jetables pour la base
+      # de test embarquée (config/test.yaml, `database.dataPath`).
+      - name: Create test passwords
+        working-directory: puissance4_server
+        run: |
+          r() { openssl rand -hex 32; }
+          cat > config/passwords.yaml <<EOF
+          test:
+            database: '$(r)'
+            redis: '$(r)'
+            emailSecretHashPepper: '$(r)'
+            jwtHmacSha512PrivateKey: '$(r)'
+            jwtRefreshTokenHashPepper: '$(r)'
+          EOF
+
+      - name: Test server
+        working-directory: puissance4_server
+        run: dart test
+
+      - name: Test app
+        working-directory: puissance4_flutter
+        run: flutter test
+
+  build:
+    name: Build (web + APK prod)
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Même commande que le script `flutter_build` du serveur : l'app web
+      # est servie par le serveur depuis web/app.
+      - name: Build web app
+        working-directory: puissance4_flutter
+        run: flutter build web --base-href / --output ../puissance4_server/web/app
+
+      - name: Build prod APK
+        working-directory: puissance4_flutter
+        run: flutter build apk --flavor prod --release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-app
+          path: puissance4_server/web/app
+          retention-days: 7
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: puissance4-prod-apk
+          path: puissance4_flutter/build/app/outputs/flutter-apk/app-prod-release.apk
+          retention-days: 30
+
+  deploy:
+    name: Deploy to Serverpod Cloud
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://puissance4.serverpod.space/
+    # Un seul déploiement à la fois, jamais interrompu en cours de route.
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # L'app web construite plus haut, envoyée avec le serveur.
+      - uses: actions/download-artifact@v4
+        with:
+          name: web-app
+          path: puissance4_server/web/app
+
+      - name: Install Serverpod Cloud CLI
+        run: |
+          dart install serverpod_cloud_cli
+          echo "$HOME/.local/state/Dart/install/bin" >> "$GITHUB_PATH"
+
+      - name: Deploy
+        working-directory: puissance4_server
+        env:
+          SCLOUD_TOKEN: ${{ secrets.SERVERPOD_CLOUD_TOKEN }}
+        run: scloud deploy --non-interactive --no-auto-cli-upgrade --token "$SCLOUD_TOKEN"
