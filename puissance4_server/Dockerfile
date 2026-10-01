@@ -5,14 +5,17 @@
 FROM dart:3.12.2 AS build
 
 # Create a minimal workspace that preserves locked server dependency versions.
+# puissance4_rules is a path dependency of the server, so it belongs to it.
 WORKDIR /app
 COPY pubspec.lock .
+COPY puissance4_rules puissance4_rules
 COPY puissance4_server puissance4_server
 RUN printf '%s\n' \
   'name: _' \
   'environment:' \
   '  sdk: ^3.12.2' \
   'workspace:' \
+  '  - puissance4_rules' \
   '  - puissance4_server' \
   > pubspec.yaml
 RUN dart pub get
