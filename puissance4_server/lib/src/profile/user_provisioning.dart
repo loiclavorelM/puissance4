@@ -8,7 +8,7 @@ import '../live/live_notifier.dart';
 ///
 /// Creates the game-profile [User] row for a newly created [AuthUser],
 /// linked via [User.authUserId]. Runs for every identity provider (email,
-/// Google, anonymous) since it hooks the shared `AuthUser` creation, not a
+/// anonymous) since it hooks the shared `AuthUser` creation, not a
 /// provider-specific endpoint (cf. US1.2 — no hand-rolled endpoint).
 Future<void> createUserForAuthUser(
   Session session,

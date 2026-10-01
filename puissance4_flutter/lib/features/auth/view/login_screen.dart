@@ -9,7 +9,7 @@ import '../../offline/viewmodel/server_connection_provider.dart';
 import '../viewmodel/auth_viewmodel.dart';
 
 /// Login screen (maquette "Connexion") — pure View: no ViewModel, no model.
-/// Wraps the native Serverpod [SignInWidget] (email + Google + Anonymous,
+/// Wraps the native Serverpod [SignInWidget] (email + Anonymous,
 /// auto-detected from what the server has configured) with the app's visual
 /// identity. Auth logic itself lives entirely in the module.
 class LoginScreen extends StatelessWidget {
@@ -131,9 +131,9 @@ class _ThemedSignIn extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authViewModelProvider);
     final isGuestLoading = authState.status == AuthStatus.loading;
-    // Email/mot de passe et Google ont besoin du serveur — inutile de les
-    // laisser actifs hors-ligne, ça échouerait de toute façon. "Continuer
-    // sans compte" reste actif : il a son propre repli local hors-ligne.
+    // Email/mot de passe a besoin du serveur — inutile de le laisser actif
+    // hors-ligne, ça échouerait de toute façon. "Continuer sans compte"
+    // reste actif : il a son propre repli local hors-ligne.
     final hasNetwork = ref.watch(serverConnectionTrackerProvider).hasNetwork;
 
     final baseTheme = ThemeData(
@@ -230,7 +230,6 @@ class _ThemedSignIn extends ConsumerWidget {
         anonymous: const AnonymousSignInTexts(
           signInButton: 'Continuer sans compte',
         ),
-        google: const GoogleSignInTexts(signInButton: 'Continuer avec Google'),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
