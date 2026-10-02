@@ -22,12 +22,17 @@ class ReplayPosition {
     required this.cursor,
     required this.total,
     this.isPlaying = false,
+    this.analysis,
   });
 
   /// Nombre de coups affichés (0 = plateau vide).
   final int cursor;
   final int total;
   final bool isPlaying;
+
+  /// Avis de l'Expert sur le dernier coup affiché (`null` tant qu'il est en
+  /// calcul, au début du replay, ou sans revue).
+  final MoveAnalysis? analysis;
 }
 
 /// Tout ce que l'écran de partie affiche, quel que soit le mode : l'écran ne

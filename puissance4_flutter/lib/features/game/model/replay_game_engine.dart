@@ -1,6 +1,9 @@
 import 'dart:async';
 
 import 'package:puissance4_client/puissance4_client.dart';
+import 'package:puissance4_rules/puissance4_rules.dart';
+
+import '../../review/model/move_advisor.dart';
 
 import 'game_engine.dart';
 import 'game_participant.dart';
@@ -8,6 +11,8 @@ import 'game_snapshot.dart';
 
 /// Rejoue une partie terminée à partir de sa liste de coups : le plateau ne
 /// réagit pas au toucher, on avance/recule avec les [ReplayControls].
+/// Avec un [MoveAdvisor], chaque coup affiché est accompagné de l'avis de
+/// l'Expert (revue de partie, E14).
 class ReplayGameEngine extends GameEngineBase implements ReplayControls {
   ReplayGameEngine({
     required List<int> moves,
@@ -16,6 +21,7 @@ class ReplayGameEngine extends GameEngineBase implements ReplayControls {
     EnumColor? myColor,
     GameResult? result,
     int? startAt,
+    this._advisor,
   }) : _allMoves = List.unmodifiable(moves),
        _finalResult = result,
        super(GameSnapshot(rouge: rouge, jaune: jaune, myColor: myColor)) {
@@ -26,7 +32,11 @@ class ReplayGameEngine extends GameEngineBase implements ReplayControls {
 
   final List<int> _allMoves;
   final GameResult? _finalResult;
+  final MoveAdvisor? _advisor;
   Timer? _autoPlay;
+
+  /// Avis déjà calculés, par indice de coup.
+  final _analyses = <int, MoveAnalysis>{};
 
   int get _cursor => current.replay?.cursor ?? 0;
 
@@ -90,9 +100,26 @@ class ReplayGameEngine extends GameEngineBase implements ReplayControls {
           cursor: clamped,
           total: _allMoves.length,
           isPlaying: _autoPlay != null,
+          analysis: clamped == 0 ? null : _analyses[clamped - 1],
         ),
       ),
     );
+    if (clamped > 0) unawaited(_analyze(clamped - 1));
+  }
+
+  /// Calcule l'avis sur le coup [index] puis réaffiche la position si elle
+  /// est toujours à l'écran.
+  Future<void> _analyze(int index) async {
+    final advisor = _advisor;
+    if (advisor == null || _analyses.containsKey(index)) return;
+    final MoveAnalysis analysis;
+    try {
+      analysis = await advisor.analyze(_allMoves, index);
+    } on Object {
+      return; // Sans avis, le replay reste utilisable.
+    }
+    _analyses[index] = analysis;
+    if (!isDisposed && _cursor == index + 1) _show(_cursor);
   }
 
   @override

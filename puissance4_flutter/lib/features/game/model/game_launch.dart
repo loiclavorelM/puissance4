@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
+import '../../review/model/move_advisor.dart';
 import 'game_engine.dart';
 import 'game_participant.dart';
 import 'game_snapshot.dart';
@@ -12,13 +13,15 @@ import 'replay_game_engine.dart';
 class GameLaunch {
   const GameLaunch({required this.title, required this.createEngine});
 
-  /// Replay d'une partie terminée (historique, ou "Revoir la partie").
+  /// Replay d'une partie terminée (historique, ou "Revoir la partie"),
+  /// avec l'avis de l'Expert sur chaque coup.
   factory GameLaunch.replay({
     required List<int> moves,
     required GameParticipant rouge,
     required GameParticipant jaune,
     EnumColor? myColor,
     GameResult? result,
+    MoveAdvisor advisor = const ExpertMoveAdvisor(),
   }) => GameLaunch(
     title: 'Revoir la partie',
     createEngine: (_) => ReplayGameEngine(
@@ -27,6 +30,7 @@ class GameLaunch {
       jaune: jaune,
       myColor: myColor,
       result: result,
+      advisor: advisor,
     ),
   );
 
