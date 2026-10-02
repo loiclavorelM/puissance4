@@ -279,8 +279,8 @@ Critères d'acceptation :
 
 Tickets :
 - [x] T9.1.1 — Enregistrement systématique du résultat en fin de partie (tous modes) — `owner:B` `area:backend`
-- [ ] T9.1.2 — Endpoint `getMatchHistory` (pagination + filtre par mode) — `owner:B` `area:backend`
-- [ ] T9.1.3 — UI écran Historique (filtres, liste) — `owner:A`
+- [x] T9.1.2 — Endpoint `getMatchHistory` (pagination + filtre par mode) — `owner:B` `area:backend` *(réalisé sous le nom `HistoryEndpoint.getListHistories` ; Multi/Classé seulement, les parties Normales sont lues côté client depuis la base synchronisée)*
+- [x] T9.1.3 — UI écran Historique (filtres, liste) — `owner:A`
 
 ---
 
