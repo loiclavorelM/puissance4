@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../sensors/viewmodel/shake_provider.dart';
 import '../../review/view/move_review_card.dart';
 import '../model/color_mapping.dart';
 import '../model/game_engine.dart';
@@ -19,7 +20,9 @@ import 'widgets/replay_bar.dart';
 /// Écran de partie unique — Normal, Classé, Multi et replay. Il n'affiche
 /// que le `GameSnapshot` du moteur fourni par [launch] et lui transmet les
 /// colonnes touchées : ce qui diffère d'un mode à l'autre (qui choisit la
-/// colonne adverse, chrono, contrôles de replay) vient du moteur.
+/// colonne adverse, chrono, contrôles de replay) vient du moteur. Une partie
+/// recommençable (`GameLaunch.restart` : Normal) se relance en secouant le
+/// téléphone (E10).
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key, required this.launch});
 
@@ -31,6 +34,7 @@ class GameScreen extends ConsumerStatefulWidget {
 
 class _GameScreenState extends ConsumerState<GameScreen> {
   StreamSubscription<String>? _notices;
+  var _restarting = false;
 
   GameViewModel get _viewModel =>
       ref.read(gameViewModelProvider(widget.launch).notifier);
@@ -52,10 +56,51 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     super.dispose();
   }
 
+  /// Nouvelle partie (secousse ou bouton). Si elle compte comme un abandon,
+  /// le joueur confirme d'abord : une secousse involontaire ne doit pas
+  /// coûter une défaite.
+  Future<void> _restart() async {
+    if (_restarting) return;
+    _restarting = true;
+    try {
+      if (_viewModel.restartForfeits && !await _confirmRestart(context)) {
+        return;
+      }
+      final GameLaunch next;
+      try {
+        next = await _viewModel.restart();
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Impossible de créer la partie.')),
+          );
+        }
+        return;
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Nouvelle partie !')));
+      unawaited(
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => GameScreen(launch: next)),
+        ),
+      );
+    } finally {
+      _restarting = false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final snapshot = ref.watch(gameViewModelProvider(widget.launch));
     final replayControls = _viewModel.replay;
+    // Le capteur n'est écouté que pour une partie recommençable.
+    if (_viewModel.canRestart) {
+      ref.listen(shakeProvider, (_, shake) {
+        if (shake is AsyncData) unawaited(_restart());
+      });
+    }
     final myColor = snapshot.myColor ?? EnumColor.rouge;
 
     return PopScope(
@@ -158,6 +203,19 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     if (snapshot.isOver) {
       final replayLaunch = _viewModel.replayOfFinishedGame();
       return [
+        if (_viewModel.canRestart) ...[
+          FilledButton.icon(
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+            onPressed: _restart,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Nouvelle partie'),
+          ),
+          const SizedBox(height: 12),
+        ],
         if (replayLaunch != null && snapshot.moves.isNotEmpty)
           OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
@@ -187,6 +245,20 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     }
     if (!snapshot.isLive) return const [];
     return [
+      if (_viewModel.canRestart)
+        const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.vibration, color: Colors.white38, size: 16),
+            SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                'Secoue le téléphone pour recommencer',
+                style: TextStyle(color: Colors.white38, fontSize: 12),
+              ),
+            ),
+          ],
+        ),
       TextButton(
         onPressed: () async {
           if (await confirmAbandon(context)) await _viewModel.abandon();
@@ -206,6 +278,28 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     if (color == snapshot.myColor) return 'Toi';
     return snapshot.opponentConnected ? 'Adversaire' : 'Déconnecté';
   }
+
+  static Future<bool> _confirmRestart(BuildContext context) async =>
+      await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Recommencer la partie ?'),
+          content: const Text(
+            'Tu as déjà joué : la partie en cours comptera comme une défaite.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Continuer'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Recommencer'),
+            ),
+          ],
+        ),
+      ) ??
+      false;
 
   static Future<bool> confirmAbandon(BuildContext context) async =>
       await showDialog<bool>(

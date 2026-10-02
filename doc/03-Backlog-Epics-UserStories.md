@@ -293,8 +293,8 @@ Critères d'acceptation :
 - Désactivé en Ligue et Multijoueur.
 
 Tickets :
-- [ ] T10.1.1 — Intégration capteur accéléromètre + détection de secousse — `owner:B`
-- [ ] T10.1.2 — Câblage reset conditionnel selon le mode de jeu — `owner:B`
+- [x] T10.1.1 — Intégration capteur accéléromètre + détection de secousse — `owner:B`
+- [x] T10.1.2 — Câblage reset conditionnel selon le mode de jeu — `owner:B`
 
 ### US10.2 — En tant que joueur, je veux que la partie se mette en pause automatiquement si je pose le téléphone à plat, afin de ne pas perdre le fil si je suis interrompu.
 Critères d'acceptation :

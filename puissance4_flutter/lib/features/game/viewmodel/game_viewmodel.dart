@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:puissance4_client/puissance4_client.dart';
 
 import '../model/game_engine.dart';
 import '../model/game_launch.dart';
@@ -39,6 +40,28 @@ class GameViewModel
   Future<void> play(int column) => _engine.play(column);
 
   Future<void> abandon() => _engine.abandon();
+
+  /// La partie peut être recommencée (Normal, E10 : secousse).
+  bool get canRestart => arg.restart != null && !state.isReplay;
+
+  /// Recommencer maintenant compte comme un abandon : la partie est en cours
+  /// et le joueur de cet appareil a déjà joué (même règle que « Abandonner »).
+  bool get restartForfeits {
+    final snapshot = state;
+    if (!snapshot.isLive) return false;
+    final firstOwnMove = snapshot.myColor == EnumColor.jaune ? 1 : 0;
+    return snapshot.moves.length > firstOwnMove;
+  }
+
+  /// Clôt la partie en cours (abandon, ou annulation si le joueur n'a pas
+  /// encore joué) puis prépare la suivante. Lève si elle n'a pas pu être
+  /// créée.
+  Future<GameLaunch> restart() async {
+    final restart = arg.restart;
+    if (restart == null) throw StateError('This game cannot be restarted.');
+    if (state.isLive) await _engine.abandon();
+    return restart(ref);
+  }
 
   /// Replay de la partie qui vient de se terminer, sans appel réseau : tous
   /// les coups sont déjà là.

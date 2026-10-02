@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,6 +11,7 @@ import 'package:puissance4_flutter/features/game/view/game_screen.dart';
 import 'package:puissance4_flutter/features/game/view/widgets/connect4_board_view.dart';
 import 'package:puissance4_flutter/features/game/view/widgets/replay_bar.dart';
 import 'package:puissance4_flutter/features/review/model/move_advisor.dart';
+import 'package:puissance4_flutter/features/sensors/viewmodel/shake_provider.dart';
 import 'package:puissance4_rules/puissance4_rules.dart';
 
 /// Expert sans isolate : `compute` ne se termine pas sous `pumpAndSettle`.
@@ -21,6 +24,28 @@ class _InlineAdvisor implements MoveAdvisor {
 }
 
 void main() {
+  late StreamController<(double, double, double, DateTime)> accelerometer;
+  setUp(() => accelerometer = StreamController.broadcast());
+  tearDown(() => accelerometer.close());
+
+  /// Horloge des mesures : chaque geste arrive après le délai entre deux
+  /// secousses du précédent.
+  var clock = DateTime(2026);
+
+  /// Trois pics rapprochés : une secousse pour `ShakeDetector`.
+  Future<void> shake(WidgetTester tester) async {
+    clock = clock.add(const Duration(seconds: 5));
+    for (var i = 0; i < 3; i++) {
+      accelerometer.add((
+        20,
+        0,
+        0,
+        clock.add(Duration(milliseconds: 200 * i)),
+      ));
+    }
+    await tester.pumpAndSettle();
+  }
+
   Future<void> pump(
     WidgetTester tester,
     GameLaunch launch, {
@@ -32,6 +57,9 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       ProviderScope(
+        overrides: [
+          accelerationProvider.overrideWithValue(accelerometer.stream),
+        ],
         child: MaterialApp(home: GameScreen(launch: launch)),
       ),
     );
@@ -111,4 +139,72 @@ void main() {
       );
     });
   }
+
+  group('a restartable game (Normal)', () {
+    late int restarts;
+
+    /// Normal contre un bot qui joue toujours la colonne 6.
+    GameLaunch normal(String title) => GameLaunch(
+      title: title,
+      createEngine: (_) => LocalGameEngine(
+        rougeSeat: const HumanSeat(),
+        jauneSeat: BotSeat((_) async => 6, thinkingTime: Duration.zero),
+        rouge: const HumanParticipant(username: 'alice'),
+        jaune: const BotParticipant(name: 'Test'),
+        myColor: EnumColor.rouge,
+      ),
+      restart: (_) async => normal('Partie ${++restarts}'),
+    );
+
+    setUp(() => restarts = 0);
+
+    testWidgets('restarts at once on a shake before any move', (tester) async {
+      await pump(tester, normal('Partie 0'));
+      expect(find.text('Secoue le téléphone pour recommencer'), findsOneWidget);
+
+      await shake(tester);
+
+      expect(find.text('Partie 1'), findsOneWidget);
+      expect(find.text('Nouvelle partie !'), findsOneWidget);
+    });
+
+    testWidgets('asks first when the restart would count as a loss', (
+      tester,
+    ) async {
+      await pump(tester, normal('Partie 0'));
+      await tester.tap(find.byType(Connect4BoardView));
+      await tester.pumpAndSettle();
+
+      await shake(tester);
+      expect(find.text('Recommencer la partie ?'), findsOneWidget);
+      await tester.tap(find.text('Continuer'));
+      await tester.pumpAndSettle();
+      expect(find.text('Partie 0'), findsOneWidget);
+
+      await shake(tester);
+      await tester.tap(find.text('Recommencer'));
+      await tester.pumpAndSettle();
+      expect(find.text('Partie 1'), findsOneWidget);
+    });
+
+    testWidgets('a game without restart ignores shakes', (tester) async {
+      await pump(
+        tester,
+        GameLaunch(
+          title: 'Classé',
+          createEngine: (_) => LocalGameEngine(
+            rougeSeat: const HumanSeat(),
+            jauneSeat: const HumanSeat(),
+            rouge: const HumanParticipant(username: 'alice'),
+            jaune: const HumanParticipant(username: 'bob'),
+          ),
+        ),
+      );
+      expect(find.text('Secoue le téléphone pour recommencer'), findsNothing);
+
+      await shake(tester);
+      expect(find.text('Classé'), findsOneWidget);
+      expect(accelerometer.hasListener, isFalse);
+    });
+  });
 }

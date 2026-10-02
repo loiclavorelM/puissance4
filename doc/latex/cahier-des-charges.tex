@@ -204,7 +204,12 @@ ne conditionnent pas la validation du cours si le temps venait à manquer.
         réinitialise la partie en cours. Actif uniquement en mode Normal (partie
         non classée contre un bot) ; désactivé en Classé et en Multijoueur pour ne
         pas permettre d'annuler une partie qui affecte l'Elo ou implique un autre
-        joueur réel.
+        joueur réel. Une secousse demande plusieurs mouvements brusques en
+        moins d'une seconde (un simple choc ne suffit pas). Si le joueur a
+        déjà joué, il confirme d'abord, et la partie interrompue compte comme
+        un abandon --- même règle que le bouton \og Abandonner \fg{}, pour
+        qu'on ne puisse pas effacer une défaite en secouant le téléphone ;
+        sinon elle est simplement annulée.
   \item \textbf{Détection ``posé à plat''} (accéléromètre / gyroscope) : lorsque le
         téléphone est posé à plat pendant une partie, l'application la met
         automatiquement \textbf{en pause}. Actif uniquement en mode \textbf{Normal}

@@ -11,7 +11,11 @@ import 'replay_game_engine.dart';
 /// quoi fabriquer le moteur. L'écran ne dépend que de ça, jamais de l'écran
 /// qui l'a lancé (contrat `GameLaunchParams`, US4.2).
 class GameLaunch {
-  const GameLaunch({required this.title, required this.createEngine});
+  const GameLaunch({
+    required this.title,
+    required this.createEngine,
+    this.restart,
+  });
 
   /// Replay d'une partie terminée (historique, ou "Revoir la partie"),
   /// avec l'avis de l'Expert sur chaque coup.
@@ -36,4 +40,9 @@ class GameLaunch {
 
   final String title;
   final GameEngine Function(Ref ref) createEngine;
+
+  /// Nouvelle partie dans les mêmes conditions (secousse, bouton « Nouvelle
+  /// partie »). `null` si le mode ne se recommence pas : Classé et Multi
+  /// (un autre joueur ou l'Elo en dépendent), replay.
+  final Future<GameLaunch> Function(Ref ref)? restart;
 }
