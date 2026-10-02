@@ -8,6 +8,17 @@ import 'package:puissance4_flutter/features/game/model/local_game_engine.dart';
 import 'package:puissance4_flutter/features/game/view/game_screen.dart';
 import 'package:puissance4_flutter/features/game/view/widgets/connect4_board_view.dart';
 import 'package:puissance4_flutter/features/game/view/widgets/replay_bar.dart';
+import 'package:puissance4_flutter/features/review/model/move_advisor.dart';
+import 'package:puissance4_rules/puissance4_rules.dart';
+
+/// Expert sans isolate : `compute` ne se termine pas sous `pumpAndSettle`.
+class _InlineAdvisor implements MoveAdvisor {
+  const _InlineAdvisor();
+
+  @override
+  Future<MoveAnalysis> analyze(List<int> moves, int index) async =>
+      MoveAnalysis.of(moves, index);
+}
 
 void main() {
   Future<void> pump(
@@ -54,6 +65,7 @@ void main() {
       rouge: const HumanParticipant(username: 'alice'),
       jaune: const BotParticipant(name: 'Test'),
       myColor: EnumColor.rouge,
+      advisor: const _InlineAdvisor(),
     );
     await pump(tester, launch);
 
@@ -64,6 +76,8 @@ void main() {
     await tester.tap(find.byTooltip('Suivant'));
     await tester.pumpAndSettle();
     expect(find.text('Coup 1 / 3'), findsOneWidget);
+    expect(find.text('Tu as joué la colonne 4'), findsOneWidget);
+    expect(find.text('Expliquer ce coup'), findsOneWidget);
 
     await tester.tap(find.byType(Connect4BoardView));
     await tester.pumpAndSettle();

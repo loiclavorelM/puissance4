@@ -40,3 +40,5 @@ profile:
   - updateUsername:
 ranked:
   - startRanked:
+review:
+  - explainMove:

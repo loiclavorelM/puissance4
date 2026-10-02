@@ -142,10 +142,19 @@ RL (E5).
   `live.user.<authUserId>` (profil/historique) et `live.leaderboard` (tous).
 
 ### Revue de partie IA `[optionnel]` — `ReviewEndpoint` (`client.review`), `lib/src/review/`
-- `explainMove(idPartie: Guid, moveIndex: int) -> ExplainMoveResultDto`
-  Appelle Ollama cloud côté serveur ; indisponible hors-ligne (cf. E14/US14.3).
-  Le coup recommandé par le modèle Expert n'est **pas** calculé ici : il est
-  réexécuté localement sur l'appareil (modèle déjà embarqué pour le bot).
+- `explainMove(moves: List<int>, moveIndex: int, language: String) -> String`
+  Explication en `language` (`fr` | `en`) du coup d'indice `moveIndex`, générée
+  par Ollama cloud depuis le serveur (clé `ollamaApiKey` dans les mots de passe
+  Serverpod, jamais côté client) ; indisponible hors-ligne (cf. E14/US14.3).
+  Prend les coups plutôt qu'un id de partie : marche pour tous les modes, y
+  compris une partie Normale pas encore synchronisée. Le serveur recalcule le
+  coup recommandé avec le même `MoveAnalysis` (`puissance4_rules`) que l'app —
+  sur l'appareil, il sert à afficher la recommandation sans réseau — et
+  fournit au LLM les faits vérifiés (victoires/menaces immédiates). Cache
+  `MoveExplanation` par position (coups jusqu'au coup expliqué) + langue ;
+  au plus 30 générations (hors cache) par joueur et par heure.
+  Lève `ReviewException(reason: invalidMove | notConfigured | unavailable |
+  rateLimited)`.
 
 ## DTO
 
@@ -228,8 +237,6 @@ HistoryDto
   EnumPlayer resultat
   int? eloVariation
 
-ExplainMoveResultDto
-  string explanation
 ```
 
 Enums `EnumPlayer` / `EnumStatut` / `EnumType` : voir `doc/04-entities.md` (pas

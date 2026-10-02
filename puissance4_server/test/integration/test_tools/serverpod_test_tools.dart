@@ -189,6 +189,8 @@ class TestEndpoints {
   late final _ProfileEndpoint profile;
 
   late final _RankedEndpoint ranked;
+
+  late final _ReviewEndpoint review;
 }
 
 class _InternalTestEndpoints extends TestEndpoints
@@ -247,6 +249,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     ranked = _RankedEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    review = _ReviewEndpoint(
       endpoints,
       serializationManager,
     );
@@ -1314,6 +1320,54 @@ class _RankedEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<_is.UuidValue>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _ReviewEndpoint {
+  _ReviewEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<String> explainMove(
+    _ist.TestSessionBuilder sessionBuilder, {
+    required List<int> moves,
+    required int moveIndex,
+    required String language,
+  }) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'review',
+            method: 'explainMove',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'review',
+          methodName: 'explainMove',
+          parameters: _ist.testObjectToJson({
+            'moves': moves,
+            'moveIndex': moveIndex,
+            'language': language,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<String>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

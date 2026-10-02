@@ -1,0 +1,25 @@
+# Explication par LLM d'un coup de partie (revue post-match, E14 — T14.3.2),
+# gardée pour ne payer Ollama qu'une fois par position. Clé : la position
+# (coups jusqu'au coup expliqué inclus) plutôt que l'id de partie — la même
+# position, dans n'importe quelle partie et n'importe quel mode (y compris
+# une partie Normale pas encore synchronisée), partage son explication.
+class: MoveExplanation
+table: move_explanation
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  # Coups séparés par des virgules, coup expliqué inclus (ex. "3,3,4").
+  positionKey: String
+  # Langue de l'explication ("fr" ou "en").
+  language: String
+  explanation: String
+  # Modèle Ollama qui l'a générée.
+  model: String
+  # AuthUser qui a déclenché la génération (limite d'appels par heure).
+  requestedBy: UuidValue
+  createdAt: DateTime, default=now
+indexes:
+  move_explanation_position_idx:
+    fields: positionKey, language
+    unique: true
+  move_explanation_requester_idx:
+    fields: requestedBy, createdAt
