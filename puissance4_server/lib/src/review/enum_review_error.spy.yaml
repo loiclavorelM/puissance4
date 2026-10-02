@@ -1,0 +1,11 @@
+# Raison d'un refus de ReviewEndpoint.explainMove (cf. ReviewException).
+enum: EnumReviewError
+values:
+  # Coups invalides, ou indice hors de la partie.
+  - invalidMove
+  # Clé API Ollama absente de la configuration du serveur.
+  - notConfigured
+  # Ollama injoignable, en erreur ou trop lent.
+  - unavailable
+  # Trop d'explications générées par ce joueur dans l'heure.
+  - rateLimited

@@ -235,6 +235,20 @@ Tickets :
 - [x] T7.3.1 — Calcul Elo (formule + K-factor) côté serveur — `owner:B` `area:backend`
 - [ ] T7.3.2 — Câblage du recalcul Elo à la fin d'une partie multijoueur (`joinOnlineMatch`/fin de stream) — `owner:B` `area:backend`
 
+### US7.4 — En tant que joueur, je veux voir dans l'écran Multijoueur un lobby listant les salles ouvertes, afin de rejoindre une partie sans avoir reçu de code.
+Critères d'acceptation :
+- À la création, l'hôte choisit si sa salle est **publique** (visible dans le lobby) ou **privée** (code seulement, comportement actuel par défaut) : une salle créée pour un ami n'est jamais exposée.
+- Section « Salles ouvertes » dans l'écran Multijoueur : pseudo, Elo et avatar de l'hôte, temps restant ; sa propre salle n'y figure pas ; état vide explicite.
+- Liste mise à jour en temps réel (création, départ de l'hôte, salle prise, expiration) sans recharger l'écran.
+- Rejoindre depuis le lobby réutilise `joinRoom(code)` : la réservation atomique de `RoomStore.claim` tranche si deux joueurs choisissent la même salle (le perdant voit « Salle déjà prise »).
+- Aucune donnée en base : le lobby est une vue des salles en mémoire, comme les salles elles-mêmes (pas de partie fantôme).
+
+Tickets :
+- [x] T7.4.1 — `RoomStore` : drapeau `isPublic` + infos d'affichage de l'hôte dans `Room`, méthode `listPublic()` ; modèle `.spy.yaml` sans table `LobbyRoom` — `owner:B` `area:backend`
+- [x] T7.4.2 — Stream `MultiplayerEndpoint.watchLobby` (liste initiale puis mises à jour via `session.messages`, canal `multi.lobby`) ; paramètre `isPublic` sur `hostRoom` — `owner:B` `area:backend`
+- [x] T7.4.3 — UI : interrupteur « Salle publique » + section « Salles ouvertes » (provider de stream dédié, bouton Rejoindre) — `owner:A`
+- [x] T7.4.4 — Tests : `listPublic`/expiration côté `RoomStore`, stream `watchLobby`, course de deux invités sur la même salle — `owner:B` `area:backend`
+
 ---
 
 ## E8 — Leaderboard
@@ -352,7 +366,7 @@ Critères d'acceptation :
 
 Tickets :
 - [x] T14.2.1 — UI écran "Revue de partie" (navigation coup par coup, reconstruction du plateau) — `owner:A`
-- [ ] T14.2.2 — Réexécution du modèle Expert local sur chaque position historique pour obtenir le coup recommandé (réutilise T5.1.3) — `owner:B`
+- [x] T14.2.2 — Réexécution du modèle Expert local sur chaque position historique pour obtenir le coup recommandé (réutilise T5.1.3) — `owner:B`
 - [x] T14.2.3 — Endpoint Serverpod pour récupérer la séquence de coups d'une partie donnée (extension de `getMatchHistory`) — `owner:B` `area:backend`
 
 ### US14.3 — En tant que joueur, je veux obtenir une explication en langage naturel de pourquoi le coup recommandé était préférable, afin de mieux comprendre la stratégie du jeu.
@@ -364,16 +378,16 @@ Critères d'acceptation :
 - Message d'erreur clair si le service Ollama est indisponible/en timeout (pas de blocage de l'écran de revue).
 
 Tickets :
-- [ ] T14.3.1 — Endpoint Serverpod `explainMove` (appel Ollama cloud côté serveur) — `owner:B` `area:backend`
-- [ ] T14.3.2 — Modèle `.spy.yaml` de cache des explications (clé : idPartie + index coup) + logique "cache hit avant appel LLM" — `owner:B` `area:backend`
-- [ ] T14.3.3 — UI bouton "Expliquer ce coup" + affichage du texte + gestion des erreurs/timeout — `owner:A`
-- [ ] T14.3.4 — Configuration sécurisée de la clé API Ollama (variable d'environnement serveur, jamais commitée) — `owner:A` `area:infra`
+- [x] T14.3.1 — Endpoint Serverpod `explainMove` (appel Ollama cloud côté serveur) — `owner:B` `area:backend`
+- [x] T14.3.2 — Modèle `.spy.yaml` de cache des explications (clé : idPartie + index coup) + logique "cache hit avant appel LLM" — `owner:B` `area:backend`
+- [x] T14.3.3 — UI bouton "Expliquer ce coup" + affichage du texte + gestion des erreurs/timeout — `owner:A`
+- [x] T14.3.4 — Configuration sécurisée de la clé API Ollama (variable d'environnement serveur, jamais commitée) — `owner:A` `area:infra`
 
 ---
 
 ## Récapitulatif
 14 epics actifs (E6 retiré, sa mécanique d'Elo est reprise dans E7 — cf. plus
-haut), 26 user stories, 72 tickets. E0 (mode invité local), E7 (multijoueur
+haut), 27 user stories, 76 tickets. E0 (mode invité local), E7 (multijoueur
 en ligne, qui porte maintenant tout le système d'Elo) et E14 (revue de
 partie post-match avec IA) sont marqués `[optionnel]` : socle du cours
 d'abord (E1-E5, E8-E9, E11-E13), extensions ensuite (E0, E7, E14) pour la

@@ -56,6 +56,34 @@ class _Events {
   Future<void> cancel() => _subscription.cancel();
 }
 
+/// Collecte les listes émises par `watchLobby`.
+class _LobbyWatch {
+  _LobbyWatch(Stream<LobbySnapshot> stream) {
+    _subscription = stream.listen(all.add, onError: (_) {});
+  }
+
+  late final StreamSubscription<LobbySnapshot> _subscription;
+  final all = <LobbySnapshot>[];
+
+  /// Attend une liste dont les codes de salle valent [codes].
+  Future<List<LobbyRoom>> until(Set<String> codes) async {
+    final deadline = DateTime.now().add(const Duration(seconds: 5));
+    while (DateTime.now().isBefore(deadline)) {
+      if (all.isNotEmpty &&
+          all.last.rooms.map((r) => r.code).toSet().containsAll(codes) &&
+          all.last.rooms.length == codes.length) {
+        return all.last.rooms;
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    throw TimeoutException(
+      'Lobby never became $codes (got ${all.map((l) => l.rooms.map((r) => r.code))})',
+    );
+  }
+
+  Future<void> cancel() => _subscription.cancel();
+}
+
 Matcher _gameError(EnumGameError reason) =>
     isA<GameException>().having((e) => e.reason, 'reason', reason);
 
@@ -82,6 +110,13 @@ void main() {
             {},
           ),
         );
+      }
+
+      final lobbies = <_LobbyWatch>[];
+      _LobbyWatch watchLobby(TestSessionBuilder who) {
+        final lobby = _LobbyWatch(endpoints.multiplayer.watchLobby(who));
+        lobbies.add(lobby);
+        return lobby;
       }
 
       _Events listen(Stream<GameEvent> stream) {
@@ -136,7 +171,7 @@ void main() {
         })
       >
       startGame(TestSessionBuilder host, TestSessionBuilder guest) async {
-        final hostEvents = listen(endpoints.multiplayer.hostRoom(host));
+        final hostEvents = listen(endpoints.multiplayer.hostRoom(host, false));
         final code = (await hostEvents.next(
           EnumGameEventType.roomCreated,
         )).code!;
@@ -167,6 +202,10 @@ void main() {
           await events.cancel();
         }
         openStreams.clear();
+        for (final lobby in lobbies) {
+          await lobby.cancel();
+        }
+        lobbies.clear();
         scheduler.cancelAll();
         ServerGame.releaseStreams();
         final session = sessionBuilder.build();
@@ -214,7 +253,7 @@ void main() {
         () async {
           final alice = await signedInAs('alice');
           final bob = await signedInAs('bob');
-          final host = listen(endpoints.multiplayer.hostRoom(alice));
+          final host = listen(endpoints.multiplayer.hostRoom(alice, false));
           final code = (await host.next(EnumGameEventType.roomCreated)).code!;
 
           await host.cancel();
@@ -234,7 +273,7 @@ void main() {
           final alice = await signedInAs('alice');
           final bob = await signedInAs('bob');
           final carol = await signedInAs('carol');
-          final host = listen(endpoints.multiplayer.hostRoom(alice));
+          final host = listen(endpoints.multiplayer.hostRoom(alice, false));
           final code = (await host.next(EnumGameEventType.roomCreated)).code!;
 
           final bobEvents = listen(endpoints.multiplayer.joinRoom(bob, code));
@@ -260,7 +299,7 @@ void main() {
         () async {
           final alice = await signedInAs('alice');
           final bob = await signedInAs('bob');
-          final host = listen(endpoints.multiplayer.hostRoom(alice));
+          final host = listen(endpoints.multiplayer.hostRoom(alice, false));
           final code = (await host.next(EnumGameEventType.roomCreated)).code!;
 
           final self = listen(endpoints.multiplayer.joinRoom(alice, code));
@@ -275,20 +314,83 @@ void main() {
         'when the host opens a second room then the first stream is closed',
         () async {
           final alice = await signedInAs('alice');
-          final first = listen(endpoints.multiplayer.hostRoom(alice));
+          final first = listen(endpoints.multiplayer.hostRoom(alice, false));
           await first.next(EnumGameEventType.roomCreated);
 
-          final second = listen(endpoints.multiplayer.hostRoom(alice));
+          final second = listen(endpoints.multiplayer.hostRoom(alice, false));
           await second.next(EnumGameEventType.roomCreated);
 
           await first.next(EnumGameEventType.roomClosed);
         },
       );
 
+      test(
+        'when a public room opens then others see it in the lobby, but not its host',
+        () async {
+          final alice = await signedInAs('alice');
+          final bob = await signedInAs('bob');
+          final bobLobby = watchLobby(bob);
+          final aliceLobby = watchLobby(alice);
+          await bobLobby.until({});
+
+          listen(endpoints.multiplayer.hostRoom(alice, false));
+          final public = listen(endpoints.multiplayer.hostRoom(bob, true));
+          final code = (await public.next(EnumGameEventType.roomCreated)).code!;
+
+          // La salle privée d'alice n'apparaît nulle part.
+          final seen = await aliceLobby.until({code});
+          expect(seen.single.hostUsername, 'bob');
+          expect(seen.single.hostElo, 1000);
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+          expect(bobLobby.all.last.rooms, isEmpty);
+        },
+      );
+
+      test(
+        'when a public room is taken or closed then it leaves the lobby',
+        () async {
+          final alice = await signedInAs('alice');
+          final bob = await signedInAs('bob');
+          final carol = await signedInAs('carol');
+          final lobby = watchLobby(carol);
+
+          final aliceRoom = listen(endpoints.multiplayer.hostRoom(alice, true));
+          final aliceCode = (await aliceRoom.next(
+            EnumGameEventType.roomCreated,
+          )).code!;
+          final bobRoom = listen(endpoints.multiplayer.hostRoom(bob, true));
+          final bobCode = (await bobRoom.next(
+            EnumGameEventType.roomCreated,
+          )).code!;
+          await lobby.until({aliceCode, bobCode});
+
+          await bobRoom.cancel();
+          await lobby.until({aliceCode});
+
+          listen(endpoints.multiplayer.joinRoom(carol, aliceCode));
+          await aliceRoom.next(EnumGameEventType.gameStarted);
+          await lobby.until({});
+        },
+      );
+
+      test('when a public room expires then it leaves the lobby', () async {
+        MultiplayerConfig.roomLifetime = const Duration(milliseconds: 300);
+        final alice = await signedInAs('alice');
+        final bob = await signedInAs('bob');
+        final lobby = watchLobby(bob);
+
+        final host = listen(endpoints.multiplayer.hostRoom(alice, true));
+        final code = (await host.next(EnumGameEventType.roomCreated)).code!;
+        await lobby.until({code});
+
+        await host.next(EnumGameEventType.roomClosed);
+        await lobby.until({});
+      });
+
       test('when the room expires then the host gets roomClosed', () async {
         MultiplayerConfig.roomLifetime = const Duration(milliseconds: 200);
         final alice = await signedInAs('alice');
-        final host = listen(endpoints.multiplayer.hostRoom(alice));
+        final host = listen(endpoints.multiplayer.hostRoom(alice, false));
         await host.next(EnumGameEventType.roomCreated);
 
         await host.next(EnumGameEventType.roomClosed);
@@ -374,7 +476,7 @@ void main() {
           final bob = await signedInAs('bob');
           final game = await startGame(alice, bob);
 
-          final again = listen(endpoints.multiplayer.hostRoom(alice));
+          final again = listen(endpoints.multiplayer.hostRoom(alice, false));
 
           expect(
             await again.nextError(),
@@ -555,7 +657,7 @@ void main() {
             sessionBuilder.build(),
             Bot(botName: 'Medium', elo: 1200, pathModel: '', description: ''),
           );
-          final host = listen(endpoints.multiplayer.hostRoom(alice));
+          final host = listen(endpoints.multiplayer.hostRoom(alice, false));
           final code = (await host.next(EnumGameEventType.roomCreated)).code!;
           final ranked = await endpoints.ranked.startRanked(alice);
 

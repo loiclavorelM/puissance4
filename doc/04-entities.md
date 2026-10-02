@@ -67,6 +67,18 @@ EnumGameEndReason? endReason
 {Champs d'audits}
 ```
 
+### MoveExplanation
+```
+// Cache des explications LLM de la revue de partie (E14).
+Guid id
+string positionKey   // coups jusqu'au coup expliqué inclus, ex. "3,3,4"
+string language      // "fr" | "en" — unique (positionKey, language)
+string explanation
+string model         // modèle Ollama utilisé
+Guid requestedBy     // AuthUser qui l'a générée (limite par heure)
+DateTime createdAt
+```
+
 ## Enum
 EnumPlayer { jaune, rouge, draw }
 EnumStatut { created, in_progress, finished, abandoned }  // abandoned : partie annulée, sans vainqueur (tous modes)

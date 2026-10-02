@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../review/view/move_review_card.dart';
 import '../model/color_mapping.dart';
 import '../model/game_engine.dart';
 import '../model/game_launch.dart';
@@ -118,6 +119,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                             Connect4BoardView(
                               moves: snapshot.moves,
                               highlighted: snapshot.winningCells,
+                              hint: recommendedCell(snapshot),
                               onColumnTap: snapshot.acceptsInput
                                   ? _viewModel.play
                                   : null,
@@ -147,7 +149,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   ) {
     final replay = snapshot.replay;
     if (replay != null && replayControls != null) {
-      return [ReplayBar(controls: replayControls, position: replay)];
+      return [
+        MoveReviewCard(snapshot: snapshot),
+        const SizedBox(height: 8),
+        ReplayBar(controls: replayControls, position: replay),
+      ];
     }
     if (snapshot.isOver) {
       final replayLaunch = _viewModel.replayOfFinishedGame();

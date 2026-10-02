@@ -6,13 +6,15 @@ import '../../../../core/theme/app_colors.dart';
 
 /// Plateau 7×6 dessiné à partir de la liste de coups : le dernier jeton
 /// tombe (animation), l'alignement gagnant est cerclé, et un appui sur une
-/// colonne appelle [onColumnTap] (désactivé si `null`).
+/// colonne appelle [onColumnTap] (désactivé si `null`). [hint] dessine un
+/// jeton fantôme (coup recommandé par l'Expert dans un replay).
 class Connect4BoardView extends StatelessWidget {
   const Connect4BoardView({
     super.key,
     required this.moves,
     this.onColumnTap,
     this.highlighted,
+    this.hint,
   });
 
   final List<int> moves;
@@ -20,6 +22,9 @@ class Connect4BoardView extends StatelessWidget {
 
   /// Cases `(colonne, rangée)` à mettre en évidence (alignement gagnant).
   final List<(int, int)>? highlighted;
+
+  /// Case `(colonne, rangée)` et couleur d'un jeton fantôme.
+  final (int, int, EnumColor)? hint;
 
   static Color colorOf(EnumColor color) =>
       color == EnumColor.rouge ? AppColors.primary : AppColors.yellow;
@@ -68,6 +73,12 @@ class Connect4BoardView extends StatelessWidget {
                                 ? Connect4Rules.rows - row
                                 : null,
                             dropKey: moves.length,
+                            hintColor:
+                                hint != null &&
+                                    hint!.$1 == column &&
+                                    hint!.$2 == row
+                                ? colorOf(hint!.$3)
+                                : null,
                           ),
                         ),
                     ],
@@ -87,6 +98,7 @@ class _Cell extends StatelessWidget {
     required this.highlighted,
     required this.dropFrom,
     required this.dropKey,
+    this.hintColor,
   });
 
   final Color? color;
@@ -97,6 +109,9 @@ class _Cell extends StatelessWidget {
 
   /// Rejoue l'animation à chaque nouveau coup.
   final int dropKey;
+
+  /// Couleur du jeton fantôme à dessiner dans cette case vide.
+  final Color? hintColor;
 
   @override
   Widget build(BuildContext context) {
@@ -119,6 +134,14 @@ class _Cell extends StatelessWidget {
               color: AppColors.background,
             ),
           ),
+          if (hintColor case final hint?)
+            DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: hint.withValues(alpha: 0.25),
+                border: Border.all(color: hint, width: 2.5),
+              ),
+            ),
           if (color != null)
             dropFrom == null
                 ? disc

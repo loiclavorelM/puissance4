@@ -3,15 +3,18 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:puissance4_client/puissance4_client.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/action_banner.dart';
 import '../../game/view/game_screen.dart';
 import '../../game/view/widgets/countdown.dart';
+import '../../profile/view/profile_avatar.dart';
 import '../viewmodel/multiplayer_viewmodel.dart';
 
-/// Multijoueur (E7) : créer une salle et partager son code, ou rejoindre
-/// celle d'un ami. Dès que la partie commence, l'écran de partie commun
+/// Multijoueur (E7) : créer une salle (publique ou privée) et partager son
+/// code, rejoindre celle d'un ami par son code, ou une salle publique du
+/// lobby (US7.4). Dès que la partie commence, l'écran de partie commun
 /// (`GameScreen`) prend le relais. Quitter la salle d'attente la ferme.
 class MultiplayerScreen extends ConsumerStatefulWidget {
   const MultiplayerScreen({super.key});
@@ -90,6 +93,9 @@ class _Lobby extends ConsumerStatefulWidget {
 class _LobbyState extends ConsumerState<_Lobby> {
   final _codeController = TextEditingController();
 
+  /// Privée par défaut : une salle créée pour un ami n'est jamais exposée.
+  var _isPublic = false;
+
   @override
   void dispose() {
     _codeController.dispose();
@@ -113,17 +119,38 @@ class _LobbyState extends ConsumerState<_Lobby> {
           const SizedBox(height: 20),
         ],
         const Text('CRÉER UNE SALLE', style: _sectionTitleStyle),
-        const SizedBox(height: 12),
+        const SizedBox(height: 4),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          activeThumbColor: AppColors.green,
+          title: const Text(
+            'Salle publique',
+            style: TextStyle(color: Colors.white),
+          ),
+          subtitle: Text(
+            _isPublic
+                ? 'Visible par tous dans les salles ouvertes'
+                : 'Seuls ceux qui ont le code peuvent rejoindre',
+            style: const TextStyle(color: Colors.white54, fontSize: 13),
+          ),
+          value: _isPublic,
+          onChanged: (value) => setState(() => _isPublic = value),
+        ),
+        const SizedBox(height: 8),
         FilledButton.icon(
           style: FilledButton.styleFrom(
             backgroundColor: AppColors.green,
             foregroundColor: AppColors.background,
             padding: const EdgeInsets.symmetric(vertical: 16),
           ),
-          onPressed: viewModel.host,
+          onPressed: () => viewModel.host(isPublic: _isPublic),
           icon: const Icon(Icons.add),
           label: const Text('Créer et obtenir un code'),
         ),
+        const SizedBox(height: 32),
+        const Text('SALLES OUVERTES', style: _sectionTitleStyle),
+        const SizedBox(height: 12),
+        const _OpenRooms(),
         const SizedBox(height: 32),
         const Text('REJOINDRE UN AMI', style: _sectionTitleStyle),
         const SizedBox(height: 12),
@@ -172,6 +199,105 @@ class _LobbyState extends ConsumerState<_Lobby> {
       ],
     );
   }
+}
+
+/// Salles publiques des autres joueurs, à jour en temps réel.
+class _OpenRooms extends ConsumerWidget {
+  const _OpenRooms();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final rooms = ref.watch(lobbyRoomsProvider);
+    return switch (rooms) {
+      AsyncData(value: final rooms) when rooms.isEmpty => const _Hint(
+        'Aucune salle publique pour le moment. Crée la tienne !',
+      ),
+      AsyncData(value: final rooms) => Column(
+        children: [
+          for (final room in rooms) ...[
+            _OpenRoomTile(room: room),
+            const SizedBox(height: 8),
+          ],
+        ],
+      ),
+      AsyncError() => const _Hint('Liste des salles indisponible.'),
+      _ => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 12),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+    };
+  }
+}
+
+class _OpenRoomTile extends ConsumerWidget {
+  const _OpenRoomTile({required this.room});
+
+  final LobbyRoom room;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => Container(
+    padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+    decoration: BoxDecoration(
+      color: AppColors.card,
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: Colors.white10),
+    ),
+    child: Row(
+      children: [
+        ProfileAvatar(
+          username: room.hostUsername,
+          thumbnailUrl: room.hostThumbnailUrl,
+          radius: 20,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                room.hostUsername,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Countdown(
+                deadline: room.expiresAt,
+                builder: (remaining) => Text(
+                  '${room.hostElo} Elo · ${formatDuration(remaining)}',
+                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                ),
+              ),
+            ],
+          ),
+        ),
+        TextButton(
+          style: TextButton.styleFrom(foregroundColor: AppColors.green),
+          onPressed: () => ref
+              .read(multiplayerViewModelProvider.notifier)
+              .join(room.code, fromLobby: true),
+          child: const Text('Rejoindre'),
+        ),
+      ],
+    ),
+  );
+}
+
+class _Hint extends StatelessWidget {
+  const _Hint(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8),
+    child: Text(
+      text,
+      textAlign: TextAlign.center,
+      style: const TextStyle(color: Colors.white38),
+    ),
+  );
 }
 
 class _WaitingRoom extends ConsumerWidget {
