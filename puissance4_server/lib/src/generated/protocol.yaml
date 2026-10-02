@@ -33,6 +33,7 @@ live:
   - watchUpdates:
 multiplayer:
   - hostRoom:
+  - watchLobby:
   - joinRoom:
 profile:
   - getMyProfile:

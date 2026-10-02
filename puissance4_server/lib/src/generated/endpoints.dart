@@ -629,6 +629,28 @@ class Endpoints extends _is.EndpointDispatch {
       methodConnectors: {
         'hostRoom': _is.MethodStreamConnector(
           name: 'hostRoom',
+          params: {
+            'isPublic': _is.ParameterDescription(
+              name: 'isPublic',
+              type: _is.getType<bool>(),
+              nullable: false,
+            ),
+          },
+          streamParams: {},
+          returnType: _is.MethodStreamReturnType.streamType,
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+                Map<String, Stream> streamParams,
+              ) => (endpoints['multiplayer'] as _iznver3h.MultiplayerEndpoint)
+                  .hostRoom(
+                    session,
+                    params['isPublic'],
+                  ),
+        ),
+        'watchLobby': _is.MethodStreamConnector(
+          name: 'watchLobby',
           params: {},
           streamParams: {},
           returnType: _is.MethodStreamReturnType.streamType,
@@ -638,7 +660,7 @@ class Endpoints extends _is.EndpointDispatch {
                 Map<String, dynamic> params,
                 Map<String, Stream> streamParams,
               ) => (endpoints['multiplayer'] as _iznver3h.MultiplayerEndpoint)
-                  .hostRoom(session),
+                  .watchLobby(session),
         ),
         'joinRoom': _is.MethodStreamConnector(
           name: 'joinRoom',

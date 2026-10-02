@@ -28,6 +28,8 @@ import 'package:puissance4_server/src/generated/leaderboard/leaderboard_dto.dart
     as _i5549tex;
 import 'package:puissance4_server/src/generated/live/live_event.dart'
     as _ifw32v1t;
+import 'package:puissance4_server/src/generated/multiplayer/lobby_snapshot.dart'
+    as _iaoye6yt;
 import 'package:puissance4_server/src/generated/profile/user_profile_dto.dart'
     as _is7wjsnn;
 import 'package:serverpod/serverpod.dart' as _is;
@@ -1112,6 +1114,7 @@ class _MultiplayerEndpoint {
 
   _ida.Stream<_iylml733.GameEvent> hostRoom(
     _ist.TestSessionBuilder sessionBuilder,
+    bool isPublic,
   ) {
     var _localTestStreamManager = _ist.TestStreamManager<_iylml733.GameEvent>();
     _ist.callStreamFunctionAndHandleExceptions(
@@ -1126,6 +1129,38 @@ class _MultiplayerEndpoint {
               createSessionCallback: (_) => _localUniqueSession,
               endpointPath: 'multiplayer',
               methodName: 'hostRoom',
+              arguments: {'isPublic': isPublic},
+              requestedInputStreams: [],
+              serializationManager: _serializationManager,
+            );
+        await _localTestStreamManager.callStreamMethod(
+          _localCallContext,
+          _localUniqueSession,
+          {},
+        );
+      },
+      _localTestStreamManager.outputStreamController,
+    );
+    return _localTestStreamManager.outputStreamController.stream;
+  }
+
+  _ida.Stream<_iaoye6yt.LobbySnapshot> watchLobby(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) {
+    var _localTestStreamManager =
+        _ist.TestStreamManager<_iaoye6yt.LobbySnapshot>();
+    _ist.callStreamFunctionAndHandleExceptions(
+      () async {
+        var _localUniqueSession =
+            (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+              endpoint: 'multiplayer',
+              method: 'watchLobby',
+            );
+        var _localCallContext = await _endpointDispatch
+            .getMethodStreamCallContext(
+              createSessionCallback: (_) => _localUniqueSession,
+              endpointPath: 'multiplayer',
+              methodName: 'watchLobby',
               arguments: {},
               requestedInputStreams: [],
               serializationManager: _serializationManager,

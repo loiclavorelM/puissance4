@@ -1,0 +1,5 @@
+# Liste des salles publiques ouvertes, émise par
+# `MultiplayerEndpoint.watchLobby` au départ puis à chaque changement.
+class: LobbySnapshot
+fields:
+  rooms: List<LobbyRoom>

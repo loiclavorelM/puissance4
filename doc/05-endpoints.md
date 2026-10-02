@@ -85,10 +85,19 @@ Prêt pour Redis/cluster : état des parties en base (verrou `FOR UPDATE`),
 La **salle** (code d'attente) n'est jamais en base et ne vit que tant que le
 stream de l'hôte est ouvert ; la `Partie` n'est créée qu'à l'arrivée de
 l'adversaire.
-- `hostRoom() -> Stream<GameEvent>`
+- `hostRoom(isPublic: bool) -> Stream<GameEvent>`
   `roomCreated` (code, expiration 10 min), puis `gameStarted` et la suite de la
   partie sur le même stream. Fermer le stream ferme la salle ; à expiration :
-  `roomClosed`. Ouvrir une 2ᵉ salle ferme la 1ʳᵉ.
+  `roomClosed`. Ouvrir une 2ᵉ salle ferme la 1ʳᵉ. Une salle `isPublic` apparaît
+  dans le lobby (pseudo, Elo et avatar de l'hôte lus à l'ouverture) ; une salle
+  privée ne se rejoint que par son code.
+- `watchLobby() -> Stream<LobbySnapshot>` (US7.4)
+  Salles publiques ouvertes, sauf la sienne : la liste au départ, puis une
+  nouvelle à chaque ouverture, fermeture, prise ou expiration d'une salle
+  publique (signal `LiveEvent(lobbyChanged)` sur le canal `multi.lobby`, local
+  tant que les salles sont en mémoire). Pas de table : vue de `RoomStore`.
+  On rejoint une salle du lobby par `joinRoom(code)` ; si elle a été prise
+  entre-temps, `roomNotFound` (affiché « Salle déjà prise »).
 - `joinRoom(code: String) -> Stream<GameEvent>`
   Réserve la salle (atomique : un seul invité l'obtient), crée les 2 `Player` +
   la `Partie`, couleurs tirées au sort, puis suit la partie.
@@ -189,6 +198,16 @@ GameEvent                 // streams de partie serveur, état complet à chaque 
   EnumColor? aboutColor   // joueur concerné par (dé)connexion
   bool? opponentConnected // sur gameStarted : adversaire présent ?
   int? eloVariation       // Classé, sur gameOver
+
+LobbySnapshot
+  List<LobbyRoom> rooms
+
+LobbyRoom
+  string code
+  string hostUsername
+  int hostElo
+  string? hostThumbnailUrl
+  DateTime expiresAt
 
 ReplayDto
   Guid id
