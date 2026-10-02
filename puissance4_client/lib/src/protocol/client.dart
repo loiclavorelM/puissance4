@@ -588,6 +588,39 @@ class EndpointRanked extends _isc.EndpointRef {
       );
 }
 
+/// Revue de partie post-match (E14, US14.3) : explication en langage naturel
+/// du coup recommandé par l'Expert, générée par un LLM (Ollama cloud) depuis
+/// le serveur — la clé API ne quitte jamais le serveur.
+/// {@category Endpoint}
+class EndpointReview extends _isc.EndpointRef {
+  EndpointReview(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'review';
+
+  /// Explique le coup d'indice [moveIndex] de [moves] en [language] ("fr"
+  /// ou "en"). Le serveur recalcule lui-même le coup recommandé (mêmes
+  /// règles et même Expert que l'app) : seuls les coups viennent du client.
+  /// Les explications sont gardées par position (`MoveExplanation`) : une
+  /// position déjà expliquée ne rappelle pas Ollama.
+  ///
+  /// Lève [ReviewException] : `invalidMove`, `notConfigured`, `unavailable`,
+  /// `rateLimited`.
+  _ida.Future<String> explainMove({
+    required List<int> moves,
+    required int moveIndex,
+    required String language,
+  }) => caller.callServerEndpoint<String>(
+    'review',
+    'explainMove',
+    {
+      'moves': moves,
+      'moveIndex': moveIndex,
+      'language': language,
+    },
+  );
+}
+
 class Modules {
   Modules(Client client) {
     serverpod_auth_core = _iacc.Caller(client);
@@ -642,6 +675,7 @@ class Client extends _isc.ServerpodClientShared {
     multiplayer = EndpointMultiplayer(this);
     profile = EndpointProfile(this);
     ranked = EndpointRanked(this);
+    review = EndpointReview(this);
     modules = Modules(this);
   }
 
@@ -671,6 +705,8 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointRanked ranked;
 
+  late final EndpointReview review;
+
   late final Modules modules;
 
   @override
@@ -688,6 +724,7 @@ class Client extends _isc.ServerpodClientShared {
     'multiplayer': multiplayer,
     'profile': profile,
     'ranked': ranked,
+    'review': review,
   };
 
   @override

@@ -51,6 +51,9 @@ import 'profile/profile_update_exception.dart' as _i1cvnna1;
 import 'profile/user.dart' as _iytd8mlf;
 import 'profile/user_profile_dto.dart' as _ivqmpbel;
 import 'ranked/elo_history.dart' as _i8na2re5;
+import 'review/enum_review_error.dart' as _ialq3a2v;
+import 'review/move_explanation.dart' as _i0n08bga;
+import 'review/review_exception.dart' as _i7k2kt7u;
 export 'bot/bot.dart';
 export 'bot/enum_bot_level.dart';
 export 'game/enum_color.dart';
@@ -78,6 +81,9 @@ export 'profile/profile_update_exception.dart';
 export 'profile/user.dart';
 export 'profile/user_profile_dto.dart';
 export 'ranked/elo_history.dart';
+export 'review/enum_review_error.dart';
+export 'review/move_explanation.dart';
+export 'review/review_exception.dart';
 export 'sync_tables.dart';
 
 class Protocol extends _is.DatabaseSerializationManager {
@@ -211,6 +217,96 @@ class Protocol extends _is.DatabaseSerializationManager {
         ),
       ],
       indexes: [],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'move_explanation',
+      dartName: 'MoveExplanation',
+      schema: 'public',
+      module: 'puissance4',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'random_v7',
+        ),
+        _isp.ColumnDefinition(
+          name: 'positionKey',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'language',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'explanation',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'model',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'requestedBy',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'now',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'move_explanation_position_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'positionKey',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'language',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+        _isp.IndexDefinition(
+          indexName: 'move_explanation_requester_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'requestedBy',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'createdAt',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
       managed: true,
     ),
     _isp.TableDefinition(
@@ -680,6 +776,15 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _i8na2re5.EloHistory) {
       return _i8na2re5.EloHistory.fromJson(data) as T;
     }
+    if (t == _ialq3a2v.EnumReviewError) {
+      return _ialq3a2v.EnumReviewError.fromJson(data) as T;
+    }
+    if (t == _i0n08bga.MoveExplanation) {
+      return _i0n08bga.MoveExplanation.fromJson(data) as T;
+    }
+    if (t == _i7k2kt7u.ReviewException) {
+      return _i7k2kt7u.ReviewException.fromJson(data) as T;
+    }
     if (t == _is.getType<_iij7x2jd.Bot?>()) {
       return (data != null ? _iij7x2jd.Bot.fromJson(data) : null) as T;
     }
@@ -779,6 +884,18 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == _is.getType<_i8na2re5.EloHistory?>()) {
       return (data != null ? _i8na2re5.EloHistory.fromJson(data) : null) as T;
     }
+    if (t == _is.getType<_ialq3a2v.EnumReviewError?>()) {
+      return (data != null ? _ialq3a2v.EnumReviewError.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_i0n08bga.MoveExplanation?>()) {
+      return (data != null ? _i0n08bga.MoveExplanation.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_i7k2kt7u.ReviewException?>()) {
+      return (data != null ? _i7k2kt7u.ReviewException.fromJson(data) : null)
+          as T;
+    }
     if (t == List<int>) {
       return (data as List).map((e) => deserialize<int>(e)).toList() as T;
     }
@@ -803,6 +920,9 @@ class Protocol extends _is.DatabaseSerializationManager {
               .map((e) => deserialize<_i5549tex.LeaderboardEntryDto>(e))
               .toList()
           as T;
+    }
+    if (t == List<int>) {
+      return (data as List).map((e) => deserialize<int>(e)).toList() as T;
     }
     try {
       return _iacs.Protocol().deserialize<T>(data, t);
@@ -848,6 +968,9 @@ class Protocol extends _is.DatabaseSerializationManager {
       _iytd8mlf.User => 'User',
       _ivqmpbel.UserProfileDto => 'UserProfileDto',
       _i8na2re5.EloHistory => 'EloHistory',
+      _ialq3a2v.EnumReviewError => 'EnumReviewError',
+      _i0n08bga.MoveExplanation => 'MoveExplanation',
+      _i7k2kt7u.ReviewException => 'ReviewException',
       _ => null,
     };
   }
@@ -916,6 +1039,12 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'UserProfileDto';
       case _i8na2re5.EloHistory():
         return 'EloHistory';
+      case _ialq3a2v.EnumReviewError():
+        return 'EnumReviewError';
+      case _i0n08bga.MoveExplanation():
+        return 'MoveExplanation';
+      case _i7k2kt7u.ReviewException():
+        return 'ReviewException';
     }
     className = _iacs.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -1029,6 +1158,15 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (dataClassName == 'EloHistory') {
       return deserialize<_i8na2re5.EloHistory>(data['data']);
     }
+    if (dataClassName == 'EnumReviewError') {
+      return deserialize<_ialq3a2v.EnumReviewError>(data['data']);
+    }
+    if (dataClassName == 'MoveExplanation') {
+      return deserialize<_i0n08bga.MoveExplanation>(data['data']);
+    }
+    if (dataClassName == 'ReviewException') {
+      return deserialize<_i7k2kt7u.ReviewException>(data['data']);
+    }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
       return _iacs.Protocol().deserializeByClassName(data);
@@ -1093,6 +1231,8 @@ class Protocol extends _is.DatabaseSerializationManager {
         return _iytd8mlf.User.t;
       case _i8na2re5.EloHistory:
         return _i8na2re5.EloHistory.t;
+      case _i0n08bga.MoveExplanation:
+        return _i0n08bga.MoveExplanation.t;
     }
     return null;
   }

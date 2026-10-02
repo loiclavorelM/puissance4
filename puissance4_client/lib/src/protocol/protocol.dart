@@ -51,6 +51,9 @@ import 'profile/profile_update_exception.dart' as _i1cvnna1;
 import 'profile/user.dart' as _iytd8mlf;
 import 'profile/user_profile_dto.dart' as _ivqmpbel;
 import 'ranked/elo_history.dart' as _i8na2re5;
+import 'review/enum_review_error.dart' as _ialq3a2v;
+import 'review/move_explanation.dart' as _i0n08bga;
+import 'review/review_exception.dart' as _i7k2kt7u;
 export 'bot/bot.dart';
 export 'bot/enum_bot_level.dart';
 export 'game/enum_color.dart';
@@ -78,6 +81,9 @@ export 'profile/profile_update_exception.dart';
 export 'profile/user.dart';
 export 'profile/user_profile_dto.dart';
 export 'ranked/elo_history.dart';
+export 'review/enum_review_error.dart';
+export 'review/move_explanation.dart';
+export 'review/review_exception.dart';
 export 'client.dart';
 export 'sync_tables.dart';
 
@@ -295,6 +301,15 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _i8na2re5.EloHistory) {
       return _i8na2re5.EloHistory.fromJson(data) as T;
     }
+    if (t == _ialq3a2v.EnumReviewError) {
+      return _ialq3a2v.EnumReviewError.fromJson(data) as T;
+    }
+    if (t == _i0n08bga.MoveExplanation) {
+      return _i0n08bga.MoveExplanation.fromJson(data) as T;
+    }
+    if (t == _i7k2kt7u.ReviewException) {
+      return _i7k2kt7u.ReviewException.fromJson(data) as T;
+    }
     if (t == _isc.getType<_iij7x2jd.Bot?>()) {
       return (data != null ? _iij7x2jd.Bot.fromJson(data) : null) as T;
     }
@@ -394,6 +409,18 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _isc.getType<_i8na2re5.EloHistory?>()) {
       return (data != null ? _i8na2re5.EloHistory.fromJson(data) : null) as T;
     }
+    if (t == _isc.getType<_ialq3a2v.EnumReviewError?>()) {
+      return (data != null ? _ialq3a2v.EnumReviewError.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_i0n08bga.MoveExplanation?>()) {
+      return (data != null ? _i0n08bga.MoveExplanation.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_i7k2kt7u.ReviewException?>()) {
+      return (data != null ? _i7k2kt7u.ReviewException.fromJson(data) : null)
+          as T;
+    }
     if (t == List<int>) {
       return (data as List).map((e) => deserialize<int>(e)).toList() as T;
     }
@@ -418,6 +445,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
               .map((e) => deserialize<_ihkbd7x6.LeaderboardEntryDto>(e))
               .toList()
           as T;
+    }
+    if (t == List<int>) {
+      return (data as List).map((e) => deserialize<int>(e)).toList() as T;
     }
     try {
       return _iacc.Protocol().deserialize<T>(data, t);
@@ -460,6 +490,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
       _iytd8mlf.User => 'User',
       _ivqmpbel.UserProfileDto => 'UserProfileDto',
       _i8na2re5.EloHistory => 'EloHistory',
+      _ialq3a2v.EnumReviewError => 'EnumReviewError',
+      _i0n08bga.MoveExplanation => 'MoveExplanation',
+      _i7k2kt7u.ReviewException => 'ReviewException',
       _ => null,
     };
   }
@@ -528,6 +561,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
         return 'UserProfileDto';
       case _i8na2re5.EloHistory():
         return 'EloHistory';
+      case _ialq3a2v.EnumReviewError():
+        return 'EnumReviewError';
+      case _i0n08bga.MoveExplanation():
+        return 'MoveExplanation';
+      case _i7k2kt7u.ReviewException():
+        return 'ReviewException';
     }
     className = _iacc.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -636,6 +675,15 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (dataClassName == 'EloHistory') {
       return deserialize<_i8na2re5.EloHistory>(data['data']);
+    }
+    if (dataClassName == 'EnumReviewError') {
+      return deserialize<_ialq3a2v.EnumReviewError>(data['data']);
+    }
+    if (dataClassName == 'MoveExplanation') {
+      return deserialize<_i0n08bga.MoveExplanation>(data['data']);
+    }
+    if (dataClassName == 'ReviewException') {
+      return deserialize<_i7k2kt7u.ReviewException>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);

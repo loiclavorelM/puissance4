@@ -236,19 +236,29 @@ parties en direct.
 \subsection{Revue de partie post-match avec IA --- optionnel}
 \label{sec:revue}
 \begin{itemize}[leftmargin=1.5em]
-  \item En plus du replay coup par coup (section précédente), le joueur peut voir,
-        pour chaque coup, celui que recommanderait le modèle \textbf{Expert}
-        (le modèle RL le plus fort, déjà embarqué localement pour le mode Bot, cf.
-        section~\ref{sec:archi}) --- le modèle est réexécuté \textbf{localement} sur
-        l'appareil pour cette recommandation, sans nouvel endpoint serveur.
-  \item Une \textbf{explication en langage naturel} de la recommandation peut être
-        demandée : elle est générée par un LLM via \textbf{Ollama cloud}, appelé
-        \textbf{depuis le serveur Serverpod} (clé API côté serveur uniquement, jamais
-        côté client). Les explications déjà générées sont mises en cache côté
-        serveur (par partie + index de coup) pour limiter les coûts d'appel au LLM.
-  \item Cette fonctionnalité nécessite une connexion réseau (appel au serveur pour
-        l'explication) ; elle est donc \textbf{indisponible en mode invité local /
-        hors-ligne} (section~\ref{sec:invite}).
+  \item Pendant le replay coup par coup (section précédente), chaque coup est
+        analysé par le bot \textbf{Expert}, \textbf{localement} sur l'appareil
+        (sans réseau) : l'écran indique s'il s'agit du meilleur coup, d'un coup
+        perdant, ou quelle colonne l'Expert aurait jouée --- un jeton fantôme
+        la montre sur le plateau. En attendant les modèles RL, l'Expert est la
+        recherche du \texttt{HeuristicBot} (\texttt{MoveAnalysis}, paquet
+        partagé \texttt{puissance4\_rules}) ; le modèle RL Expert le remplacera
+        derrière la même interface (\texttt{MoveAdvisor}).
+  \item Un bouton \og Expliquer ce coup \fg{} demande une \textbf{explication en
+        langage naturel}, générée par un LLM via \textbf{Ollama cloud}, appelé
+        \textbf{depuis le serveur Serverpod} (clé API dans les mots de passe du
+        serveur, jamais côté client). Le serveur recalcule lui-même la
+        recommandation avec le même code que l'app et transmet au LLM les faits
+        vérifiés (victoire immédiate, menace à bloquer, coup qui offre la
+        victoire) : le LLM ne fait que les mettre en mots.
+  \item Les explications sont mises en cache côté serveur \textbf{par position}
+        (coups jusqu'au coup expliqué) et par langue, plutôt que par partie : une
+        même position, dans n'importe quelle partie et n'importe quel mode, n'est
+        expliquée qu'une fois. Les générations sont limitées à 30 par joueur et
+        par heure (maîtrise des coûts).
+  \item L'explication nécessite une connexion réseau ; en cas d'absence de réseau,
+        de service Ollama indisponible ou de limite atteinte, un message clair
+        s'affiche sans bloquer le replay ni l'analyse locale.
   \item Prérequis (réalisé) : la séquence complète des coups de chaque partie est
         enregistrée, pour tous les modes.
 \end{itemize}
