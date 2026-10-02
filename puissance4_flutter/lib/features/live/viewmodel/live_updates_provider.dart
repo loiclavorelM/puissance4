@@ -52,6 +52,9 @@ final liveUpdatesProvider = Provider<void>((ref) {
         ref.invalidate(serverHistoryProvider);
       case EnumLiveEventType.leaderboardChanged:
         ref.invalidate(leaderboardProvider);
+      case EnumLiveEventType.lobbyChanged:
+        // Propre au lobby Multi, qui a son stream (`lobbyRoomsProvider`).
+        break;
     }
   }
 

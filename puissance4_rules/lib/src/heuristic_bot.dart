@@ -82,28 +82,35 @@ class HeuristicBot {
   }
 
   int _bestByNegamax(List<int> moves) {
-    final work = [...moves];
-    var bestScore = -_win * 2;
-    final best = <int>[];
-    for (final column in _centerFirst) {
-      if (!Connect4Rules.isValidMove(work, column)) continue;
-      work.add(column);
-      final score = -_negamax(work, _expertDepth - 1, -_win * 2, _win * 2);
-      work.removeLast();
-      if (score > bestScore) {
-        bestScore = score;
-        best
-          ..clear()
-          ..add(column);
-      } else if (score == bestScore) {
-        best.add(column);
-      }
-    }
+    final scores = scoreColumns(moves);
+    final bestScore = scores.values.reduce(max);
+    final best = [
+      for (final MapEntry(key: column, value: score) in scores.entries)
+        if (score == bestScore) column,
+    ];
     return best[_random.nextInt(best.length)];
   }
 
+  /// Score de chaque colonne jouable après [moves], du point de vue du
+  /// joueur au trait (recherche Expert, colonnes du centre vers les bords).
+  /// Au-delà de [winScore] en valeur absolue : victoire (ou défaite) forcée.
+  static Map<int, int> scoreColumns(List<int> moves) {
+    final work = [...moves];
+    final scores = <int, int>{};
+    for (final column in _centerFirst) {
+      if (!Connect4Rules.isValidMove(work, column)) continue;
+      work.add(column);
+      scores[column] = -_negamax(work, _expertDepth - 1, -_win * 2, _win * 2);
+      work.removeLast();
+    }
+    return scores;
+  }
+
+  /// Seuil des scores de victoire forcée renvoyés par [scoreColumns].
+  static const winScore = _win;
+
   /// Score de la position pour le joueur au trait.
-  int _negamax(List<int> moves, int depth, int alpha, int beta) {
+  static int _negamax(List<int> moves, int depth, int alpha, int beta) {
     final outcome = Connect4Rules.outcome(moves);
     if (outcome == Connect4Outcome.draw) return 0;
     // Le coup précédent a gagné : perdu pour le joueur au trait. Plus la
@@ -126,7 +133,7 @@ class HeuristicBot {
 
   /// Évaluation statique pour le joueur au trait : fenêtres de 4 cases
   /// encore gagnables, plus un bonus pour la colonne centrale.
-  int _evaluate(List<int> moves) {
+  static int _evaluate(List<int> moves) {
     final me = Connect4Rules.discToPlay(moves);
     final board = Connect4Rules.stacks(moves);
     Disc? at(int c, int r) => r < board[c].length ? board[c][r] : null;

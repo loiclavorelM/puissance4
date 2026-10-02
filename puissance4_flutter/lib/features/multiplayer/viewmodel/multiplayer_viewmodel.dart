@@ -40,6 +40,12 @@ final multiplayerRepositoryProvider = Provider<MultiplayerRepository>(
   (ref) => MultiplayerRepository(),
 );
 
+/// Salles publiques du lobby (US7.4) — séparé du viewmodel, qui ne gère
+/// que créer / rejoindre / reprendre. Fermé en quittant l'écran.
+final lobbyRoomsProvider = StreamProvider.autoDispose<List<LobbyRoom>>(
+  (ref) => ref.read(multiplayerRepositoryProvider).watchLobby(),
+);
+
 final multiplayerViewModelProvider =
     NotifierProvider.autoDispose<MultiplayerViewModel, LobbyState>(
       MultiplayerViewModel.new,
@@ -54,6 +60,7 @@ class MultiplayerViewModel extends AutoDisposeNotifier<LobbyState> {
   StreamSubscription<GameEvent>? _subscription;
   final _launches = StreamController<GameLaunch>.broadcast();
   var _disposed = false;
+  var _fromLobby = false;
 
   Stream<GameLaunch> get launches => _launches.stream;
 
@@ -68,9 +75,17 @@ class MultiplayerViewModel extends AutoDisposeNotifier<LobbyState> {
     return const LobbyState();
   }
 
-  void host() => _follow(ref.read(multiplayerRepositoryProvider).hostRoom());
+  void host({bool isPublic = false}) {
+    _fromLobby = false;
+    _follow(
+      ref.read(multiplayerRepositoryProvider).hostRoom(isPublic: isPublic),
+    );
+  }
 
-  void join(String code) {
+  /// Rejoint la salle [code], tapé par le joueur ou choisi dans le lobby
+  /// ([fromLobby] : une salle disparue y a été prise par quelqu'un d'autre).
+  void join(String code, {bool fromLobby = false}) {
+    _fromLobby = fromLobby;
     final normalized = code.trim().toUpperCase();
     if (normalized.length != 6) {
       state = LobbyState(
@@ -171,7 +186,9 @@ class MultiplayerViewModel extends AutoDisposeNotifier<LobbyState> {
         resumablePartieId: error.reason == EnumGameError.alreadyInGame
             ? error.partieId
             : state.resumablePartieId,
-        errorMessage: _messageFor(error),
+        errorMessage: _fromLobby && error.reason == EnumGameError.roomNotFound
+            ? 'Salle déjà prise ou fermée.'
+            : _messageFor(error),
       );
       return;
     }

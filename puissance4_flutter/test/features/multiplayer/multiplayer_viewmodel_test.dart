@@ -12,12 +12,23 @@ import '../game/fake_server_game_repository.dart';
 
 class _FakeLobbyRepository implements MultiplayerRepository {
   final host = StreamController<GameEvent>();
+  bool? hostedPublic;
+
+  /// Refus renvoyé par [joinRoom] (aucun si `null`).
+  GameException? joinError;
 
   @override
-  Stream<GameEvent> hostRoom() => host.stream;
+  Stream<GameEvent> hostRoom({bool isPublic = false}) {
+    hostedPublic = isPublic;
+    return host.stream;
+  }
 
   @override
-  Stream<GameEvent> joinRoom(String code) => const Stream.empty();
+  Stream<GameEvent> joinRoom(String code) =>
+      joinError == null ? const Stream.empty() : Stream.error(joinError!);
+
+  @override
+  Stream<List<LobbyRoom>> watchLobby() => const Stream.empty();
 }
 
 void main() {
@@ -88,6 +99,28 @@ void main() {
       expect(read().errorMessage, isNotNull);
     },
   );
+
+  test('a room is private unless asked otherwise', () {
+    viewModel().host();
+    expect(lobby.hostedPublic, isFalse);
+  });
+
+  test('a public room is requested as such', () {
+    viewModel().host(isPublic: true);
+    expect(lobby.hostedPublic, isTrue);
+  });
+
+  test('a room gone from the lobby reads as already taken', () async {
+    lobby.joinError = GameException(reason: EnumGameError.roomNotFound);
+
+    viewModel().join('ABC234', fromLobby: true);
+    await pumpEventQueue();
+    expect(read().errorMessage, 'Salle déjà prise ou fermée.');
+
+    viewModel().join('ABC234');
+    await pumpEventQueue();
+    expect(read().errorMessage, 'Code inconnu ou salle déjà fermée.');
+  });
 }
 
 /// Le moteur adopté ignore le `Ref` qu'on lui passe.

@@ -12,12 +12,36 @@ void main() {
 
     setUp(() => store = InMemoryRoomStore());
 
-    Future<Room> open({Duration lifetime = const Duration(minutes: 1)}) async =>
-        (await store.create(
-          hostAuthUserId: host,
-          hostUserId: host,
-          lifetime: lifetime,
-        )).room;
+    Future<Room> open({
+      Duration lifetime = const Duration(minutes: 1),
+      UuidValue? by,
+      RoomHost? listedAs,
+    }) async => (await store.create(
+      hostAuthUserId: by ?? host,
+      hostUserId: by ?? host,
+      lifetime: lifetime,
+      listedAs: listedAs,
+    )).room;
+
+    test(
+      'when listing public rooms then private, own and expired ones are left out',
+      () async {
+        const shown = RoomHost(username: 'alice', elo: 1200);
+        await open(); // privée
+        final public = await open(by: guest, listedAs: shown);
+        await open(
+          by: other,
+          listedAs: shown,
+          lifetime: const Duration(milliseconds: 1),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+
+        final listed = await store.listPublic(exceptHost: host);
+        expect(listed.map((r) => r.code), [public.code]);
+        expect(listed.single.toLobbyRoom().hostElo, 1200);
+        expect(await store.listPublic(exceptHost: guest), isEmpty);
+      },
+    );
 
     test(
       'when a guest claims the code then only the first claim gets it',

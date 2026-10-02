@@ -27,6 +27,8 @@ import 'package:puissance4_client/src/protocol/leaderboard/leaderboard_dto.dart'
     as _ihkbd7x6;
 import 'package:puissance4_client/src/protocol/live/live_event.dart'
     as _io59k800;
+import 'package:puissance4_client/src/protocol/multiplayer/lobby_snapshot.dart'
+    as _imc99i6z;
 import 'package:puissance4_client/src/protocol/profile/user_profile_dto.dart'
     as _i5lufru8;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
@@ -513,13 +515,33 @@ class EndpointMultiplayer extends _isc.EndpointRef {
   /// Ouvre une salle : émet `roomCreated` (avec le code), puis, à l'arrivée
   /// de l'adversaire, les événements de la partie. Fermer ce stream avant
   /// ferme la salle ; à expiration il émet `roomClosed` et se termine.
-  _ida.Stream<_iho1cjz0.GameEvent> hostRoom() =>
+  /// Une salle [isPublic] apparaît dans le lobby ([watchLobby]) ; sinon elle
+  /// ne se rejoint que par son code.
+  _ida.Stream<_iho1cjz0.GameEvent> hostRoom(bool isPublic) =>
       caller.callStreamingServerEndpoint<
         _ida.Stream<_iho1cjz0.GameEvent>,
         _iho1cjz0.GameEvent
       >(
         'multiplayer',
         'hostRoom',
+        {'isPublic': isPublic},
+        {},
+      );
+
+  /// Salles publiques ouvertes (sauf la sienne) : la liste au départ, puis
+  /// une nouvelle liste à chaque changement. On les rejoint par [joinRoom]
+  /// avec leur code — de deux joueurs qui choisissent la même, un seul
+  /// l'obtient, l'autre reçoit `roomNotFound`.
+  ///
+  /// Pas de générateur `async*` : annulé pendant un `await for`, il ne le
+  /// verrait qu'au changement suivant, et la session resterait ouverte.
+  _ida.Stream<_imc99i6z.LobbySnapshot> watchLobby() =>
+      caller.callStreamingServerEndpoint<
+        _ida.Stream<_imc99i6z.LobbySnapshot>,
+        _imc99i6z.LobbySnapshot
+      >(
+        'multiplayer',
+        'watchLobby',
         {},
         {},
       );
@@ -588,6 +610,39 @@ class EndpointRanked extends _isc.EndpointRef {
       );
 }
 
+/// Revue de partie post-match (E14, US14.3) : explication en langage naturel
+/// du coup recommandé par l'Expert, générée par un LLM (Ollama cloud) depuis
+/// le serveur — la clé API ne quitte jamais le serveur.
+/// {@category Endpoint}
+class EndpointReview extends _isc.EndpointRef {
+  EndpointReview(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'review';
+
+  /// Explique le coup d'indice [moveIndex] de [moves] en [language] ("fr"
+  /// ou "en"). Le serveur recalcule lui-même le coup recommandé (mêmes
+  /// règles et même Expert que l'app) : seuls les coups viennent du client.
+  /// Les explications sont gardées par position (`MoveExplanation`) : une
+  /// position déjà expliquée ne rappelle pas Ollama.
+  ///
+  /// Lève [ReviewException] : `invalidMove`, `notConfigured`, `unavailable`,
+  /// `rateLimited`.
+  _ida.Future<String> explainMove({
+    required List<int> moves,
+    required int moveIndex,
+    required String language,
+  }) => caller.callServerEndpoint<String>(
+    'review',
+    'explainMove',
+    {
+      'moves': moves,
+      'moveIndex': moveIndex,
+      'language': language,
+    },
+  );
+}
+
 class Modules {
   Modules(Client client) {
     serverpod_auth_core = _iacc.Caller(client);
@@ -642,6 +697,7 @@ class Client extends _isc.ServerpodClientShared {
     multiplayer = EndpointMultiplayer(this);
     profile = EndpointProfile(this);
     ranked = EndpointRanked(this);
+    review = EndpointReview(this);
     modules = Modules(this);
   }
 
@@ -671,6 +727,8 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointRanked ranked;
 
+  late final EndpointReview review;
+
   late final Modules modules;
 
   @override
@@ -688,6 +746,7 @@ class Client extends _isc.ServerpodClientShared {
     'multiplayer': multiplayer,
     'profile': profile,
     'ranked': ranked,
+    'review': review,
   };
 
   @override

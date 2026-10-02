@@ -32,6 +32,7 @@ import '../live/live_endpoint.dart' as _i4k4ewet;
 import '../multiplayer/multiplayer_endpoint.dart' as _iznver3h;
 import '../profile/profile_endpoint.dart' as _i6ky944g;
 import '../ranked/ranked_endpoint.dart' as _iipq9d8b;
+import '../review/review_endpoint.dart' as _iypg8dvf;
 
 class Endpoints extends _is.EndpointDispatch {
   @override
@@ -113,6 +114,12 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'ranked',
+          null,
+        ),
+      'review': _iypg8dvf.ReviewEndpoint()
+        ..initialize(
+          server,
+          'review',
           null,
         ),
     };
@@ -629,6 +636,28 @@ class Endpoints extends _is.EndpointDispatch {
       methodConnectors: {
         'hostRoom': _is.MethodStreamConnector(
           name: 'hostRoom',
+          params: {
+            'isPublic': _is.ParameterDescription(
+              name: 'isPublic',
+              type: _is.getType<bool>(),
+              nullable: false,
+            ),
+          },
+          streamParams: {},
+          returnType: _is.MethodStreamReturnType.streamType,
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+                Map<String, Stream> streamParams,
+              ) => (endpoints['multiplayer'] as _iznver3h.MultiplayerEndpoint)
+                  .hostRoom(
+                    session,
+                    params['isPublic'],
+                  ),
+        ),
+        'watchLobby': _is.MethodStreamConnector(
+          name: 'watchLobby',
           params: {},
           streamParams: {},
           returnType: _is.MethodStreamReturnType.streamType,
@@ -638,7 +667,7 @@ class Endpoints extends _is.EndpointDispatch {
                 Map<String, dynamic> params,
                 Map<String, Stream> streamParams,
               ) => (endpoints['multiplayer'] as _iznver3h.MultiplayerEndpoint)
-                  .hostRoom(session),
+                  .watchLobby(session),
         ),
         'joinRoom': _is.MethodStreamConnector(
           name: 'joinRoom',
@@ -712,6 +741,43 @@ class Endpoints extends _is.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async => (endpoints['ranked'] as _iipq9d8b.RankedEndpoint)
                   .startRanked(session),
+        ),
+      },
+    );
+    connectors['review'] = _is.EndpointConnector(
+      name: 'review',
+      endpoint: endpoints['review']!,
+      methodConnectors: {
+        'explainMove': _is.MethodConnector(
+          name: 'explainMove',
+          params: {
+            'moves': _is.ParameterDescription(
+              name: 'moves',
+              type: _is.getType<List<int>>(),
+              nullable: false,
+            ),
+            'moveIndex': _is.ParameterDescription(
+              name: 'moveIndex',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'language': _is.ParameterDescription(
+              name: 'language',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['review'] as _iypg8dvf.ReviewEndpoint).explainMove(
+                    session,
+                    moves: params['moves'],
+                    moveIndex: params['moveIndex'],
+                    language: params['language'],
+                  ),
         ),
       },
     );

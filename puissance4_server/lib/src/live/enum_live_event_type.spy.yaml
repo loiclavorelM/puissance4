@@ -5,3 +5,6 @@ values:
   - profileChanged
   - historyChanged
   - leaderboardChanged
+  # Lobby Multi : une salle publique a été ouverte, fermée, prise ou a expiré
+  # (canal `multi.lobby`, cf. MultiplayerEndpoint.watchLobby).
+  - lobbyChanged

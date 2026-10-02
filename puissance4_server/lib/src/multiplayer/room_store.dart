@@ -14,6 +14,7 @@ class Room {
     required this.hostAuthUserId,
     required this.hostUserId,
     required this.expiresAt,
+    this.listedAs,
   });
 
   final String code;
@@ -22,6 +23,34 @@ class Room {
   /// `User.id` (profil de jeu) de l'hôte.
   final UuidValue hostUserId;
   final DateTime expiresAt;
+
+  /// Non nul pour une salle publique : l'hôte tel qu'affiché dans le lobby
+  /// (lu une fois, à l'ouverture). Une salle privée ne se rejoint que par
+  /// son code.
+  final RoomHost? listedAs;
+
+  bool get isPublic => listedAs != null;
+
+  LobbyRoom toLobbyRoom() => LobbyRoom(
+    code: code,
+    hostUsername: listedAs!.username,
+    hostElo: listedAs!.elo,
+    hostThumbnailUrl: listedAs!.thumbnailUrl,
+    expiresAt: expiresAt,
+  );
+}
+
+/// L'hôte d'une salle publique, tel qu'affiché dans le lobby.
+class RoomHost {
+  const RoomHost({
+    required this.username,
+    required this.elo,
+    this.thumbnailUrl,
+  });
+
+  final String username;
+  final int elo;
+  final String? thumbnailUrl;
 }
 
 /// Stockage des salles d'attente. Seule pièce du Multi à dépendre du nombre
@@ -33,12 +62,17 @@ class Room {
 abstract interface class RoomStore {
   /// Ouvre une salle pour cet hôte. Une salle déjà ouverte par le même hôte
   /// est fermée et renvoyée dans `replaced`, pour que l'appelant prévienne
-  /// son ancien stream.
+  /// son ancien stream. Avec [listedAs], la salle est publique (lobby).
   Future<({Room room, Room? replaced})> create({
     required UuidValue hostAuthUserId,
     required UuidValue hostUserId,
     required Duration lifetime,
+    RoomHost? listedAs,
   });
+
+  /// Salles publiques encore ouvertes, les plus récentes d'abord, sauf
+  /// celle de [exceptHost] (on ne rejoint pas sa propre salle).
+  Future<List<Room>> listPublic({UuidValue? exceptHost});
 
   /// Retire la salle [code] pour [guestAuthUserId] et la renvoie, ou `null`
   /// si elle n'existe pas ou plus. Atomique : de deux joueurs qui tapent le
@@ -76,6 +110,7 @@ class InMemoryRoomStore implements RoomStore {
     required UuidValue hostAuthUserId,
     required UuidValue hostUserId,
     required Duration lifetime,
+    RoomHost? listedAs,
   }) async {
     _purgeExpired();
     final previousCode = _codeByHost.remove(hostAuthUserId);
@@ -94,10 +129,20 @@ class InMemoryRoomStore implements RoomStore {
       hostAuthUserId: hostAuthUserId,
       hostUserId: hostUserId,
       expiresAt: DateTime.now().toUtc().add(lifetime),
+      listedAs: listedAs,
     );
     _byCode[code] = room;
     _codeByHost[hostAuthUserId] = code;
     return (room: room, replaced: replaced);
+  }
+
+  @override
+  Future<List<Room>> listPublic({UuidValue? exceptHost}) async {
+    _purgeExpired();
+    return _byCode.values
+        .where((room) => room.isPublic && room.hostAuthUserId != exceptHost)
+        .toList()
+      ..sort((a, b) => b.expiresAt.compareTo(a.expiresAt));
   }
 
   @override

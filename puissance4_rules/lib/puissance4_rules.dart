@@ -7,3 +7,4 @@ library;
 
 export 'src/connect4_rules.dart';
 export 'src/heuristic_bot.dart';
+export 'src/move_analysis.dart';

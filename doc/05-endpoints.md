@@ -85,10 +85,19 @@ Prêt pour Redis/cluster : état des parties en base (verrou `FOR UPDATE`),
 La **salle** (code d'attente) n'est jamais en base et ne vit que tant que le
 stream de l'hôte est ouvert ; la `Partie` n'est créée qu'à l'arrivée de
 l'adversaire.
-- `hostRoom() -> Stream<GameEvent>`
+- `hostRoom(isPublic: bool) -> Stream<GameEvent>`
   `roomCreated` (code, expiration 10 min), puis `gameStarted` et la suite de la
   partie sur le même stream. Fermer le stream ferme la salle ; à expiration :
-  `roomClosed`. Ouvrir une 2ᵉ salle ferme la 1ʳᵉ.
+  `roomClosed`. Ouvrir une 2ᵉ salle ferme la 1ʳᵉ. Une salle `isPublic` apparaît
+  dans le lobby (pseudo, Elo et avatar de l'hôte lus à l'ouverture) ; une salle
+  privée ne se rejoint que par son code.
+- `watchLobby() -> Stream<LobbySnapshot>` (US7.4)
+  Salles publiques ouvertes, sauf la sienne : la liste au départ, puis une
+  nouvelle à chaque ouverture, fermeture, prise ou expiration d'une salle
+  publique (signal `LiveEvent(lobbyChanged)` sur le canal `multi.lobby`, local
+  tant que les salles sont en mémoire). Pas de table : vue de `RoomStore`.
+  On rejoint une salle du lobby par `joinRoom(code)` ; si elle a été prise
+  entre-temps, `roomNotFound` (affiché « Salle déjà prise »).
 - `joinRoom(code: String) -> Stream<GameEvent>`
   Réserve la salle (atomique : un seul invité l'obtient), crée les 2 `Player` +
   la `Partie`, couleurs tirées au sort, puis suit la partie.
@@ -133,10 +142,19 @@ RL (E5).
   `live.user.<authUserId>` (profil/historique) et `live.leaderboard` (tous).
 
 ### Revue de partie IA `[optionnel]` — `ReviewEndpoint` (`client.review`), `lib/src/review/`
-- `explainMove(idPartie: Guid, moveIndex: int) -> ExplainMoveResultDto`
-  Appelle Ollama cloud côté serveur ; indisponible hors-ligne (cf. E14/US14.3).
-  Le coup recommandé par le modèle Expert n'est **pas** calculé ici : il est
-  réexécuté localement sur l'appareil (modèle déjà embarqué pour le bot).
+- `explainMove(moves: List<int>, moveIndex: int, language: String) -> String`
+  Explication en `language` (`fr` | `en`) du coup d'indice `moveIndex`, générée
+  par Ollama cloud depuis le serveur (clé `ollamaApiKey` dans les mots de passe
+  Serverpod, jamais côté client) ; indisponible hors-ligne (cf. E14/US14.3).
+  Prend les coups plutôt qu'un id de partie : marche pour tous les modes, y
+  compris une partie Normale pas encore synchronisée. Le serveur recalcule le
+  coup recommandé avec le même `MoveAnalysis` (`puissance4_rules`) que l'app —
+  sur l'appareil, il sert à afficher la recommandation sans réseau — et
+  fournit au LLM les faits vérifiés (victoires/menaces immédiates). Cache
+  `MoveExplanation` par position (coups jusqu'au coup expliqué) + langue ;
+  au plus 30 générations (hors cache) par joueur et par heure.
+  Lève `ReviewException(reason: invalidMove | notConfigured | unavailable |
+  rateLimited)`.
 
 ## DTO
 
@@ -190,6 +208,16 @@ GameEvent                 // streams de partie serveur, état complet à chaque 
   bool? opponentConnected // sur gameStarted : adversaire présent ?
   int? eloVariation       // Classé, sur gameOver
 
+LobbySnapshot
+  List<LobbyRoom> rooms
+
+LobbyRoom
+  string code
+  string hostUsername
+  int hostElo
+  string? hostThumbnailUrl
+  DateTime expiresAt
+
 ReplayDto
   Guid id
   EnumType typePartie
@@ -209,8 +237,6 @@ HistoryDto
   EnumPlayer resultat
   int? eloVariation
 
-ExplainMoveResultDto
-  string explanation
 ```
 
 Enums `EnumPlayer` / `EnumStatut` / `EnumType` : voir `doc/04-entities.md` (pas

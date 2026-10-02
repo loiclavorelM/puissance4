@@ -46,11 +46,16 @@ import 'history/replay_dto.dart' as _iwti84ex;
 import 'leaderboard/leaderboard_dto.dart' as _i6lckwy9;
 import 'live/enum_live_event_type.dart' as _ikanpab0;
 import 'live/live_event.dart' as _ixdzvre4;
+import 'multiplayer/lobby_room.dart' as _i39mlunu;
+import 'multiplayer/lobby_snapshot.dart' as _idvrexla;
 import 'profile/enum_profile_update_error.dart' as _ib6s6ke7;
 import 'profile/profile_update_exception.dart' as _i1cvnna1;
 import 'profile/user.dart' as _iytd8mlf;
 import 'profile/user_profile_dto.dart' as _ivqmpbel;
 import 'ranked/elo_history.dart' as _i8na2re5;
+import 'review/enum_review_error.dart' as _ialq3a2v;
+import 'review/move_explanation.dart' as _i0n08bga;
+import 'review/review_exception.dart' as _i7k2kt7u;
 export 'bot/bot.dart';
 export 'bot/enum_bot_level.dart';
 export 'game/enum_color.dart';
@@ -73,11 +78,16 @@ export 'history/replay_dto.dart';
 export 'leaderboard/leaderboard_dto.dart';
 export 'live/enum_live_event_type.dart';
 export 'live/live_event.dart';
+export 'multiplayer/lobby_room.dart';
+export 'multiplayer/lobby_snapshot.dart';
 export 'profile/enum_profile_update_error.dart';
 export 'profile/profile_update_exception.dart';
 export 'profile/user.dart';
 export 'profile/user_profile_dto.dart';
 export 'ranked/elo_history.dart';
+export 'review/enum_review_error.dart';
+export 'review/move_explanation.dart';
+export 'review/review_exception.dart';
 export 'client.dart';
 export 'sync_tables.dart';
 
@@ -280,6 +290,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _ixdzvre4.LiveEvent) {
       return _ixdzvre4.LiveEvent.fromJson(data) as T;
     }
+    if (t == _i39mlunu.LobbyRoom) {
+      return _i39mlunu.LobbyRoom.fromJson(data) as T;
+    }
+    if (t == _idvrexla.LobbySnapshot) {
+      return _idvrexla.LobbySnapshot.fromJson(data) as T;
+    }
     if (t == _ib6s6ke7.EnumProfileUpdateError) {
       return _ib6s6ke7.EnumProfileUpdateError.fromJson(data) as T;
     }
@@ -294,6 +310,15 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (t == _i8na2re5.EloHistory) {
       return _i8na2re5.EloHistory.fromJson(data) as T;
+    }
+    if (t == _ialq3a2v.EnumReviewError) {
+      return _ialq3a2v.EnumReviewError.fromJson(data) as T;
+    }
+    if (t == _i0n08bga.MoveExplanation) {
+      return _i0n08bga.MoveExplanation.fromJson(data) as T;
+    }
+    if (t == _i7k2kt7u.ReviewException) {
+      return _i7k2kt7u.ReviewException.fromJson(data) as T;
     }
     if (t == _isc.getType<_iij7x2jd.Bot?>()) {
       return (data != null ? _iij7x2jd.Bot.fromJson(data) : null) as T;
@@ -372,6 +397,13 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _isc.getType<_ixdzvre4.LiveEvent?>()) {
       return (data != null ? _ixdzvre4.LiveEvent.fromJson(data) : null) as T;
     }
+    if (t == _isc.getType<_i39mlunu.LobbyRoom?>()) {
+      return (data != null ? _i39mlunu.LobbyRoom.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_idvrexla.LobbySnapshot?>()) {
+      return (data != null ? _idvrexla.LobbySnapshot.fromJson(data) : null)
+          as T;
+    }
     if (t == _isc.getType<_ib6s6ke7.EnumProfileUpdateError?>()) {
       return (data != null
               ? _ib6s6ke7.EnumProfileUpdateError.fromJson(data)
@@ -394,6 +426,18 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _isc.getType<_i8na2re5.EloHistory?>()) {
       return (data != null ? _i8na2re5.EloHistory.fromJson(data) : null) as T;
     }
+    if (t == _isc.getType<_ialq3a2v.EnumReviewError?>()) {
+      return (data != null ? _ialq3a2v.EnumReviewError.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_i0n08bga.MoveExplanation?>()) {
+      return (data != null ? _i0n08bga.MoveExplanation.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_i7k2kt7u.ReviewException?>()) {
+      return (data != null ? _i7k2kt7u.ReviewException.fromJson(data) : null)
+          as T;
+    }
     if (t == List<int>) {
       return (data as List).map((e) => deserialize<int>(e)).toList() as T;
     }
@@ -401,6 +445,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
       return (data != null
               ? (data as List).map((e) => deserialize<int>(e)).toList()
               : null)
+          as T;
+    }
+    if (t == List<_i39mlunu.LobbyRoom>) {
+      return (data as List)
+              .map((e) => deserialize<_i39mlunu.LobbyRoom>(e))
+              .toList()
           as T;
     }
     if (t == List<_ighv8e6n.Bot>) {
@@ -418,6 +468,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
               .map((e) => deserialize<_ihkbd7x6.LeaderboardEntryDto>(e))
               .toList()
           as T;
+    }
+    if (t == List<int>) {
+      return (data as List).map((e) => deserialize<int>(e)).toList() as T;
     }
     try {
       return _iacc.Protocol().deserialize<T>(data, t);
@@ -455,11 +508,16 @@ class Protocol extends _isd.DatabaseSerializationManager {
       _i6lckwy9.LeaderboardEntryDto => 'LeaderboardEntryDto',
       _ikanpab0.EnumLiveEventType => 'EnumLiveEventType',
       _ixdzvre4.LiveEvent => 'LiveEvent',
+      _i39mlunu.LobbyRoom => 'LobbyRoom',
+      _idvrexla.LobbySnapshot => 'LobbySnapshot',
       _ib6s6ke7.EnumProfileUpdateError => 'EnumProfileUpdateError',
       _i1cvnna1.ProfileUpdateException => 'ProfileUpdateException',
       _iytd8mlf.User => 'User',
       _ivqmpbel.UserProfileDto => 'UserProfileDto',
       _i8na2re5.EloHistory => 'EloHistory',
+      _ialq3a2v.EnumReviewError => 'EnumReviewError',
+      _i0n08bga.MoveExplanation => 'MoveExplanation',
+      _i7k2kt7u.ReviewException => 'ReviewException',
       _ => null,
     };
   }
@@ -518,6 +576,10 @@ class Protocol extends _isd.DatabaseSerializationManager {
         return 'EnumLiveEventType';
       case _ixdzvre4.LiveEvent():
         return 'LiveEvent';
+      case _i39mlunu.LobbyRoom():
+        return 'LobbyRoom';
+      case _idvrexla.LobbySnapshot():
+        return 'LobbySnapshot';
       case _ib6s6ke7.EnumProfileUpdateError():
         return 'EnumProfileUpdateError';
       case _i1cvnna1.ProfileUpdateException():
@@ -528,6 +590,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
         return 'UserProfileDto';
       case _i8na2re5.EloHistory():
         return 'EloHistory';
+      case _ialq3a2v.EnumReviewError():
+        return 'EnumReviewError';
+      case _i0n08bga.MoveExplanation():
+        return 'MoveExplanation';
+      case _i7k2kt7u.ReviewException():
+        return 'ReviewException';
     }
     className = _iacc.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -622,6 +690,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (dataClassName == 'LiveEvent') {
       return deserialize<_ixdzvre4.LiveEvent>(data['data']);
     }
+    if (dataClassName == 'LobbyRoom') {
+      return deserialize<_i39mlunu.LobbyRoom>(data['data']);
+    }
+    if (dataClassName == 'LobbySnapshot') {
+      return deserialize<_idvrexla.LobbySnapshot>(data['data']);
+    }
     if (dataClassName == 'EnumProfileUpdateError') {
       return deserialize<_ib6s6ke7.EnumProfileUpdateError>(data['data']);
     }
@@ -636,6 +710,15 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (dataClassName == 'EloHistory') {
       return deserialize<_i8na2re5.EloHistory>(data['data']);
+    }
+    if (dataClassName == 'EnumReviewError') {
+      return deserialize<_ialq3a2v.EnumReviewError>(data['data']);
+    }
+    if (dataClassName == 'MoveExplanation') {
+      return deserialize<_i0n08bga.MoveExplanation>(data['data']);
+    }
+    if (dataClassName == 'ReviewException') {
+      return deserialize<_i7k2kt7u.ReviewException>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
