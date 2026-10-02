@@ -366,7 +366,7 @@ Critères d'acceptation :
 
 Tickets :
 - [x] T14.2.1 — UI écran "Revue de partie" (navigation coup par coup, reconstruction du plateau) — `owner:A`
-- [ ] T14.2.2 — Réexécution du modèle Expert local sur chaque position historique pour obtenir le coup recommandé (réutilise T5.1.3) — `owner:B`
+- [x] T14.2.2 — Réexécution du modèle Expert local sur chaque position historique pour obtenir le coup recommandé (réutilise T5.1.3) — `owner:B`
 - [x] T14.2.3 — Endpoint Serverpod pour récupérer la séquence de coups d'une partie donnée (extension de `getMatchHistory`) — `owner:B` `area:backend`
 
 ### US14.3 — En tant que joueur, je veux obtenir une explication en langage naturel de pourquoi le coup recommandé était préférable, afin de mieux comprendre la stratégie du jeu.
@@ -378,10 +378,10 @@ Critères d'acceptation :
 - Message d'erreur clair si le service Ollama est indisponible/en timeout (pas de blocage de l'écran de revue).
 
 Tickets :
-- [ ] T14.3.1 — Endpoint Serverpod `explainMove` (appel Ollama cloud côté serveur) — `owner:B` `area:backend`
-- [ ] T14.3.2 — Modèle `.spy.yaml` de cache des explications (clé : idPartie + index coup) + logique "cache hit avant appel LLM" — `owner:B` `area:backend`
-- [ ] T14.3.3 — UI bouton "Expliquer ce coup" + affichage du texte + gestion des erreurs/timeout — `owner:A`
-- [ ] T14.3.4 — Configuration sécurisée de la clé API Ollama (variable d'environnement serveur, jamais commitée) — `owner:A` `area:infra`
+- [x] T14.3.1 — Endpoint Serverpod `explainMove` (appel Ollama cloud côté serveur) — `owner:B` `area:backend`
+- [x] T14.3.2 — Modèle `.spy.yaml` de cache des explications (clé : idPartie + index coup) + logique "cache hit avant appel LLM" — `owner:B` `area:backend`
+- [x] T14.3.3 — UI bouton "Expliquer ce coup" + affichage du texte + gestion des erreurs/timeout — `owner:A`
+- [x] T14.3.4 — Configuration sécurisée de la clé API Ollama (variable d'environnement serveur, jamais commitée) — `owner:A` `area:infra`
 
 ---
 
