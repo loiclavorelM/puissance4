@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../../core/utils/initials.dart';
 import '../../../core/widgets/coming_soon_tab.dart';
+import '../../profile/view/profile_avatar.dart';
 import '../viewmodel/leaderboard_viewmodel.dart';
 
 /// Onglet "Classement" (E8) — reprend `maquette-5.png` : toggle
@@ -154,7 +154,7 @@ class _LeaderboardBody extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (podium.isNotEmpty) _Podium(entries: podium),
+        if (podium.isNotEmpty) _Podium(entries: podium, myId: myRank.id),
         const SizedBox(height: 20),
         Expanded(
           child: rest.isEmpty && !isPinned
@@ -168,13 +168,16 @@ class _LeaderboardBody extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 20),
                   children: [
                     for (final entry in rest) ...[
-                      _LeaderboardTile(entry: entry),
+                      _LeaderboardTile(
+                        entry: entry,
+                        isMe: entry.id == myRank.id,
+                      ),
                       const SizedBox(height: 12),
                     ],
                     if (isPinned) ...[
                       const _PinnedSeparator(),
                       const SizedBox(height: 12),
-                      _LeaderboardTile(entry: myRank, pinned: true),
+                      _LeaderboardTile(entry: myRank, isMe: true),
                     ],
                   ],
                 ),
@@ -185,9 +188,12 @@ class _LeaderboardBody extends StatelessWidget {
 }
 
 class _Podium extends StatelessWidget {
-  const _Podium({required this.entries});
+  const _Podium({required this.entries, required this.myId});
 
   final List<LeaderboardEntryDto> entries;
+
+  /// `User.id` du joueur courant, mis en évidence s'il est sur le podium.
+  final UuidValue myId;
 
   @override
   Widget build(BuildContext context) {
@@ -201,19 +207,32 @@ class _Podium extends StatelessWidget {
         Expanded(
           child: second == null
               ? const SizedBox()
-              : _PodiumSlot(entry: second, size: 60),
+              : _PodiumSlot(
+                  entry: second,
+                  size: 60,
+                  isMe: second.id == myId,
+                ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: first == null
               ? const SizedBox()
-              : _PodiumSlot(entry: first, size: 80, isFirst: true),
+              : _PodiumSlot(
+                  entry: first,
+                  size: 80,
+                  isFirst: true,
+                  isMe: first.id == myId,
+                ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: third == null
               ? const SizedBox()
-              : _PodiumSlot(entry: third, size: 60),
+              : _PodiumSlot(
+                  entry: third,
+                  size: 60,
+                  isMe: third.id == myId,
+                ),
         ),
       ],
     );
@@ -225,15 +244,21 @@ class _PodiumSlot extends StatelessWidget {
     required this.entry,
     required this.size,
     this.isFirst = false,
+    this.isMe = false,
   });
 
   final LeaderboardEntryDto entry;
   final double size;
   final bool isFirst;
+  final bool isMe;
 
   @override
   Widget build(BuildContext context) {
-    final accent = isFirst ? AppColors.yellow : Colors.white24;
+    final accent = isMe
+        ? AppColors.primary
+        : isFirst
+        ? AppColors.yellow
+        : Colors.white24;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -242,32 +267,24 @@ class _PodiumSlot extends StatelessWidget {
           const SizedBox(height: 4),
         ],
         Container(
-          width: size,
-          height: size,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.card,
-            border: Border.all(color: accent, width: isFirst ? 3 : 2),
+            border: Border.all(color: accent, width: isFirst || isMe ? 3 : 2),
           ),
-          child: Center(
-            child: Text(
-              initialsOf(entry.username),
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: isFirst ? 20 : 16,
-              ),
-            ),
+          child: ProfileAvatar(
+            username: entry.username,
+            thumbnailUrl: entry.thumbnailUrl,
+            radius: size / 2,
           ),
         ),
         const SizedBox(height: 8),
         Text(
-          entry.username,
+          isMe ? 'Toi · ${entry.username}' : entry.username,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: isMe ? AppColors.primary : Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 13,
           ),
@@ -286,10 +303,13 @@ class _PodiumSlot extends StatelessWidget {
 }
 
 class _LeaderboardTile extends StatelessWidget {
-  const _LeaderboardTile({required this.entry, this.pinned = false});
+  const _LeaderboardTile({required this.entry, this.isMe = false});
 
   final LeaderboardEntryDto entry;
-  final bool pinned;
+
+  /// Ligne du joueur courant : encadrée et marquée « Toi », qu'elle soit
+  /// dans la liste ou épinglée sous la page chargée.
+  final bool isMe;
 
   @override
   Widget build(BuildContext context) {
@@ -298,7 +318,7 @@ class _LeaderboardTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
-        border: pinned ? Border.all(color: AppColors.primary, width: 2) : null,
+        border: isMe ? Border.all(color: AppColors.primary, width: 2) : null,
       ),
       child: Row(
         children: [
@@ -307,33 +327,26 @@ class _LeaderboardTile extends StatelessWidget {
             child: Text(
               '${entry.rank}',
               style: TextStyle(
-                color: pinned ? AppColors.primary : Colors.white54,
+                color: isMe ? AppColors.primary : Colors.white54,
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
               ),
             ),
           ),
           const SizedBox(width: 10),
-          CircleAvatar(
+          ProfileAvatar(
+            username: entry.username,
+            thumbnailUrl: entry.thumbnailUrl,
             radius: 20,
-            backgroundColor: AppColors.fieldFill,
-            child: Text(
-              initialsOf(entry.username),
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-              ),
-            ),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Text(
-              pinned ? 'Toi · ${entry.username}' : entry.username,
+              isMe ? 'Toi · ${entry.username}' : entry.username,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: pinned ? AppColors.primary : Colors.white,
+                color: isMe ? AppColors.primary : Colors.white,
                 fontWeight: FontWeight.bold,
                 fontSize: 15,
               ),
@@ -342,7 +355,7 @@ class _LeaderboardTile extends StatelessWidget {
           Text(
             '${entry.elo}',
             style: TextStyle(
-              color: pinned ? AppColors.primary : AppColors.yellow,
+              color: isMe ? AppColors.primary : AppColors.yellow,
               fontWeight: FontWeight.bold,
               fontSize: 14,
             ),

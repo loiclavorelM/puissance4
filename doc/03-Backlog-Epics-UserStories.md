@@ -265,8 +265,8 @@ Critères d'acceptation :
 - Classement par Elo, avec photo de profil, position du joueur courant mise en évidence.
 
 Tickets :
-- [ ] T8.1.1 — Endpoint `getLeaderboard` (pagination) — `owner:B` `area:backend`
-- [ ] T8.1.2 — UI écran Classement (podium + liste) — `owner:A`
+- [x] T8.1.1 — Endpoint `getLeaderboard` (pagination) — `owner:B` `area:backend`
+- [x] T8.1.2 — UI écran Classement (podium + liste) — `owner:A`
 
 ---
 
