@@ -153,10 +153,18 @@ ne conditionnent pas la validation du cours si le temps venait à manquer.
 
 \subsection{Profil utilisateur --- Caméra}
 \begin{itemize}[leftmargin=1.5em]
-  \item Prise de photo de profil via la caméra du téléphone, à l'inscription ou
-        depuis les paramètres.
-  \item Stockage de l'image côté Serverpod (fichiers), affichée dans le profil et le
-        classement.
+  \item Prise de photo de profil via la caméra du téléphone (ou choix dans la
+        galerie, seule option sur le web), depuis \og Modifier le profil \fg{}.
+  \item L'application recadre la photo au centre en un carré de
+        256$\times$256~px (JPEG, quelques dizaines de Ko) avant l'envoi. Le
+        serveur ne lui fait pas confiance : il la vérifie (JPEG ou PNG,
+        512~Ko et 1024~px au plus) et la réencode, ce qui retire aussi les
+        métadonnées (position GPS).
+  \item Stockage de l'image côté Serverpod (stockage de fichiers \og public \fg{},
+        sous un nom neuf à chaque envoi), exposée par une URL publique et
+        affichée dans le profil, l'écran d'accueil, le classement et le
+        lobby Multijoueur ; les initiales du pseudo la remplacent si elle
+        manque.
 \end{itemize}
 
 \subsection{Mode de jeu --- 1 vs 1 contre un bot IA}

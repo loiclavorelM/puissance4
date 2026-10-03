@@ -962,11 +962,65 @@ abstract class AppLocalizations {
   /// **'C\'est ta propre salle : partage le code à un ami.'**
   String get ownRoom;
 
-  /// No description provided for @photoSoon.
+  /// No description provided for @photoChange.
   ///
   /// In fr, this message translates to:
-  /// **'Photo de profil — bientôt disponible'**
-  String get photoSoon;
+  /// **'Changer la photo'**
+  String get photoChange;
+
+  /// No description provided for @photoChoose.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir dans la galerie'**
+  String get photoChoose;
+
+  /// No description provided for @photoInvalid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce fichier n\'est pas une image lisible.'**
+  String get photoInvalid;
+
+  /// No description provided for @photoNeedsServer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connexion au serveur requise pour changer la photo'**
+  String get photoNeedsServer;
+
+  /// No description provided for @photoPickFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'ouvrir la caméra ou la galerie.'**
+  String get photoPickFailed;
+
+  /// No description provided for @photoRemove.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer la photo'**
+  String get photoRemove;
+
+  /// No description provided for @photoRemoved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photo de profil supprimée.'**
+  String get photoRemoved;
+
+  /// No description provided for @photoTake.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prendre une photo'**
+  String get photoTake;
+
+  /// No description provided for @photoTooLarge.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette image est trop grande.'**
+  String get photoTooLarge;
+
+  /// No description provided for @photoUpdated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photo de profil mise à jour.'**
+  String get photoUpdated;
 
   /// No description provided for @player1.
   ///

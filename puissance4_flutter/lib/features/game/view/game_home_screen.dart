@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../../core/utils/initials.dart';
 import '../../auth/viewmodel/auth_viewmodel.dart';
 import '../../bot/view/normal_mode_screen.dart';
 import '../../multiplayer/view/multiplayer_screen.dart';
@@ -14,6 +13,7 @@ import '../model/game_launch.dart';
 import '../viewmodel/game_home_viewmodel.dart';
 import 'game_screen.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../profile/view/profile_avatar.dart';
 
 /// Écran "Jouer" (onglet par défaut) — reprend `maquette-2.png` : résumé du
 /// profil, stats, et les modes de jeu : Normal (bot sur le téléphone, E5),
@@ -53,16 +53,10 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
         children: [
           Row(
             children: [
-              CircleAvatar(
+              ProfileAvatar(
+                username: state.username,
+                thumbnailUrl: state.thumbnailUrl,
                 radius: 26,
-                backgroundColor: AppColors.card,
-                child: Text(
-                  initialsOf(state.username),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
               ),
               const SizedBox(width: 12),
               Expanded(

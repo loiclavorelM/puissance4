@@ -38,6 +38,8 @@ multiplayer:
 profile:
   - getMyProfile:
   - updateUsername:
+  - uploadProfilePhoto:
+  - removeProfilePhoto:
 ranked:
   - startRanked:
 review:

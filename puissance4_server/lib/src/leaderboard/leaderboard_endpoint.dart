@@ -3,6 +3,7 @@ import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart';
 
 import '../generated/protocol.dart';
 import '../live/live_notifier.dart';
+import '../profile/profile_photo.dart';
 
 /// Classement par Elo (E8) — uniquement des `User`, jamais de `Bot` (son
 /// `elo` ne sert qu'au matchmaking de difficulté, cf. plan Classement).
@@ -43,6 +44,10 @@ class LeaderboardEndpoint extends Endpoint {
       offset: offset,
     );
 
+    final photoUrls = await ProfilePhoto.urls(
+      session,
+      users.map((u) => u.thumbnailPath),
+    );
     return users
         .asMap()
         .entries
@@ -51,7 +56,7 @@ class LeaderboardEndpoint extends Endpoint {
             id: entry.value.id!,
             rank: offset + entry.key + 1,
             username: entry.value.username,
-            thumbnailUrl: entry.value.thumbnailPath,
+            thumbnailUrl: photoUrls[entry.value.thumbnailPath],
             elo: entry.value.elo,
           ),
         )
@@ -80,7 +85,7 @@ class LeaderboardEndpoint extends Endpoint {
       id: user.id!,
       rank: higherRanked + 1,
       username: user.username,
-      thumbnailUrl: user.thumbnailPath,
+      thumbnailUrl: await ProfilePhoto.url(session, user.thumbnailPath),
       elo: user.elo,
     );
   }

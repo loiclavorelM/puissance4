@@ -91,13 +91,14 @@ Tickets :
 
 ### US2.1 — En tant que joueur, je veux prendre une photo de profil, afin qu'elle apparaisse dans mon profil et le classement.
 Critères d'acceptation :
-- Prise de photo via la caméra (permission gérée).
-- Photo affichée dans le profil et le leaderboard.
+- Prise de photo via la caméra (permission gérée), ou choix dans la galerie ; suppression possible.
+- Photo recadrée au centre en carré de 256×256 px (JPEG) avant l'envoi ; le serveur la vérifie et la réencode (JPEG/PNG seulement, 512 Ko et 1024 px au plus, métadonnées retirées).
+- Photo affichée dans le profil, l'en-tête Jouer, le classement et le lobby Multi (URL publique du stockage Serverpod) ; initiales si elle manque ou ne charge pas.
 
 Tickets :
-- [ ] T2.1.1 — Écran profil + bouton "changer la photo" — `owner:A`
-- [ ] T2.1.2 — Intégration caméra (`camera`/`image_picker`) + gestion permissions — `owner:A`
-- [ ] T2.1.3 — Endpoint Serverpod `updateProfilePhoto` (upload + stockage fichier) — `owner:B` `area:backend`
+- [x] T2.1.1 — Écran profil + bouton "changer la photo" — `owner:A`
+- [x] T2.1.2 — Intégration caméra (`camera`/`image_picker`) + gestion permissions — `owner:A`
+- [x] T2.1.3 — Endpoint Serverpod `updateProfilePhoto` (upload + stockage fichier) — `owner:B` `area:backend` *(réalisé : `uploadProfilePhoto` / `removeProfilePhoto`)*
 
 ---
 

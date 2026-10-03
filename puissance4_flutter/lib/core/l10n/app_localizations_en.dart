@@ -474,7 +474,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ownRoom => 'That\'s your own room: share the code with a friend.';
 
   @override
-  String get photoSoon => 'Profile photo — coming soon';
+  String get photoChange => 'Change the photo';
+
+  @override
+  String get photoChoose => 'Choose from the gallery';
+
+  @override
+  String get photoInvalid => 'This file isn\'t a readable image.';
+
+  @override
+  String get photoNeedsServer =>
+      'A server connection is needed to change the photo';
+
+  @override
+  String get photoPickFailed => 'Couldn\'t open the camera or the gallery.';
+
+  @override
+  String get photoRemove => 'Remove the photo';
+
+  @override
+  String get photoRemoved => 'Profile photo removed.';
+
+  @override
+  String get photoTake => 'Take a photo';
+
+  @override
+  String get photoTooLarge => 'This image is too large.';
+
+  @override
+  String get photoUpdated => 'Profile photo updated.';
 
   @override
   String get player1 => 'Player 1';

@@ -480,7 +480,35 @@ class AppLocalizationsFr extends AppLocalizations {
   String get ownRoom => 'C\'est ta propre salle : partage le code à un ami.';
 
   @override
-  String get photoSoon => 'Photo de profil — bientôt disponible';
+  String get photoChange => 'Changer la photo';
+
+  @override
+  String get photoChoose => 'Choisir dans la galerie';
+
+  @override
+  String get photoInvalid => 'Ce fichier n\'est pas une image lisible.';
+
+  @override
+  String get photoNeedsServer =>
+      'Connexion au serveur requise pour changer la photo';
+
+  @override
+  String get photoPickFailed => 'Impossible d\'ouvrir la caméra ou la galerie.';
+
+  @override
+  String get photoRemove => 'Supprimer la photo';
+
+  @override
+  String get photoRemoved => 'Photo de profil supprimée.';
+
+  @override
+  String get photoTake => 'Prendre une photo';
+
+  @override
+  String get photoTooLarge => 'Cette image est trop grande.';
+
+  @override
+  String get photoUpdated => 'Photo de profil mise à jour.';
 
   @override
   String get player1 => 'Joueur 1';

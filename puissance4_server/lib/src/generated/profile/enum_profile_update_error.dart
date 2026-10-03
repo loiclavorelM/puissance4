@@ -14,7 +14,9 @@ import 'package:serverpod/serverpod.dart' as _is;
 
 enum EnumProfileUpdateError implements _is.SerializableModel {
   invalidUsername,
-  usernameTaken;
+  usernameTaken,
+  photoTooLarge,
+  invalidPhoto;
 
   static EnumProfileUpdateError fromJson(String name) {
     switch (name) {
@@ -22,6 +24,10 @@ enum EnumProfileUpdateError implements _is.SerializableModel {
         return EnumProfileUpdateError.invalidUsername;
       case 'usernameTaken':
         return EnumProfileUpdateError.usernameTaken;
+      case 'photoTooLarge':
+        return EnumProfileUpdateError.photoTooLarge;
+      case 'invalidPhoto':
+        return EnumProfileUpdateError.invalidPhoto;
       default:
         throw ArgumentError(
           'Value "$name" cannot be converted to "EnumProfileUpdateError"',

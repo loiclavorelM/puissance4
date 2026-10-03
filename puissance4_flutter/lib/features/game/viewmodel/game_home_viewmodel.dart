@@ -13,9 +13,13 @@ class GameHomeState {
     required this.victoires,
     required this.isProfileLoading,
     required this.hasProfileError,
+    this.thumbnailUrl,
   });
 
   final String username;
+
+  /// Photo de profil (E2), `null` : initiales.
+  final String? thumbnailUrl;
   final int elo;
   final int parties;
   final int victoires;
@@ -47,6 +51,7 @@ final gameHomeViewModelProvider = Provider<GameHomeState>((ref) {
         profile?.username ??
         auth.guestProfile?.username ??
         ref.watch(l10nProvider).defaultPlayerName,
+    thumbnailUrl: profile?.thumbnailUrl,
     elo: profile?.elo ?? 1000,
     parties: profile?.nbParties ?? 0,
     victoires: profile?.nbVictoires ?? 0,
