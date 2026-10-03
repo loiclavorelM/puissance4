@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../sensors/viewmodel/motion_sensors_provider.dart';
 import '../../sensors/viewmodel/shake_provider.dart';
 import '../../review/view/move_review_card.dart';
 import '../model/color_mapping.dart';
@@ -130,8 +131,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   Widget build(BuildContext context) {
     final snapshot = ref.watch(gameViewModelProvider(widget.launch));
     final replayControls = _viewModel.replay;
-    // Le capteur n'est écouté que pour une partie recommençable.
-    if (_viewModel.canRestart) {
+    // Le capteur n'est écouté que pour une partie recommençable, sur un
+    // téléphone.
+    final shakeEnabled =
+        _viewModel.canRestart && ref.watch(motionSensorsProvider);
+    if (shakeEnabled) {
       ref.listen(shakeProvider, (_, shake) {
         if (shake is AsyncData) _onShake();
       });
@@ -280,7 +284,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     }
     if (!snapshot.isLive) return const [];
     return [
-      if (_viewModel.canRestart)
+      // Indication de secousse : seulement là où on lit l'accéléromètre.
+      if (_viewModel.canRestart && ref.watch(motionSensorsProvider))
         const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

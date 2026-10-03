@@ -304,6 +304,7 @@ Critères d'acceptation :
 - À plat, l'écran Jouer affiche le mode **Face à face** ; il disparaît quand on relève le téléphone. Sinon, une indication invite à poser le téléphone.
 - Partie à deux humains sur l'appareil (moteur local), sans réseau ni compte, sans enregistrement ni Elo ; une partie commencée continue même si on relève le téléphone.
 - Recommençable comme une partie Normale (secousse, « Nouvelle partie »).
+- Sans capteurs de mouvement (web, ordinateur) : Face à face toujours proposé, et pas d'indication « Secoue le téléphone… » (affichée seulement sur Android/iOS).
 
 Tickets :
 - [x] T10.2.1 — Détection "posé à plat" (`FlatDetector`, `isFlatProvider`) — `owner:A`

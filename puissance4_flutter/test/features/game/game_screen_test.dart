@@ -12,6 +12,7 @@ import 'package:puissance4_flutter/features/game/view/game_screen.dart';
 import 'package:puissance4_flutter/features/game/view/widgets/connect4_board_view.dart';
 import 'package:puissance4_flutter/features/game/view/widgets/replay_bar.dart';
 import 'package:puissance4_flutter/features/review/model/move_advisor.dart';
+import 'package:puissance4_flutter/features/sensors/viewmodel/motion_sensors_provider.dart';
 import 'package:puissance4_flutter/features/sensors/viewmodel/shake_provider.dart';
 import 'package:puissance4_rules/puissance4_rules.dart';
 
@@ -62,6 +63,7 @@ void main() {
     GameLaunch launch, {
     Size size = const Size(1080, 2340),
     double pixelRatio = 3,
+    bool sensors = true,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = pixelRatio;
@@ -70,6 +72,7 @@ void main() {
       ProviderScope(
         overrides: [
           accelerationProvider.overrideWithValue(accelerometer.stream),
+          motionSensorsProvider.overrideWithValue(sensors),
         ],
         child: MaterialApp(home: GameScreen(launch: launch)),
       ),
@@ -231,6 +234,19 @@ void main() {
 
       expect(find.text('Partie 1'), findsOneWidget);
       expect(find.text('Nouvelle partie !'), findsOneWidget);
+    });
+
+    testWidgets('without motion sensors (web) there is no shake hint', (
+      tester,
+    ) async {
+      await pump(tester, normal('Partie 0'), sensors: false);
+
+      expect(
+        find.text('Secoue le téléphone pour arrêter la partie'),
+        findsNothing,
+      );
+      expect(find.text('Abandonner'), findsOneWidget);
+      expect(accelerometer.hasListener, isFalse);
     });
 
     testWidgets('a game without restart ignores shakes', (tester) async {

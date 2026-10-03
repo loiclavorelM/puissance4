@@ -9,6 +9,7 @@ import '../../bot/view/normal_mode_screen.dart';
 import '../../multiplayer/view/multiplayer_screen.dart';
 import '../../ranked/view/ranked_screen.dart';
 import '../../sensors/viewmodel/flat_provider.dart';
+import '../../sensors/viewmodel/motion_sensors_provider.dart';
 import '../model/game_launch.dart';
 import '../viewmodel/game_home_viewmodel.dart';
 import 'game_screen.dart';
@@ -18,7 +19,8 @@ import 'game_screen.dart';
 /// Classé (bot joué par le serveur, compte pour l'Elo) et Multijoueur (E7) —
 /// ces deux derniers réservés à une session serveur. Posé à plat, le
 /// téléphone fait apparaître « Face à face » (E10) : deux joueurs autour de
-/// la table, sur l'appareil.
+/// la table, sur l'appareil. Sans capteurs de mouvement (web, ordinateur),
+/// ce mode est toujours proposé.
 class GameHomeScreen extends ConsumerStatefulWidget {
   const GameHomeScreen({super.key, required this.onOpenSettings});
 
@@ -39,7 +41,9 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
     final isAuthenticated =
         ref.watch(authViewModelProvider).status ==
         AuthStatus.serverAuthenticated;
-    final isFlat = ref.watch(isFlatProvider).valueOrNull ?? false;
+    final showFaceToFace =
+        !ref.watch(motionSensorsProvider) ||
+        (ref.watch(isFlatProvider).valueOrNull ?? false);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
@@ -181,7 +185,7 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
               opacity: animation,
               child: SizeTransition(sizeFactor: animation, child: child),
             ),
-            child: isFlat
+            child: showFaceToFace
                 ? _ModeCard(
                     key: const ValueKey('face-a-face'),
                     icon: Icons.table_restaurant,

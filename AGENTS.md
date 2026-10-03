@@ -10,7 +10,7 @@ Puissance 4 (Connect Four) with four game modes, all rendered by **one** game sc
 - **Normal** — vs a bot running on the phone, playable offline. Stored in `OfflineMatchResult` (`database: sync`, serverpod_offline_sync). No Elo.
 - **Classé** — vs a bot played **by the server** (`RankedEndpoint`), which validates every move; Elo (K = 32) updated at the end with an `EloHistory` row.
 - **Multijoueur** — 1v1 via a 6-char room code (`MultiplayerEndpoint`), real time over Serverpod streams. No Elo.
-- **Face à face** — two players on the same phone (`GameLaunch.faceToFace`, two `HumanSeat`s). Only offered on the Jouer screen while the phone lies flat (`isFlatProvider`). Offline, not recorded, no Elo.
+- **Face à face** — two players on the same phone (`GameLaunch.faceToFace`, two `HumanSeat`s). Only offered on the Jouer screen while the phone lies flat (`isFlatProvider`); always offered without motion sensors (web, desktop — `motionSensorsProvider`). Offline, not recorded, no Elo.
 - **Replay** of any finished game from the history (moves are stored for every mode).
 
 Key pieces:

@@ -7,6 +7,7 @@ import 'package:puissance4_flutter/features/auth/viewmodel/auth_viewmodel.dart';
 import 'package:puissance4_flutter/features/game/view/game_home_screen.dart';
 import 'package:puissance4_flutter/features/game/viewmodel/game_home_viewmodel.dart';
 import 'package:puissance4_flutter/features/sensors/viewmodel/flat_provider.dart';
+import 'package:puissance4_flutter/features/sensors/viewmodel/motion_sensors_provider.dart';
 
 class _GuestAuth extends AuthViewModel {
   @override
@@ -27,7 +28,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> pump(WidgetTester tester) async {
+  Future<void> pump(WidgetTester tester, {bool sensors = true}) async {
     tester.view.physicalSize = const Size(1080, 2340);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
@@ -35,6 +36,7 @@ void main() {
       ProviderScope(
         overrides: [
           gravityProvider.overrideWithValue(accelerometer.stream),
+          motionSensorsProvider.overrideWithValue(sensors),
           authViewModelProvider.overrideWith(_GuestAuth.new),
           gameHomeViewModelProvider.overrideWithValue(
             const GameHomeState(
@@ -85,5 +87,18 @@ void main() {
 
     expect(find.text('À Joueur 1 de jouer'), findsOneWidget);
     expect(find.text('Joueur 2'), findsWidgets);
+  });
+
+  testWidgets('without motion sensors (web) face à face is always there', (
+    tester,
+  ) async {
+    await pump(tester, sensors: false);
+
+    expect(find.text('Face à face'), findsOneWidget);
+    expect(
+      find.text('Pose le téléphone à plat pour jouer à deux'),
+      findsNothing,
+    );
+    expect(accelerometer.hasListener, isFalse);
   });
 }
