@@ -59,7 +59,11 @@ class GameViewModel
   Future<GameLaunch> restart() async {
     final restart = arg.restart;
     if (restart == null) throw StateError('This game cannot be restarted.');
-    if (state.isLive) await _engine.abandon();
+    // Sans attendre que l'abandon soit enregistré : en Normal, sa fin
+    // synchronise la partie avec le serveur, et la nouvelle partie
+    // n'ouvrirait qu'au retour du réseau. La partie close est déjà à jour
+    // (`emit`) et son écriture locale passe avant la création de la suivante.
+    if (state.isLive) unawaited(_engine.abandon());
     return restart(ref);
   }
 

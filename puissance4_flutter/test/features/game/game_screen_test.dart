@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 import 'package:puissance4_flutter/features/game/model/game_launch.dart';
 import 'package:puissance4_flutter/features/game/model/game_participant.dart';
+import 'package:puissance4_flutter/features/game/model/game_snapshot.dart';
 import 'package:puissance4_flutter/features/game/model/local_game_engine.dart';
 import 'package:puissance4_flutter/features/game/view/game_screen.dart';
 import 'package:puissance4_flutter/features/game/view/widgets/connect4_board_view.dart';
@@ -21,6 +22,16 @@ class _InlineAdvisor implements MoveAdvisor {
   @override
   Future<MoveAnalysis> analyze(List<int> moves, int index) async =>
       MoveAnalysis.of(moves, index);
+}
+
+/// Enregistrement qui ne finit jamais (synchro réseau bloquée).
+class _StuckRecorder implements LocalGameRecorder {
+  @override
+  Future<void> onMove(List<int> moves) async {}
+
+  @override
+  Future<void> onEnd(List<int> moves, GameResult result) =>
+      Completer<void>().future;
 }
 
 void main() {
@@ -144,17 +155,19 @@ void main() {
     late int restarts;
 
     /// Normal contre un bot qui joue toujours la colonne 6.
-    GameLaunch normal(String title) => GameLaunch(
-      title: title,
-      createEngine: (_) => LocalGameEngine(
-        rougeSeat: const HumanSeat(),
-        jauneSeat: BotSeat((_) async => 6, thinkingTime: Duration.zero),
-        rouge: const HumanParticipant(username: 'alice'),
-        jaune: const BotParticipant(name: 'Test'),
-        myColor: EnumColor.rouge,
-      ),
-      restart: (_) async => normal('Partie ${++restarts}'),
-    );
+    GameLaunch normal(String title, {LocalGameRecorder? recorder}) =>
+        GameLaunch(
+          title: title,
+          createEngine: (_) => LocalGameEngine(
+            rougeSeat: const HumanSeat(),
+            jauneSeat: BotSeat((_) async => 6, thinkingTime: Duration.zero),
+            rouge: const HumanParticipant(username: 'alice'),
+            jaune: const BotParticipant(name: 'Test'),
+            myColor: EnumColor.rouge,
+            recorder: recorder,
+          ),
+          restart: (_) async => normal('Partie ${++restarts}'),
+        );
 
     setUp(() => restarts = 0);
 
@@ -184,6 +197,20 @@ void main() {
       await shake(tester);
       await tester.tap(find.text('Recommencer'));
       await tester.pumpAndSettle();
+      expect(find.text('Partie 1'), findsOneWidget);
+    });
+
+    testWidgets('restarting does not wait for the forfeit to be saved', (
+      tester,
+    ) async {
+      await pump(tester, normal('Partie 0', recorder: _StuckRecorder()));
+      await tester.tap(find.byType(Connect4BoardView));
+      await tester.pumpAndSettle();
+
+      await shake(tester);
+      await tester.tap(find.text('Recommencer'));
+      await tester.pumpAndSettle();
+
       expect(find.text('Partie 1'), findsOneWidget);
     });
 
