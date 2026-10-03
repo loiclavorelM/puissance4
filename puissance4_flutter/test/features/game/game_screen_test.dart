@@ -16,6 +16,8 @@ import 'package:puissance4_flutter/features/sensors/viewmodel/motion_sensors_pro
 import 'package:puissance4_flutter/features/sensors/viewmodel/shake_provider.dart';
 import 'package:puissance4_rules/puissance4_rules.dart';
 
+import '../../helpers/l10n.dart';
+
 /// Expert sans isolate : `compute` ne se termine pas sous `pumpAndSettle`.
 class _InlineAdvisor implements MoveAdvisor {
   const _InlineAdvisor();
@@ -71,17 +73,18 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          ...l10nOverrides,
           accelerationProvider.overrideWithValue(accelerometer.stream),
           motionSensorsProvider.overrideWithValue(sensors),
         ],
-        child: MaterialApp(home: GameScreen(launch: launch)),
+        child: localizedApp(home: GameScreen(launch: launch)),
       ),
     );
   }
 
   testWidgets('a local game is played by tapping the board', (tester) async {
     final launch = GameLaunch(
-      title: 'Deux joueurs',
+      title: (_) => 'Deux joueurs',
       createEngine: (_) => LocalGameEngine(
         rougeSeat: const HumanSeat(),
         jauneSeat: const HumanSeat(),
@@ -132,7 +135,7 @@ void main() {
   ]) {
     testWidgets('on a $name the whole board fits on screen', (tester) async {
       final launch = GameLaunch(
-        title: 'Normal',
+        title: (_) => 'Normal',
         createEngine: (_) => LocalGameEngine(
           rougeSeat: const HumanSeat(),
           jauneSeat: const HumanSeat(),
@@ -160,7 +163,7 @@ void main() {
     /// Normal contre un bot qui joue toujours la colonne 6.
     GameLaunch normal(String title, {LocalGameRecorder? recorder}) =>
         GameLaunch(
-          title: title,
+          title: (_) => title,
           createEngine: (_) => LocalGameEngine(
             rougeSeat: const HumanSeat(),
             jauneSeat: BotSeat((_) async => 6, thinkingTime: Duration.zero),
@@ -253,7 +256,7 @@ void main() {
       await pump(
         tester,
         GameLaunch(
-          title: 'Classé',
+          title: (_) => 'Classé',
           createEngine: (_) => LocalGameEngine(
             rougeSeat: const HumanSeat(),
             jauneSeat: const HumanSeat(),

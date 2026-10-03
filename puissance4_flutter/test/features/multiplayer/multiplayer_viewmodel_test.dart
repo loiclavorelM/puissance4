@@ -10,6 +10,8 @@ import 'package:puissance4_flutter/features/multiplayer/viewmodel/multiplayer_vi
 
 import '../game/fake_server_game_repository.dart';
 
+import '../../helpers/l10n.dart';
+
 class _FakeLobbyRepository implements MultiplayerRepository {
   final host = StreamController<GameEvent>();
   bool? hostedPublic;
@@ -45,6 +47,7 @@ void main() {
     server = FakeServerGameRepository();
     container = ProviderContainer(
       overrides: [
+        ...l10nOverrides,
         multiplayerRepositoryProvider.overrideWithValue(lobby),
         serverGameRepositoryProvider.overrideWithValue(server),
       ],

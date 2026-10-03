@@ -14,6 +14,7 @@ import '../../offline/viewmodel/offline_sync_provider.dart';
 import '../model/bot_brain.dart';
 import '../model/bot_repository.dart';
 import '../model/normal_game_recorder.dart';
+import '../../settings/viewmodel/locale_provider.dart';
 
 final botRepositoryProvider = Provider<BotRepository>(
   (ref) => BotRepository(ref.watch(localCacheProvider)),
@@ -77,7 +78,7 @@ class NormalModeViewModel extends AutoDisposeNotifier<NormalModeState> {
     } catch (_) {
       state = NormalModeState(
         selectedBot: bot,
-        errorMessage: 'Impossible de créer la partie. Réessaie.',
+        errorMessage: ref.read(l10nProvider).createGameFailedRetry,
       );
       return null;
     }
@@ -95,7 +96,7 @@ Future<GameLaunch> createNormalLaunch(Ref ref, Bot bot) async {
   final home = ref.read(gameHomeViewModelProvider);
   final brain = HeuristicBotBrain.forElo(bot.elo);
   return GameLaunch(
-    title: 'Normal',
+    title: (l10n) => l10n.modeNormal,
     createEngine: (gameRef) => LocalGameEngine(
       rougeSeat: const HumanSeat(),
       jauneSeat: BotSeat(brain.chooseColumn),

@@ -6,6 +6,7 @@ import 'package:puissance4_client/puissance4_client.dart';
 import '../../game/model/game_launch.dart';
 import '../../game/model/server_game_engine.dart';
 import '../../game/viewmodel/game_viewmodel.dart';
+import '../../settings/viewmodel/locale_provider.dart';
 import '../model/multiplayer_repository.dart';
 
 enum LobbyPhase {
@@ -90,7 +91,7 @@ class MultiplayerViewModel extends AutoDisposeNotifier<LobbyState> {
     if (normalized.length != 6) {
       state = LobbyState(
         resumablePartieId: state.resumablePartieId,
-        errorMessage: 'Le code fait 6 caractères.',
+        errorMessage: ref.read(l10nProvider).codeLength,
       );
       return;
     }
@@ -102,7 +103,7 @@ class MultiplayerViewModel extends AutoDisposeNotifier<LobbyState> {
     final repository = ref.read(serverGameRepositoryProvider);
     _launches.add(
       GameLaunch(
-        title: 'Partie en cours',
+        title: (l10n) => l10n.gameInProgressTitle,
         createEngine: (_) => ServerGameEngine.watch(repository, partieId),
       ),
     );
@@ -152,8 +153,8 @@ class MultiplayerViewModel extends AutoDisposeNotifier<LobbyState> {
         );
       case EnumGameEventType.roomClosed:
         _subscription = null;
-        state = const LobbyState(
-          errorMessage: "Salle fermée : personne ne l'a rejointe à temps.",
+        state = LobbyState(
+          errorMessage: ref.read(l10nProvider).roomClosedNobody,
         );
       case EnumGameEventType.gameStarted:
         // Passage de relais : le moteur prend l'abonnement tout de suite,
@@ -167,7 +168,10 @@ class MultiplayerViewModel extends AutoDisposeNotifier<LobbyState> {
         );
         state = const LobbyState();
         _launches.add(
-          GameLaunch(title: 'Multijoueur', createEngine: (_) => engine),
+          GameLaunch(
+            title: (l10n) => l10n.modeMultiplayer,
+            createEngine: (_) => engine,
+          ),
         );
       case EnumGameEventType.moveApplied ||
           EnumGameEventType.gameOver ||
@@ -187,14 +191,14 @@ class MultiplayerViewModel extends AutoDisposeNotifier<LobbyState> {
             ? error.partieId
             : state.resumablePartieId,
         errorMessage: _fromLobby && error.reason == EnumGameError.roomNotFound
-            ? 'Salle déjà prise ou fermée.'
+            ? ref.read(l10nProvider).roomTaken
             : _messageFor(error),
       );
       return;
     }
     state = LobbyState(
       resumablePartieId: state.resumablePartieId,
-      errorMessage: 'Connexion au serveur perdue.',
+      errorMessage: ref.read(l10nProvider).serverConnectionLost,
     );
   }
 
@@ -204,15 +208,17 @@ class MultiplayerViewModel extends AutoDisposeNotifier<LobbyState> {
     _subscription = null;
     state = LobbyState(
       resumablePartieId: state.resumablePartieId,
-      errorMessage: 'Connexion au serveur perdue.',
+      errorMessage: ref.read(l10nProvider).serverConnectionLost,
     );
   }
 
-  static String _messageFor(GameException error) => switch (error.reason) {
-    EnumGameError.roomNotFound => 'Code inconnu ou salle déjà fermée.',
-    EnumGameError.ownRoom =>
-      "C'est ta propre salle : partage le code à un ami.",
-    EnumGameError.alreadyInGame => 'Tu as déjà une partie en cours.',
-    _ => 'Action impossible.',
-  };
+  String _messageFor(GameException error) {
+    final l10n = ref.read(l10nProvider);
+    return switch (error.reason) {
+      EnumGameError.roomNotFound => l10n.roomNotFound,
+      EnumGameError.ownRoom => l10n.ownRoom,
+      EnumGameError.alreadyInGame => l10n.alreadyInGame,
+      _ => l10n.actionImpossible,
+    };
+  }
 }

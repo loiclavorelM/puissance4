@@ -9,6 +9,8 @@ import 'package:puissance4_flutter/features/game/viewmodel/game_home_viewmodel.d
 import 'package:puissance4_flutter/features/sensors/viewmodel/flat_provider.dart';
 import 'package:puissance4_flutter/features/sensors/viewmodel/motion_sensors_provider.dart';
 
+import '../../helpers/l10n.dart';
+
 class _GuestAuth extends AuthViewModel {
   @override
   AuthState build() => const AuthState(status: AuthStatus.localGuest);
@@ -35,6 +37,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          ...l10nOverrides,
           gravityProvider.overrideWithValue(accelerometer.stream),
           motionSensorsProvider.overrideWithValue(sensors),
           authViewModelProvider.overrideWith(_GuestAuth.new),
@@ -49,7 +52,7 @@ void main() {
             ),
           ),
         ],
-        child: MaterialApp(
+        child: localizedApp(
           home: Scaffold(body: GameHomeScreen(onOpenSettings: () {})),
         ),
       ),

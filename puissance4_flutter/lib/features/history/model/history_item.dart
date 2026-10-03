@@ -37,7 +37,7 @@ class HistoryItem {
         id: row.id!.toString(),
         date: row.playedAt,
         mode: EnumType.normal,
-        adversaire: 'Bot ${row.botName}',
+        adversaire: row.botName,
         // Seules les parties terminées sont lues (voir HistoryRepository).
         resultat: row.result!,
         playedAs: row.playedAs,
@@ -48,6 +48,9 @@ class HistoryItem {
   final String id;
   final DateTime date;
   final EnumType mode;
+
+  /// Pseudo de l'adversaire (Multi) ou nom du bot tel que donné par le
+  /// serveur (Normal, Classé) — mis en forme et traduit par la vue.
   final String adversaire;
   final EnumMatchResult resultat;
   final EnumColor playedAs;

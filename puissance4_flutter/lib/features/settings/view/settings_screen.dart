@@ -9,8 +9,9 @@ import '../../profile/view/profile_avatar.dart';
 import '../../profile/viewmodel/profile_provider.dart';
 import '../model/app_preferences.dart';
 import '../viewmodel/preferences_viewmodel.dart';
+import '../../../core/l10n/l10n.dart';
 
-/// "Réglages" (E2/E11) — maquette p.7 : COMPTE (pseudo modifiable),
+/// context.l10n.settings (E2/E11) — maquette p.7 : COMPTE (pseudo modifiable),
 /// PRÉFÉRENCES (langue, thème sombre — mémorisés mais pas encore appliqués),
 /// déconnexion. Pas d'onglet dédié : poussé en route depuis l'icône
 /// engrenage de l'écran Jouer (`_MainShell._openSettings`), d'où le bouton
@@ -34,8 +35,8 @@ class SettingsScreen extends ConsumerWidget {
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
                   ),
                   const SizedBox(width: 4),
-                  const Text(
-                    'Réglages',
+                  Text(
+                    context.l10n.settings,
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -51,15 +52,14 @@ class SettingsScreen extends ConsumerWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
                 children: [
-                  const _SectionTitle('COMPTE'),
+                  _SectionTitle(context.l10n.accountSection),
                   const _AccountCard(),
-                  const _SectionTitle('PRÉFÉRENCES'),
+                  _SectionTitle(context.l10n.preferencesSection),
                   const _PreferencesCard(),
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(top: 8, left: 4),
                     child: Text(
-                      'Traduction et thème clair arrivent bientôt — '
-                      'ton choix est déjà mémorisé.',
+                      context.l10n.lightThemeSoon,
                       style: TextStyle(color: Colors.white38, fontSize: 12),
                     ),
                   ),
@@ -85,15 +85,15 @@ class SettingsScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                    child: const Text(
-                      'Se déconnecter',
+                    child: Text(
+                      context.l10n.signOut,
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Center(
+                  Center(
                     child: Text(
-                      'Puissance 4 RL · v0.1 · Serverpod',
+                      context.l10n.aboutLine,
                       style: TextStyle(color: Colors.white38, fontSize: 12),
                     ),
                   ),
@@ -115,7 +115,9 @@ class _AccountCard extends ConsumerWidget {
     final auth = ref.watch(authViewModelProvider);
     final profile = ref.watch(myProfileProvider).valueOrNull;
     final username =
-        profile?.username ?? auth.guestProfile?.username ?? 'Joueur';
+        profile?.username ??
+        auth.guestProfile?.username ??
+        context.l10n.defaultPlayerName;
     // Invité local : aucun User serveur à modifier (pas d'authUserId).
     final isLocalGuest = auth.status == AuthStatus.localGuest;
 
@@ -144,8 +146,8 @@ class _AccountCard extends ConsumerWidget {
                       ),
                     ),
                     if (isLocalGuest)
-                      const Text(
-                        'Connexion au serveur requise pour modifier',
+                      Text(
+                        context.l10n.editNeedsServer,
                         style: TextStyle(color: Colors.white38, fontSize: 12),
                       ),
                   ],
@@ -163,8 +165,8 @@ class _AccountCard extends ConsumerWidget {
                   foregroundColor: AppColors.primary,
                   disabledForegroundColor: Colors.white24,
                 ),
-                child: const Text(
-                  'Modifier',
+                child: Text(
+                  context.l10n.edit,
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
@@ -222,7 +224,7 @@ class _PreferencesCard extends ConsumerWidget {
     return _Card(
       children: [
         ListTile(
-          title: const Text('Langue', style: _rowTitleStyle),
+          title: Text(context.l10n.language, style: _rowTitleStyle),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -237,7 +239,7 @@ class _PreferencesCard extends ConsumerWidget {
         ),
         const Divider(height: 1, color: AppColors.fieldFill),
         SwitchListTile(
-          title: const Text('Thème sombre', style: _rowTitleStyle),
+          title: Text(context.l10n.darkTheme, style: _rowTitleStyle),
           value: prefs.darkTheme,
           activeThumbColor: Colors.white,
           activeTrackColor: AppColors.primary,

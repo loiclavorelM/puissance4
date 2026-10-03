@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
 import 'profile_provider.dart';
+import '../../settings/viewmodel/locale_provider.dart';
 
 class EditProfileState {
   const EditProfileState({this.isSubmitting = false, this.errorMessage});
@@ -32,8 +33,8 @@ class EditProfileViewModel extends AutoDisposeNotifier<EditProfileState> {
       state = EditProfileState(errorMessage: _messageFor(e.reason));
       return false;
     } catch (_) {
-      state = const EditProfileState(
-        errorMessage: 'Impossible de joindre le serveur. Réessaie plus tard.',
+      state = EditProfileState(
+        errorMessage: ref.read(l10nProvider).serverUnreachableLater,
       );
       return false;
     }
@@ -45,8 +46,11 @@ class EditProfileViewModel extends AutoDisposeNotifier<EditProfileState> {
     return true;
   }
 
-  static String _messageFor(EnumProfileUpdateError reason) => switch (reason) {
-    EnumProfileUpdateError.invalidUsername => 'Ce pseudo n\'est pas valide.',
-    EnumProfileUpdateError.usernameTaken => 'Ce pseudo est déjà pris.',
-  };
+  String _messageFor(EnumProfileUpdateError reason) {
+    final l10n = ref.read(l10nProvider);
+    return switch (reason) {
+      EnumProfileUpdateError.invalidUsername => l10n.usernameInvalid,
+      EnumProfileUpdateError.usernameTaken => l10n.usernameTaken,
+    };
+  }
 }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'client.dart';
+import 'core/l10n/l10n.dart';
 import 'core/theme/app_colors.dart';
 import 'features/auth/view/login_screen.dart';
 import 'features/auth/viewmodel/auth_viewmodel.dart';
@@ -15,6 +17,7 @@ import 'features/offline/model/server_connection_pinger.dart';
 import 'features/offline/model/server_connection_tracker.dart';
 import 'features/offline/viewmodel/offline_sync_provider.dart';
 import 'features/settings/view/settings_screen.dart';
+import 'features/settings/viewmodel/locale_provider.dart';
 
 late final ServerConnectionPinger serverConnectionPinger;
 
@@ -33,13 +36,10 @@ void main() async {
   // "pas de réseau" est déjà évident pour l'utilisateur via le point
   // gris/rouge, pas besoin d'insister dessus).
   serverConnectionTracker.onUnreachableDespiteNetwork.listen((_) {
-    scaffoldMessengerKey.currentState?.showSnackBar(
-      const SnackBar(
-        content: Text(
-          "Vous êtes connecté à internet, mais nos serveurs sont "
-          'injoignables pour le moment.',
-        ),
-      ),
+    final messenger = scaffoldMessengerKey.currentState;
+    if (messenger == null || !messenger.mounted) return;
+    messenger.showSnackBar(
+      SnackBar(content: Text(messenger.context.l10n.serversUnreachable)),
     );
   });
 
@@ -56,26 +56,33 @@ ThemeData _buildTheme(Brightness brightness) {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
       scaffoldMessengerKey: scaffoldMessengerKey,
-      title: 'Serverpod Demo',
+      onGenerateTitle: (context) => context.l10n.appTitle,
+      // Langue choisie dans Réglages, sinon celle de l'appareil (E11).
+      locale: ref.watch(localeProvider),
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       theme: _buildTheme(Brightness.light),
       darkTheme: _buildTheme(Brightness.dark),
       themeMode: ThemeMode.system,
-      home: const MyHomePage(title: 'Serverpod Example'),
+      home: const MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
+  const MyHomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -184,20 +191,20 @@ class _MainShellState extends ConsumerState<_MainShell> {
           backgroundColor: AppColors.card,
           selectedIndex: _selectedIndex,
           onDestinationSelected: _openTab,
-          destinations: const [
+          destinations: [
             NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home),
-              label: 'Jouer',
+              icon: const Icon(Icons.home_outlined),
+              selectedIcon: const Icon(Icons.home),
+              label: context.l10n.tabPlay,
             ),
             NavigationDestination(
-              icon: Icon(Icons.emoji_events_outlined),
-              selectedIcon: Icon(Icons.emoji_events),
-              label: 'Classement',
+              icon: const Icon(Icons.emoji_events_outlined),
+              selectedIcon: const Icon(Icons.emoji_events),
+              label: context.l10n.tabLeaderboard,
             ),
             NavigationDestination(
-              icon: Icon(Icons.history),
-              label: 'Historique',
+              icon: const Icon(Icons.history),
+              label: context.l10n.tabHistory,
             ),
           ],
         ),

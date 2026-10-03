@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../auth/viewmodel/auth_viewmodel.dart';
 import '../../profile/viewmodel/profile_provider.dart';
+import '../../settings/viewmodel/locale_provider.dart';
 
 /// État affiché en tête de l'écran Jouer (maquette "Accueil").
 class GameHomeState {
@@ -42,7 +43,10 @@ final gameHomeViewModelProvider = Provider<GameHomeState>((ref) {
     error: (_, _) => null,
   );
   return GameHomeState(
-    username: profile?.username ?? auth.guestProfile?.username ?? 'Joueur',
+    username:
+        profile?.username ??
+        auth.guestProfile?.username ??
+        ref.watch(l10nProvider).defaultPlayerName,
     elo: profile?.elo ?? 1000,
     parties: profile?.nbParties ?? 0,
     victoires: profile?.nbVictoires ?? 0,

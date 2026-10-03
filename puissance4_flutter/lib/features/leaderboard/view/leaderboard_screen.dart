@@ -6,11 +6,12 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/coming_soon_tab.dart';
 import '../../profile/view/profile_avatar.dart';
 import '../viewmodel/leaderboard_viewmodel.dart';
+import '../../../core/l10n/l10n.dart';
 
-/// Onglet "Classement" (E8) — reprend `maquette-5.png` : toggle
+/// Onglet context.l10n.tabLeaderboard (E8) — reprend `maquette-5.png` : toggle
 /// Global/Amis, podium top 3, liste des rangs 4+, et la ligne du joueur
 /// courant épinglée séparément quand son rang est hors de la page chargée
-/// (voir `leaderboard_viewmodel.dart` et le plan Classement). "Amis" n'a
+/// (voir `leaderboard_viewmodel.dart` et le plan Classement). context.l10n.leaderboardFriends n'a
 /// aucune base dans le backlog : visible mais non fonctionnel, comme les
 /// modes de `GameHomeScreen`.
 class LeaderboardScreen extends ConsumerWidget {
@@ -25,8 +26,8 @@ class LeaderboardScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Classement',
+          Text(
+            context.l10n.tabLeaderboard,
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -46,7 +47,7 @@ class LeaderboardScreen extends ConsumerWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Text(
-                    'Impossible de charger le classement.',
+                    context.l10n.leaderboardLoadError,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       color: AppColors.yellow,
@@ -70,10 +71,14 @@ class _FilterRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _FilterChip(label: 'Global', selected: true, onTap: () {}),
+        _FilterChip(
+          label: context.l10n.leaderboardGlobal,
+          selected: true,
+          onTap: () {},
+        ),
         const SizedBox(width: 10),
         _FilterChip(
-          label: 'Amis',
+          label: context.l10n.leaderboardFriends,
           selected: false,
           onTap: () => showComingSoonSnackBar(context),
         ),
@@ -127,9 +132,9 @@ class _EmptyLeaderboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Text(
-        'Connecte-toi pour voir le classement.',
+        context.l10n.leaderboardSignIn,
         style: TextStyle(color: Colors.white54, fontSize: 13),
       ),
     );
@@ -158,9 +163,9 @@ class _LeaderboardBody extends StatelessWidget {
         const SizedBox(height: 20),
         Expanded(
           child: rest.isEmpty && !isPinned
-              ? const Center(
+              ? Center(
                   child: Text(
-                    "Personne d'autre pour l'instant.",
+                    context.l10n.leaderboardAlone,
                     style: TextStyle(color: Colors.white54, fontSize: 13),
                   ),
                 )
@@ -279,7 +284,7 @@ class _PodiumSlot extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          isMe ? 'Toi · ${entry.username}' : entry.username,
+          isMe ? context.l10n.youAnd(entry.username) : entry.username,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
@@ -342,7 +347,7 @@ class _LeaderboardTile extends StatelessWidget {
           const SizedBox(width: 14),
           Expanded(
             child: Text(
-              isMe ? 'Toi · ${entry.username}' : entry.username,
+              isMe ? context.l10n.youAnd(entry.username) : entry.username,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(

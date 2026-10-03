@@ -30,9 +30,12 @@ dependencies:
   cupertino_icons: ^1.0.5
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   flutter_riverpod: ^2.6.1
   flutter_secure_storage: ^10.0.0
   google_fonts: ^8.1.0
+  intl: any
   path: ^1.9.1
   path_provider: ^2.1.5
   puissance4_client:
@@ -65,6 +68,9 @@ flutter:
   # Flavor utilisée quand `--flavor` n'est pas précisé (Android : `dev` ou
   # `prod`, cf. android/app/build.gradle.kts).
   default-flavor: dev
+
+  # Génère AppLocalizations depuis lib/core/l10n/*.arb (E11, cf. l10n.yaml).
+  generate: true
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

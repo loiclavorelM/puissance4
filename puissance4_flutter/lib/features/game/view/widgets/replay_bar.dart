@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/l10n/l10n.dart';
 import '../../model/game_engine.dart';
 import '../../model/game_snapshot.dart';
 
@@ -14,22 +15,31 @@ class ReplayBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final atStart = position.cursor == 0;
     final atEnd = position.cursor == position.total;
+    final l10n = context.l10n;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _button(Icons.first_page, 'Début', atStart ? null : controls.first),
+        _button(
+          Icons.first_page,
+          l10n.replayFirst,
+          atStart ? null : controls.first,
+        ),
         _button(
           Icons.chevron_left,
-          'Précédent',
+          l10n.replayPrevious,
           atStart ? null : controls.previous,
         ),
         _button(
           position.isPlaying ? Icons.pause : Icons.play_arrow,
-          position.isPlaying ? 'Pause' : 'Lecture',
+          position.isPlaying ? l10n.replayPause : l10n.replayPlay,
           position.total == 0 ? null : controls.togglePlay,
         ),
-        _button(Icons.chevron_right, 'Suivant', atEnd ? null : controls.next),
-        _button(Icons.last_page, 'Fin', atEnd ? null : controls.last),
+        _button(
+          Icons.chevron_right,
+          l10n.replayNext,
+          atEnd ? null : controls.next,
+        ),
+        _button(Icons.last_page, l10n.replayLast, atEnd ? null : controls.last),
       ],
     );
   }

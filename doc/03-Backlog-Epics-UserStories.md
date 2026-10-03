@@ -320,8 +320,8 @@ Critères d'acceptation :
 - Toutes les chaînes de l'UI passent par l10n Flutter (`.arb`), FR + EN.
 
 Tickets :
-- [ ] T11.1.1 — Setup `flutter_localizations` + fichiers `.arb` FR/EN — `owner:A`
-- [ ] T11.1.2 — Extraction de toutes les chaînes en dur vers l10n — `owner:A`/`owner:B`
+- [x] T11.1.1 — Setup `flutter_localizations` + fichiers `.arb` FR/EN — `owner:A` *(`lib/core/l10n/`, français = modèle ; langue de Réglages appliquée, sinon celle de l'appareil)*
+- [x] T11.1.2 — Extraction de toutes les chaînes en dur vers l10n — `owner:A`/`owner:B`
 
 ---
 

@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
+import '../../../core/l10n/l10n.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../game/view/game_screen.dart';
 import '../../game/viewmodel/game_home_viewmodel.dart';
 import '../model/history_item.dart';
 import '../viewmodel/history_viewmodel.dart';
+import '../../bot/view/bot_labels.dart';
 
 /// Onglet "Historique" (E9) — reprend `maquette-6.png` : chips de filtre par
 /// mode au-dessus d'une liste fusionnant `Partie` (Multi/Classé, serveur) et
@@ -25,9 +28,9 @@ class HistoryScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Historique',
-            style: TextStyle(
+          Text(
+            context.l10n.historyTitle,
+            style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
               fontSize: 28,
@@ -44,7 +47,7 @@ class HistoryScreen extends ConsumerWidget {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Text(
-                    "Impossible de charger l'historique.",
+                    context.l10n.historyLoadError,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       color: AppColors.yellow,
@@ -64,22 +67,22 @@ class HistoryScreen extends ConsumerWidget {
 class _FilterRow extends ConsumerWidget {
   const _FilterRow();
 
-  static const _options = <String, EnumType?>{
-    'Tous': null,
-    'Normal': EnumType.normal,
-    'Classé': EnumType.classe,
-    'Multi': EnumType.multi,
-  };
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selected = ref.watch(historyFilterProvider);
+    final l10n = context.l10n;
+    final options = <String, EnumType?>{
+      l10n.filterAll: null,
+      l10n.modeNormal: EnumType.normal,
+      l10n.modeRanked: EnumType.classe,
+      l10n.modeMulti: EnumType.multi,
+    };
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          for (final entry in _options.entries) ...[
+          for (final entry in options.entries) ...[
             _FilterChip(
               label: entry.key,
               selected: selected == entry.value,
@@ -142,10 +145,10 @@ class _HistoryList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (items.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
-          'Aucune partie pour l\'instant.',
-          style: TextStyle(color: Colors.white54, fontSize: 13),
+          context.l10n.historyEmpty,
+          style: const TextStyle(color: Colors.white54, fontSize: 13),
         ),
       );
     }
@@ -167,6 +170,7 @@ class _HistoryTile extends ConsumerWidget {
   Future<void> _openReplay(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
+    final l10n = context.l10n;
     try {
       final launch = await ref
           .read(historyReplayRepositoryProvider)
@@ -175,24 +179,14 @@ class _HistoryTile extends ConsumerWidget {
             myUsername: ref.read(gameHomeViewModelProvider).username,
           );
       if (launch == null) {
-        messenger.showSnackBar(
-          const SnackBar(
-            content: Text(
-              "Les coups de cette partie n'ont pas été enregistrés.",
-            ),
-          ),
-        );
+        messenger.showSnackBar(SnackBar(content: Text(l10n.replayNoMoves)));
         return;
       }
       await navigator.push(
         MaterialPageRoute(builder: (_) => GameScreen(launch: launch)),
       );
     } catch (_) {
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Replay indisponible pour le moment (réseau ?).'),
-        ),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(l10n.replayUnavailable)));
     }
   }
 
@@ -200,7 +194,9 @@ class _HistoryTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final adversaire = item.mode == EnumType.multi
         ? '@${item.adversaire}'
-        : item.adversaire;
+        : context.l10n.botDisplayName(
+            localizedBotName(context.l10n, item.adversaire),
+          );
 
     return Material(
       color: AppColors.card,
@@ -219,7 +215,7 @@ class _HistoryTile extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${_resultLabel(item.resultat)} · $adversaire',
+                      '${_resultLabel(context, item.resultat)} · $adversaire',
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -228,7 +224,8 @@ class _HistoryTile extends ConsumerWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${_modeLabel(item.mode)} · ${_formatRelativeDate(item.date)}',
+                      '${_modeLabel(context, item.mode)} · '
+                      '${_formatRelativeDate(context, item.date)}',
                       style: const TextStyle(
                         color: Colors.white54,
                         fontSize: 12,
@@ -300,49 +297,35 @@ class _Trailing extends StatelessWidget {
   }
 }
 
-String _resultLabel(EnumMatchResult resultat) => switch (resultat) {
-  EnumMatchResult.win => 'Victoire',
-  EnumMatchResult.loss => 'Défaite',
-  EnumMatchResult.draw => 'Match nul',
+String _resultLabel(BuildContext context, EnumMatchResult resultat) =>
+    switch (resultat) {
+      EnumMatchResult.win => context.l10n.resultWin,
+      EnumMatchResult.loss => context.l10n.resultLoss,
+      EnumMatchResult.draw => context.l10n.resultDraw,
+    };
+
+String _modeLabel(BuildContext context, EnumType mode) => switch (mode) {
+  EnumType.normal => context.l10n.modeNormal,
+  EnumType.classe => context.l10n.modeRanked,
+  EnumType.multi => context.l10n.modeMultiplayer,
 };
 
-String _modeLabel(EnumType mode) => switch (mode) {
-  EnumType.normal => 'Normal',
-  EnumType.classe => 'Classé',
-  EnumType.multi => 'Multijoueur',
-};
-
-String _formatRelativeDate(DateTime date) {
+/// « Aujourd'hui, 14:05 », « Hier, … », jour de la semaine sous 7 jours,
+/// sinon la date — mois et jours dans la langue de l'app.
+String _formatRelativeDate(BuildContext context, DateTime date) {
+  final l10n = context.l10n;
+  final locale = Localizations.localeOf(context).toLanguageTag();
   final local = date.toLocal();
   final now = DateTime.now();
   final day = DateTime(local.year, local.month, local.day);
   final today = DateTime(now.year, now.month, now.day);
   final diffDays = today.difference(day).inDays;
-  final time =
-      '${local.hour.toString().padLeft(2, '0')}:'
-      '${local.minute.toString().padLeft(2, '0')}';
+  final time = DateFormat.Hm(locale).format(local);
 
-  if (diffDays == 0) return "Aujourd'hui, $time";
-  if (diffDays == 1) return 'Hier, $time';
-
-  const weekdays = ['Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.', 'Dim.'];
-  const months = [
-    'janv.',
-    'févr.',
-    'mars',
-    'avr.',
-    'mai',
-    'juin',
-    'juil.',
-    'août',
-    'sept.',
-    'oct.',
-    'nov.',
-    'déc.',
-  ];
-  final monthDay = '${local.day} ${months[local.month - 1]}';
+  if (diffDays == 0) return l10n.dateToday(time);
+  if (diffDays == 1) return l10n.dateYesterday(time);
   if (diffDays < 7) {
-    return '${weekdays[local.weekday - 1]} $monthDay, $time';
+    return '${DateFormat.MMMEd(locale).format(local)}, $time';
   }
-  return '$monthDay ${local.year}, $time';
+  return '${DateFormat.yMMMd(locale).format(local)}, $time';
 }

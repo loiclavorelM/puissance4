@@ -5,6 +5,8 @@ import 'package:puissance4_client/puissance4_client.dart';
 import 'package:puissance4_flutter/features/leaderboard/view/leaderboard_screen.dart';
 import 'package:puissance4_flutter/features/leaderboard/viewmodel/leaderboard_viewmodel.dart';
 
+import '../../helpers/l10n.dart';
+
 void main() {
   LeaderboardEntryDto entry(int rank, String username) => LeaderboardEntryDto(
     id: UuidValue.fromString('00000000-0000-4000-8000-00000000000$rank'),
@@ -20,9 +22,10 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          ...l10nOverrides,
           leaderboardProvider.overrideWith((ref) => Stream.value(state)),
         ],
-        child: const MaterialApp(home: Scaffold(body: LeaderboardScreen())),
+        child: localizedApp(home: const Scaffold(body: LeaderboardScreen())),
       ),
     );
     await tester.pumpAndSettle();

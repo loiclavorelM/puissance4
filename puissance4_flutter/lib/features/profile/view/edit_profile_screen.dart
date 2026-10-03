@@ -6,6 +6,7 @@ import '../model/username_rules.dart';
 import '../viewmodel/edit_profile_viewmodel.dart';
 import '../viewmodel/profile_provider.dart';
 import 'profile_avatar.dart';
+import '../../../core/l10n/l10n.dart';
 
 /// "Modifier" du compte (Réglages) — pseudo seulement pour l'instant. Le
 /// badge caméra est réservé à la photo de profil (US2.1 : `image_picker` +
@@ -42,7 +43,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     if (!saved || !mounted) return;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text('Pseudo mis à jour.')));
+    ).showSnackBar(SnackBar(content: Text(context.l10n.usernameUpdated)));
     Navigator.of(context).pop();
   }
 
@@ -56,7 +57,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.background,
         foregroundColor: Colors.white,
-        title: const Text('Modifier le profil'),
+        title: Text(context.l10n.editProfileTitle),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -81,7 +82,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         right: 0,
                         bottom: 0,
                         child: Tooltip(
-                          message: 'Photo de profil — bientôt disponible',
+                          message: context.l10n.photoSoon,
                           child: CircleAvatar(
                             radius: 16,
                             backgroundColor: AppColors.card,
@@ -97,8 +98,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
-                const Text(
-                  'PSEUDO',
+                Text(
+                  context.l10n.usernameLabel,
                   style: TextStyle(
                     color: Colors.white60,
                     fontWeight: FontWeight.bold,
@@ -114,7 +115,17 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   autocorrect: false,
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _submit(),
-                  validator: (value) => validateUsername(value ?? ''),
+                  validator: (value) => switch (checkUsername(value ?? '')) {
+                    null => null,
+                    UsernameProblem.tooShort => context.l10n.usernameTooShort(
+                      usernameMinLength,
+                    ),
+                    UsernameProblem.tooLong => context.l10n.usernameTooLong(
+                      usernameMaxLength,
+                    ),
+                    UsernameProblem.invalidCharacters =>
+                      context.l10n.usernameInvalidChars,
+                  },
                   style: const TextStyle(color: Colors.white),
                   cursorColor: AppColors.primary,
                   decoration: InputDecoration(
@@ -154,8 +165,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                             color: Colors.white,
                           ),
                         )
-                      : const Text(
-                          'Enregistrer',
+                      : Text(
+                          context.l10n.save,
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                 ),
