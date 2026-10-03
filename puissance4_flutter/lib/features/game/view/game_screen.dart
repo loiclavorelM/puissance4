@@ -75,7 +75,15 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     if (_stopping) return;
     _stopping = true;
     try {
-      if (await _confirmStop(context, forfeit: _viewModel.stopForfeits) &&
+      final snapshot = ref.read(gameViewModelProvider(widget.launch));
+      final message = snapshot.myColor == null
+          // Deux joueurs sur l'appareil : c'est le joueur au trait qui
+          // abandonne (cf. `LocalGameEngine.abandon`).
+          ? 'Le joueur dont c\'est le tour perdra la partie.'
+          : _viewModel.stopForfeits
+          ? 'Tu as déjà joué : elle comptera comme une défaite.'
+          : "Tu n'as pas encore joué : elle sera simplement annulée.";
+      if (await _confirmStop(context, message: message) &&
           mounted &&
           ref.read(gameViewModelProvider(widget.launch)).isLive) {
         // Sans attendre l'enregistrement (synchro réseau en Normal) :
@@ -308,17 +316,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   static Future<bool> _confirmStop(
     BuildContext context, {
-    required bool forfeit,
+    required String message,
   }) async =>
       await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Arrêter la partie ?'),
-          content: Text(
-            forfeit
-                ? 'Tu as déjà joué : elle comptera comme une défaite.'
-                : "Tu n'as pas encore joué : elle sera simplement annulée.",
-          ),
+          content: Text(message),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),

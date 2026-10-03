@@ -8,12 +8,17 @@ import '../../auth/viewmodel/auth_viewmodel.dart';
 import '../../bot/view/normal_mode_screen.dart';
 import '../../multiplayer/view/multiplayer_screen.dart';
 import '../../ranked/view/ranked_screen.dart';
+import '../../sensors/viewmodel/flat_provider.dart';
+import '../model/game_launch.dart';
 import '../viewmodel/game_home_viewmodel.dart';
+import 'game_screen.dart';
 
 /// Écran "Jouer" (onglet par défaut) — reprend `maquette-2.png` : résumé du
 /// profil, stats, et les modes de jeu : Normal (bot sur le téléphone, E5),
 /// Classé (bot joué par le serveur, compte pour l'Elo) et Multijoueur (E7) —
-/// ces deux derniers réservés à une session serveur.
+/// ces deux derniers réservés à une session serveur. Posé à plat, le
+/// téléphone fait apparaître « Face à face » (E10) : deux joueurs autour de
+/// la table, sur l'appareil.
 class GameHomeScreen extends ConsumerStatefulWidget {
   const GameHomeScreen({super.key, required this.onOpenSettings});
 
@@ -34,6 +39,7 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
     final isAuthenticated =
         ref.watch(authViewModelProvider).status ==
         AuthStatus.serverAuthenticated;
+    final isFlat = ref.watch(isFlatProvider).valueOrNull ?? false;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
@@ -168,6 +174,52 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
               const MultiplayerScreen(),
             ),
           ),
+          const SizedBox(height: 12),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: SizeTransition(sizeFactor: animation, child: child),
+            ),
+            child: isFlat
+                ? _ModeCard(
+                    key: const ValueKey('face-a-face'),
+                    icon: Icons.table_restaurant,
+                    color: AppColors.blue,
+                    title: 'Face à face',
+                    subtitle: 'À deux sur ce téléphone, posé sur la table',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            GameScreen(launch: GameLaunch.faceToFace()),
+                      ),
+                    ),
+                  )
+                : const Padding(
+                    key: ValueKey('face-a-face-hint'),
+                    padding: EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.table_restaurant,
+                          color: Colors.white38,
+                          size: 16,
+                        ),
+                        SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            'Pose le téléphone à plat pour jouer à deux',
+                            style: TextStyle(
+                              color: Colors.white38,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+          ),
         ],
       ),
     );
@@ -235,6 +287,7 @@ class _StatTile extends StatelessWidget {
 
 class _ModeCard extends StatelessWidget {
   const _ModeCard({
+    super.key,
     required this.icon,
     required this.color,
     required this.title,

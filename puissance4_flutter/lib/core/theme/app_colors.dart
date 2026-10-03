@@ -9,4 +9,5 @@ abstract final class AppColors {
   static const primary = Color(0xFFC0392B); // rouge — Normal
   static const yellow = Color(0xFFFFD500); // Classé / ELO
   static const green = Color(0xFF34D399); // Multijoueur / Victoires
+  static const blue = Color(0xFF60A5FA); // Face à face (deux joueurs, local)
 }

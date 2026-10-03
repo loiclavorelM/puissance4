@@ -4,6 +4,7 @@ import 'package:puissance4_client/puissance4_client.dart';
 import '../../review/model/move_advisor.dart';
 import 'game_engine.dart';
 import 'game_participant.dart';
+import 'local_game_engine.dart';
 import 'game_snapshot.dart';
 import 'replay_game_engine.dart';
 
@@ -16,6 +17,20 @@ class GameLaunch {
     required this.createEngine,
     this.restart,
   });
+
+  /// Face à face (E10) : deux joueurs sur le même téléphone, posé à plat
+  /// entre eux. Tout se joue sur l'appareil — ni réseau, ni enregistrement,
+  /// ni Elo. Recommençable (secousse, « Nouvelle partie »).
+  factory GameLaunch.faceToFace() => GameLaunch(
+    title: 'Face à face',
+    createEngine: (_) => LocalGameEngine(
+      rougeSeat: const HumanSeat(),
+      jauneSeat: const HumanSeat(),
+      rouge: const HumanParticipant(username: 'Joueur 1'),
+      jaune: const HumanParticipant(username: 'Joueur 2'),
+    ),
+    restart: (_) async => GameLaunch.faceToFace(),
+  );
 
   /// Replay d'une partie terminée (historique, ou "Revoir la partie"),
   /// avec l'avis de l'Expert sur chaque coup.

@@ -296,15 +296,18 @@ Tickets :
 - [x] T10.1.1 — Intégration capteur accéléromètre + détection de secousse — `owner:B`
 - [x] T10.1.2 — Câblage reset conditionnel selon le mode de jeu — `owner:B`
 
-### US10.2 — En tant que joueur, je veux que la partie se mette en pause automatiquement si je pose le téléphone à plat, afin de ne pas perdre le fil si je suis interrompu.
+### US10.2 — En tant que joueurs réunis autour d'une table, nous voulons qu'un mode « Face à face » apparaisse quand le téléphone est posé à plat, afin de jouer à deux sur le même appareil.
+*(Remplace la pause automatique « posé à plat » prévue initialement.)*
+
 Critères d'acceptation :
-- Détection "posé à plat" → pause automatique.
-- Actif uniquement en mode Normal et Ligue (contre un bot) — **pas de pause en
-  Multijoueur** (partie en direct, pas de mécanisme de pause côté serveur).
+- Détection "posé à plat" (accéléromètre, gravité comprise) : inclinaison sous 10° pendant 0,7 s ; n'est plus à plat au-delà de 20° (pas de clignotement).
+- À plat, l'écran Jouer affiche le mode **Face à face** ; il disparaît quand on relève le téléphone. Sinon, une indication invite à poser le téléphone.
+- Partie à deux humains sur l'appareil (moteur local), sans réseau ni compte, sans enregistrement ni Elo ; une partie commencée continue même si on relève le téléphone.
+- Recommençable comme une partie Normale (secousse, « Nouvelle partie »).
 
 Tickets :
-- [ ] T10.2.1 — Détection "posé à plat" (accéléromètre/gyroscope) — `owner:A`
-- [ ] T10.2.2 — Câblage pause automatique, désactivé en mode Multijoueur — `owner:B`
+- [x] T10.2.1 — Détection "posé à plat" (`FlatDetector`, `isFlatProvider`) — `owner:A`
+- [x] T10.2.2 — Mode Face à face sur l'écran Jouer (`GameLaunch.faceToFace`) — `owner:B`
 
 ---
 

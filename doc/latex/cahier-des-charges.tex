@@ -210,14 +210,19 @@ ne conditionnent pas la validation du cours si le temps venait à manquer.
         un abandon --- même règle que le bouton \og Abandonner \fg{}, pour
         qu'on ne puisse pas effacer une défaite en secouant le téléphone ;
         sinon elle est simplement annulée.
-  \item \textbf{Détection ``posé à plat''} (accéléromètre / gyroscope) : lorsque le
-        téléphone est posé à plat pendant une partie, l'application la met
-        automatiquement \textbf{en pause}. Actif uniquement en mode \textbf{Normal}
-        --- \textbf{pas de pause en Classé ni en Multijoueur} : ces parties sont
-        jouées par le serveur, qui impose un délai par coup (pas de mécanisme de
-        pause côté serveur). C'est ce comportement
-        réactif, sans action explicite de l'utilisateur, qui rend l'application
-        \textit{context-aware}.
+  \item \textbf{Détection ``posé à plat''} (accéléromètre) : lorsque le
+        téléphone est posé à plat sur une table, l'écran d'accueil fait
+        apparaître un mode supplémentaire, \textbf{Face à face} : deux joueurs
+        assis autour de la table jouent à tour de rôle sur le même téléphone
+        (règles sur l'appareil, sans réseau, sans enregistrement ni Elo). Le
+        mode disparaît quand on relève le téléphone ; une partie commencée
+        continue. L'inclinaison doit rester sous 10° pendant 0,7~s pour
+        compter comme \og à plat \fg{}, et dépasser 20° pour ne plus l'être,
+        afin que le mode n'apparaisse pas quand on tient simplement le
+        téléphone à l'horizontale. C'est ce comportement réactif, sans action
+        explicite de l'utilisateur, qui rend l'application
+        \textit{context-aware}. \textit{(Remplace la mise en pause automatique
+        envisagée initialement.)}
 \end{itemize}
 
 \subsection{Classement --- Leaderboard}
@@ -568,7 +573,7 @@ implémenté est commun à tous les modes et au replay.}
         l'écran de complétion de profil (choix du username).
   \item Photo de profil (caméra + stockage Serverpod).
   \item Leaderboard et écran d'historique (consommation des endpoints Serverpod).
-  \item Détection ``posé à plat'' $\rightarrow$ mise en pause automatique.
+  \item Détection ``posé à plat'' $\rightarrow$ mode Face à face.
   \item Pipeline CI/CD (lint, tests, build APK, déploiement du serveur Serverpod).
 \end{itemize}
 
@@ -591,8 +596,8 @@ implémenté est commun à tous les modes et au replay.}
 
 \begin{itemize}[leftmargin=1.5em]
   \item \textbf{Context-aware / capteurs} : caméra (photo de profil) + accéléromètre
-        (reset par secousse, détection ``posé à plat'' $\rightarrow$ pause
-        automatique) --- au moins deux capteurs, dont un comportement réellement
+        (secousse pour arrêter ou relancer une partie, détection ``posé à
+        plat'' $\rightarrow$ mode Face à face) --- au moins deux capteurs, dont un comportement réellement
         adaptatif au contexte physique.
   \item \textbf{Originalité} : modèle de RL entraîné hors-app et exécuté en
         inférence embarquée (edge AI), matchmaking Elo adaptatif avec bot joué par
