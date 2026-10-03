@@ -70,33 +70,10 @@ class NormalModeViewModel extends AutoDisposeNotifier<NormalModeState> {
     if (bot == null || state.isStarting) return null;
     state = NormalModeState(selectedBot: bot, isStarting: true);
 
-    // Le joueur commence toujours, en rouge, contre un bot.
-    const userColor = EnumColor.rouge;
     try {
-      final repository = ref.read(offlineGameRepositoryProvider);
-      final partieId = await repository.createGame(
-        bot: bot,
-        playedAs: userColor,
-      );
-      final home = ref.read(gameHomeViewModelProvider);
+      final launch = await createNormalLaunch(ref, bot);
       state = NormalModeState(selectedBot: bot);
-      final brain = HeuristicBotBrain.forElo(bot.elo);
-      return GameLaunch(
-        title: 'Normal',
-        createEngine: (gameRef) => LocalGameEngine(
-          rougeSeat: const HumanSeat(),
-          jauneSeat: BotSeat(brain.chooseColumn),
-          rouge: HumanParticipant(username: home.username, elo: home.elo),
-          jaune: BotParticipant.fromBot(bot),
-          myColor: userColor,
-          recorder: NormalGameRecorder(
-            repository,
-            partieId,
-            userColor,
-            onFinished: () => gameRef.invalidate(offlineHistoryProvider),
-          ),
-        ),
-      );
+      return launch;
     } catch (_) {
       state = NormalModeState(
         selectedBot: bot,
@@ -105,4 +82,33 @@ class NormalModeViewModel extends AutoDisposeNotifier<NormalModeState> {
       return null;
     }
   }
+}
+
+/// Crée une partie Normal contre [bot] dans la base locale synchronisée et
+/// renvoie de quoi l'ouvrir. Lève si la partie n'a pas pu être créée.
+/// Recommençable (secousse, E10) : la suivante se crée de la même façon.
+Future<GameLaunch> createNormalLaunch(Ref ref, Bot bot) async {
+  // Le joueur commence toujours, en rouge, contre un bot.
+  const userColor = EnumColor.rouge;
+  final repository = ref.read(offlineGameRepositoryProvider);
+  final partieId = await repository.createGame(bot: bot, playedAs: userColor);
+  final home = ref.read(gameHomeViewModelProvider);
+  final brain = HeuristicBotBrain.forElo(bot.elo);
+  return GameLaunch(
+    title: 'Normal',
+    createEngine: (gameRef) => LocalGameEngine(
+      rougeSeat: const HumanSeat(),
+      jauneSeat: BotSeat(brain.chooseColumn),
+      rouge: HumanParticipant(username: home.username, elo: home.elo),
+      jaune: BotParticipant.fromBot(bot),
+      myColor: userColor,
+      recorder: NormalGameRecorder(
+        repository,
+        partieId,
+        userColor,
+        onFinished: () => gameRef.invalidate(offlineHistoryProvider),
+      ),
+    ),
+    restart: (restartRef) => createNormalLaunch(restartRef, bot),
+  );
 }

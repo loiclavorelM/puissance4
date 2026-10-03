@@ -39,6 +39,7 @@ dependencies:
     path: ../puissance4_client
   puissance4_rules:
     path: ../puissance4_rules
+  sensors_plus: ^7.1.1
   serverpod_auth_idp_flutter: 4.0.0
   serverpod_client: 4.0.0
   serverpod_flutter: 4.0.0

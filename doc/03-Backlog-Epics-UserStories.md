@@ -205,7 +205,7 @@ Tickets :
 
 ---
 
-## E7 — Multijoueur en ligne & classement Elo `[optionnel]`
+## E7 — Multijoueur en ligne `[optionnel]`
 `area:backend` `area:frontend` `priority:optional`
 
 ### US7.1 — En tant que joueur, je veux créer une partie et partager un code, afin qu'un ami me rejoigne.
@@ -226,14 +226,20 @@ Tickets :
 - [x] T7.2.2 — UI "Rejoindre une partie" + branchement du plateau sur le stream — `owner:B`
 - [x] T7.2.3 — Gestion déconnexion/abandon d'un joueur (y compris perte de connexion de son propre côté — pas de pause possible en Multijoueur, cf. E10) — `owner:B` `area:backend`
 
-### US7.3 — En tant que joueur, je veux que mon Elo soit mis à jour après une partie multijoueur, afin que mon classement reflète mon niveau face à d'autres humains.
-Critères d'acceptation :
+### US7.3 — En tant que joueur, je veux que mon Elo soit mis à jour après une partie multijoueur, afin que mon classement reflète mon niveau face à d'autres humains. *(abandonnée)*
+
+**Abandonnée** : le Multijoueur ne modifie pas l'Elo (cahier des charges,
+§ Multijoueur et § Système Elo). Entre deux humains, l'Elo se truque
+facilement — deux amis, ou un joueur avec deux comptes, se font gagner des
+points en perdant exprès. L'Elo est porté par le mode Classé (E6), joué
+contre un bot **par le serveur**, qui ne peut pas être truqué. Critères
+d'origine, conservés pour l'historique :
 - L'Elo des deux joueurs est recalculé à la fin de chaque partie multijoueur (victoire/défaite/nul).
 - Reprend le principe de `US0.3` : si un résultat multijoueur a été enregistré hors-ligne (perte de connexion en cours de partie), le recalcul reste un traitement serveur séquentiel, trié par horodatage.
 
 Tickets :
-- [x] T7.3.1 — Calcul Elo (formule + K-factor) côté serveur — `owner:B` `area:backend`
-- [ ] T7.3.2 — Câblage du recalcul Elo à la fin d'une partie multijoueur (`joinOnlineMatch`/fin de stream) — `owner:B` `area:backend`
+- [x] T7.3.1 — Calcul Elo (formule + K-factor) côté serveur — `owner:B` `area:backend` *(sert au Classé, E6 — `ranked/elo.dart`)*
+- [ ] ~~T7.3.2 — Câblage du recalcul Elo à la fin d'une partie multijoueur (`joinOnlineMatch`/fin de stream)~~ — **abandonné** (cf. ci-dessus) — `owner:B` `area:backend`
 
 ### US7.4 — En tant que joueur, je veux voir dans l'écran Multijoueur un lobby listant les salles ouvertes, afin de rejoindre une partie sans avoir reçu de code.
 Critères d'acceptation :
@@ -259,8 +265,8 @@ Critères d'acceptation :
 - Classement par Elo, avec photo de profil, position du joueur courant mise en évidence.
 
 Tickets :
-- [ ] T8.1.1 — Endpoint `getLeaderboard` (pagination) — `owner:B` `area:backend`
-- [ ] T8.1.2 — UI écran Classement (podium + liste) — `owner:A`
+- [x] T8.1.1 — Endpoint `getLeaderboard` (pagination) — `owner:B` `area:backend`
+- [x] T8.1.2 — UI écran Classement (podium + liste) — `owner:A`
 
 ---
 
@@ -273,8 +279,8 @@ Critères d'acceptation :
 
 Tickets :
 - [x] T9.1.1 — Enregistrement systématique du résultat en fin de partie (tous modes) — `owner:B` `area:backend`
-- [ ] T9.1.2 — Endpoint `getMatchHistory` (pagination + filtre par mode) — `owner:B` `area:backend`
-- [ ] T9.1.3 — UI écran Historique (filtres, liste) — `owner:A`
+- [x] T9.1.2 — Endpoint `getMatchHistory` (pagination + filtre par mode) — `owner:B` `area:backend` *(réalisé sous le nom `HistoryEndpoint.getListHistories` ; Multi/Classé seulement, les parties Normales sont lues côté client depuis la base synchronisée)*
+- [x] T9.1.3 — UI écran Historique (filtres, liste) — `owner:A`
 
 ---
 
@@ -287,8 +293,8 @@ Critères d'acceptation :
 - Désactivé en Ligue et Multijoueur.
 
 Tickets :
-- [ ] T10.1.1 — Intégration capteur accéléromètre + détection de secousse — `owner:B`
-- [ ] T10.1.2 — Câblage reset conditionnel selon le mode de jeu — `owner:B`
+- [x] T10.1.1 — Intégration capteur accéléromètre + détection de secousse — `owner:B`
+- [x] T10.1.2 — Câblage reset conditionnel selon le mode de jeu — `owner:B`
 
 ### US10.2 — En tant que joueur, je veux que la partie se mette en pause automatiquement si je pose le téléphone à plat, afin de ne pas perdre le fil si je suis interrompu.
 Critères d'acceptation :
@@ -386,10 +392,11 @@ Tickets :
 ---
 
 ## Récapitulatif
-14 epics actifs (E6 retiré, sa mécanique d'Elo est reprise dans E7 — cf. plus
-haut), 27 user stories, 76 tickets. E0 (mode invité local), E7 (multijoueur
-en ligne, qui porte maintenant tout le système d'Elo) et E14 (revue de
-partie post-match avec IA) sont marqués `[optionnel]` : socle du cours
+15 epics, 28 user stories (dont US7.3 abandonnée), 79 tickets. Tout le
+système d'Elo est porté par E6 (mode Classé contre un bot joué par le
+serveur) ; le Multijoueur (E7) ne modifie pas l'Elo. E0 (mode invité local),
+E7 (multijoueur en ligne) et E14 (revue de partie post-match avec IA) sont
+marqués `[optionnel]` : socle du cours
 d'abord (E1-E5, E8-E9, E11-E13), extensions ensuite (E0, E7, E14) pour la
 candidature au Serverpod Hackathon. Chaque ticket ci-dessus sera créé comme
 une issue GitHub individuelle (titre = ID + résumé, description = critère
