@@ -21,8 +21,10 @@ import 'widgets/replay_bar.dart';
 /// que le `GameSnapshot` du moteur fourni par [launch] et lui transmet les
 /// colonnes touchées : ce qui diffère d'un mode à l'autre (qui choisit la
 /// colonne adverse, chrono, contrôles de replay) vient du moteur. Une partie
-/// recommençable (`GameLaunch.restart` : Normal) se relance en secouant le
-/// téléphone (E10).
+/// recommençable (`GameLaunch.restart` : Normal) réagit à la secousse du
+/// téléphone (E10) : en cours de partie, elle propose de l'arrêter (puis
+/// l'écran de fin laisse le choix : nouvelle partie, revoir, retour) ; une
+/// fois la partie finie, elle en lance une nouvelle.
 class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key, required this.launch});
 
@@ -35,6 +37,7 @@ class GameScreen extends ConsumerStatefulWidget {
 class _GameScreenState extends ConsumerState<GameScreen> {
   StreamSubscription<String>? _notices;
   var _restarting = false;
+  var _stopping = false;
 
   GameViewModel get _viewModel =>
       ref.read(gameViewModelProvider(widget.launch).notifier);
@@ -56,16 +59,40 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     super.dispose();
   }
 
-  /// Nouvelle partie (secousse ou bouton). Si elle compte comme un abandon,
-  /// le joueur confirme d'abord : une secousse involontaire ne doit pas
-  /// coûter une défaite.
+  void _onShake() {
+    final snapshot = ref.read(gameViewModelProvider(widget.launch));
+    if (snapshot.isLive) {
+      unawaited(_stop());
+    } else if (snapshot.isOver) {
+      unawaited(_restart());
+    }
+  }
+
+  /// Arrête la partie en cours après confirmation — une secousse
+  /// involontaire ne doit pas la clore. Elle se termine comme avec
+  /// « Abandonner » et l'écran de fin propose la suite.
+  Future<void> _stop() async {
+    if (_stopping) return;
+    _stopping = true;
+    try {
+      if (await _confirmStop(context, forfeit: _viewModel.stopForfeits) &&
+          mounted &&
+          ref.read(gameViewModelProvider(widget.launch)).isLive) {
+        // Sans attendre l'enregistrement (synchro réseau en Normal) :
+        // l'écran de fin s'affiche tout de suite.
+        unawaited(_viewModel.abandon());
+      }
+    } finally {
+      _stopping = false;
+    }
+  }
+
+  /// Nouvelle partie (bouton de fin de partie, ou secousse une fois la
+  /// partie finie).
   Future<void> _restart() async {
     if (_restarting) return;
     _restarting = true;
     try {
-      if (_viewModel.restartForfeits && !await _confirmRestart(context)) {
-        return;
-      }
       final GameLaunch next;
       try {
         next = await _viewModel.restart();
@@ -98,7 +125,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     // Le capteur n'est écouté que pour une partie recommençable.
     if (_viewModel.canRestart) {
       ref.listen(shakeProvider, (_, shake) {
-        if (shake is AsyncData) unawaited(_restart());
+        if (shake is AsyncData) _onShake();
       });
     }
     final myColor = snapshot.myColor ?? EnumColor.rouge;
@@ -253,7 +280,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             SizedBox(width: 6),
             Flexible(
               child: Text(
-                'Secoue le téléphone pour recommencer',
+                'Secoue le téléphone pour arrêter la partie',
                 style: TextStyle(color: Colors.white38, fontSize: 12),
               ),
             ),
@@ -279,13 +306,18 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     return snapshot.opponentConnected ? 'Adversaire' : 'Déconnecté';
   }
 
-  static Future<bool> _confirmRestart(BuildContext context) async =>
+  static Future<bool> _confirmStop(
+    BuildContext context, {
+    required bool forfeit,
+  }) async =>
       await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Recommencer la partie ?'),
-          content: const Text(
-            'Tu as déjà joué : la partie en cours comptera comme une défaite.',
+          title: const Text('Arrêter la partie ?'),
+          content: Text(
+            forfeit
+                ? 'Tu as déjà joué : elle comptera comme une défaite.'
+                : "Tu n'as pas encore joué : elle sera simplement annulée.",
           ),
           actions: [
             TextButton(
@@ -294,7 +326,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Recommencer'),
+              child: const Text('Arrêter'),
             ),
           ],
         ),

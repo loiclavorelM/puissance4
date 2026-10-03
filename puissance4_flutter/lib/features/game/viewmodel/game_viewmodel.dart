@@ -44,9 +44,9 @@ class GameViewModel
   /// La partie peut être recommencée (Normal, E10 : secousse).
   bool get canRestart => arg.restart != null && !state.isReplay;
 
-  /// Recommencer maintenant compte comme un abandon : la partie est en cours
-  /// et le joueur de cet appareil a déjà joué (même règle que « Abandonner »).
-  bool get restartForfeits {
+  /// Arrêter maintenant compte comme un abandon : la partie est en cours et
+  /// le joueur de cet appareil a déjà joué (même règle que « Abandonner »).
+  bool get stopForfeits {
     final snapshot = state;
     if (!snapshot.isLive) return false;
     final firstOwnMove = snapshot.myColor == EnumColor.jaune ? 1 : 0;

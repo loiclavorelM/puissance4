@@ -171,47 +171,66 @@ void main() {
 
     setUp(() => restarts = 0);
 
-    testWidgets('restarts at once on a shake before any move', (tester) async {
+    testWidgets('a shake asks to stop, then the end screen offers a new game', (
+      tester,
+    ) async {
+      // L'enregistrement de l'abandon ne finit jamais (synchro bloquée) :
+      // ni l'écran de fin ni « Nouvelle partie » ne doivent l'attendre.
+      await pump(tester, normal('Partie 0', recorder: _StuckRecorder()));
+      expect(
+        find.text('Secoue le téléphone pour arrêter la partie'),
+        findsOneWidget,
+      );
+      await tester.tap(find.byType(Connect4BoardView));
+      await tester.pumpAndSettle();
+
+      await shake(tester);
+      expect(find.text('Arrêter la partie ?'), findsOneWidget);
+      expect(
+        find.text('Tu as déjà joué : elle comptera comme une défaite.'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Continuer'));
+      await tester.pumpAndSettle();
+      expect(find.text('Abandonner'), findsOneWidget);
+
+      await shake(tester);
+      await tester.tap(find.text('Arrêter'));
+      await tester.pumpAndSettle();
+      expect(find.text('Partie 0'), findsOneWidget);
+      expect(find.text('Revoir la partie'), findsOneWidget);
+      expect(find.text('Retour'), findsOneWidget);
+
+      await tester.tap(find.text('Nouvelle partie'));
+      await tester.pumpAndSettle();
+      expect(find.text('Partie 1'), findsOneWidget);
+    });
+
+    testWidgets('stopping before any move only cancels the game', (
+      tester,
+    ) async {
       await pump(tester, normal('Partie 0'));
-      expect(find.text('Secoue le téléphone pour recommencer'), findsOneWidget);
+
+      await shake(tester);
+      expect(
+        find.text("Tu n'as pas encore joué : elle sera simplement annulée."),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Arrêter'));
+      await tester.pumpAndSettle();
+      expect(find.text('Nouvelle partie'), findsOneWidget);
+    });
+
+    testWidgets('a shake on the end screen starts a new game', (tester) async {
+      await pump(tester, normal('Partie 0'));
+      await shake(tester);
+      await tester.tap(find.text('Arrêter'));
+      await tester.pumpAndSettle();
 
       await shake(tester);
 
       expect(find.text('Partie 1'), findsOneWidget);
       expect(find.text('Nouvelle partie !'), findsOneWidget);
-    });
-
-    testWidgets('asks first when the restart would count as a loss', (
-      tester,
-    ) async {
-      await pump(tester, normal('Partie 0'));
-      await tester.tap(find.byType(Connect4BoardView));
-      await tester.pumpAndSettle();
-
-      await shake(tester);
-      expect(find.text('Recommencer la partie ?'), findsOneWidget);
-      await tester.tap(find.text('Continuer'));
-      await tester.pumpAndSettle();
-      expect(find.text('Partie 0'), findsOneWidget);
-
-      await shake(tester);
-      await tester.tap(find.text('Recommencer'));
-      await tester.pumpAndSettle();
-      expect(find.text('Partie 1'), findsOneWidget);
-    });
-
-    testWidgets('restarting does not wait for the forfeit to be saved', (
-      tester,
-    ) async {
-      await pump(tester, normal('Partie 0', recorder: _StuckRecorder()));
-      await tester.tap(find.byType(Connect4BoardView));
-      await tester.pumpAndSettle();
-
-      await shake(tester);
-      await tester.tap(find.text('Recommencer'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Partie 1'), findsOneWidget);
     });
 
     testWidgets('a game without restart ignores shakes', (tester) async {
@@ -227,7 +246,10 @@ void main() {
           ),
         ),
       );
-      expect(find.text('Secoue le téléphone pour recommencer'), findsNothing);
+      expect(
+        find.text('Secoue le téléphone pour arrêter la partie'),
+        findsNothing,
+      );
 
       await shake(tester);
       expect(find.text('Classé'), findsOneWidget);
