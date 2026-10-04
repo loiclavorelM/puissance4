@@ -347,6 +347,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Crée un compte pour ne pas perdre ta progression.';
 
   @override
+  String get guestSignOutMessage =>
+      'Tu joues en invité : en te déconnectant, tu perdras ta progression (Elo, parties, historique) sans pouvoir la retrouver.';
+
+  @override
+  String get guestSignOutTitle => 'Se déconnecter ?';
+
+  @override
   String get historyEmpty => 'Aucune partie pour l\'instant.';
 
   @override

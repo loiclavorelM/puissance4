@@ -103,6 +103,8 @@
   "gameWonOnTime": "You win on time!",
   "guestAccount": "Guest account",
   "guestAccountHint": "Create an account so you don't lose your progress.",
+  "guestSignOutMessage": "You are playing as a guest: if you sign out, you will lose your progress (Elo, games, history) for good.",
+  "guestSignOutTitle": "Sign out?",
   "historyEmpty": "No games yet.",
   "historyLoadError": "Couldn't load your history.",
   "historyTitle": "History",
