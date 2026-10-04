@@ -14,8 +14,6 @@
 import 'package:puissance4_server/src/generated/bot/bot.dart' as _iyz5ninx;
 import 'package:puissance4_server/src/generated/history/history_dto.dart'
     as _islja9se;
-import 'package:puissance4_server/src/generated/leaderboard/leaderboard_dto.dart'
-    as _i5549tex;
 import 'package:serverpod/protocol.dart' as _isp;
 import 'package:serverpod/serverpod.dart' as _is;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
@@ -935,12 +933,6 @@ class Protocol extends _is.DatabaseSerializationManager {
     if (t == List<_islja9se.HistoryDto>) {
       return (data as List)
               .map((e) => deserialize<_islja9se.HistoryDto>(e))
-              .toList()
-          as T;
-    }
-    if (t == List<_i5549tex.LeaderboardEntryDto>) {
-      return (data as List)
-              .map((e) => deserialize<_i5549tex.LeaderboardEntryDto>(e))
               .toList()
           as T;
     }

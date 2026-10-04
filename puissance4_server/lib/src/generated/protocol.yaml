@@ -26,20 +26,8 @@ history:
   - getListHistories:
   - getReplay:
   - getHistory:
-leaderboard:
-  - getLeaderboard:
-  - getMyRank:
 live:
   - watchUpdates:
-multiplayer:
-  - hostRoom:
-  - watchLobby:
-  - joinRoom:
-profile:
-  - getMyProfile:
-  - updateUsername:
-  - uploadProfilePhoto:
-  - removeProfilePhoto:
 ranked:
   - startRanked:
 review:

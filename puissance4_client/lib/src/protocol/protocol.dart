@@ -14,8 +14,6 @@
 import 'package:puissance4_client/src/protocol/bot/bot.dart' as _ighv8e6n;
 import 'package:puissance4_client/src/protocol/history/history_dto.dart'
     as _igkkg43x;
-import 'package:puissance4_client/src/protocol/leaderboard/leaderboard_dto.dart'
-    as _ihkbd7x6;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _iacc;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
@@ -460,12 +458,6 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == List<_igkkg43x.HistoryDto>) {
       return (data as List)
               .map((e) => deserialize<_igkkg43x.HistoryDto>(e))
-              .toList()
-          as T;
-    }
-    if (t == List<_ihkbd7x6.LeaderboardEntryDto>) {
-      return (data as List)
-              .map((e) => deserialize<_ihkbd7x6.LeaderboardEntryDto>(e))
               .toList()
           as T;
     }

@@ -332,11 +332,12 @@ Tickets :
 ### US12.1 — En tant qu'équipe, on veut une CI qui lint/teste/build automatiquement, afin d'éviter les régressions.
 Critères d'acceptation :
 - Pipeline GitHub Actions : `flutter analyze`, `flutter test`, build APK sur chaque PR.
+- *Réalisé (`.github/workflows/ci-cd.yml`)* : chaque PR vers `develop`/`production` lance format + `dart analyze --fatal-infos` + code généré et migrations à jour, et les tests règles/serveur/app — statut visible sur la PR. Le build APK (signé) est réservé au push sur `production`, avec le déploiement Serverpod Cloud et la release GitHub de l'APK : c'est l'étape la plus longue et elle a besoin de la clé de signature.
 
 Tickets :
-- [ ] T12.1.1 — Workflow GitHub Actions (analyze + test) — `owner:A`
-- [ ] T12.1.2 — Build APK automatique (artifact sur chaque PR/merge sur main) — `owner:A`
-- [ ] T12.1.3 — (optionnel) Distribution Firebase App Distribution — `owner:A`
+- [x] T12.1.1 — Workflow GitHub Actions (analyze + test) — `owner:A`
+- [x] T12.1.2 — Build APK automatique (artifact sur chaque PR/merge sur main) — `owner:A` *(sur chaque mise en production, artefact + release GitHub)*
+- [x] T12.1.3 — (optionnel) Distribution Firebase App Distribution — `owner:A` *(remplacé par les releases GitHub : l'APK s'installe depuis le téléphone)*
 
 ---
 
