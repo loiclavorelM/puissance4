@@ -11,6 +11,7 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _ida;
+import 'dart:typed_data' as _idt;
 import 'package:http/http.dart' as _i85jenna;
 import 'package:puissance4_client/src/protocol/bot/bot.dart' as _ighv8e6n;
 import 'package:puissance4_client/src/protocol/game/enum_type.dart'
@@ -23,8 +24,14 @@ import 'package:puissance4_client/src/protocol/history/history_dto.dart'
     as _igkkg43x;
 import 'package:puissance4_client/src/protocol/history/replay_dto.dart'
     as _io6ngfmf;
+import 'package:puissance4_client/src/protocol/leaderboard/leaderboard_dto.dart'
+    as _ihkbd7x6;
 import 'package:puissance4_client/src/protocol/live/live_event.dart'
     as _io59k800;
+import 'package:puissance4_client/src/protocol/multiplayer/lobby_snapshot.dart'
+    as _imc99i6z;
+import 'package:puissance4_client/src/protocol/profile/user_profile_dto.dart'
+    as _i5lufru8;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _iacc;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
@@ -438,6 +445,38 @@ class EndpointHistory extends _isc.EndpointRef {
   );
 }
 
+/// Classement par Elo (E8) — uniquement des `User`, jamais de `Bot` (son
+/// `elo` ne sert qu'au matchmaking de difficulté, cf. plan Classement).
+/// {@category Endpoint}
+class EndpointLeaderboard extends _isc.EndpointRef {
+  EndpointLeaderboard(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'leaderboard';
+
+  _ida.Future<List<_ihkbd7x6.LeaderboardEntryDto>> getLeaderboard({
+    required int limit,
+    required int offset,
+  }) => caller.callServerEndpoint<List<_ihkbd7x6.LeaderboardEntryDto>>(
+    'leaderboard',
+    'getLeaderboard',
+    {
+      'limit': limit,
+      'offset': offset,
+    },
+  );
+
+  /// Rang calculé séparément de [getLeaderboard] (pas de vrai départage
+  /// d'ex-aequo, comme la pagination) — permet à l'écran d'afficher la ligne
+  /// du joueur courant même quand elle est hors de la page top-N chargée.
+  _ida.Future<_ihkbd7x6.LeaderboardEntryDto> getMyRank() =>
+      caller.callServerEndpoint<_ihkbd7x6.LeaderboardEntryDto>(
+        'leaderboard',
+        'getMyRank',
+        {},
+      );
+}
+
 /// Mises à jour "temps réel" : un stream (WebSocket) par client connecté qui
 /// reçoit un [LiveEvent] chaque fois que son profil, son historique ou le
 /// Classement change côté serveur — les écritures appellent les helpers de
@@ -457,6 +496,113 @@ class EndpointLive extends _isc.EndpointRef {
         'live',
         'watchUpdates',
         {},
+        {},
+      );
+}
+
+/// Multijoueur en ligne (E7) : salles d'attente. Une salle n'existe que tant
+/// que le stream de son hôte est ouvert ([hostRoom]) ; la `Partie` n'est
+/// créée qu'à l'arrivée de l'adversaire ([joinRoom]). Une fois la partie
+/// commencée, chaque joueur la suit par le même stream (ou par
+/// `GameEndpoint.watchPartie` après une coupure) et joue par
+/// `GameEndpoint.playMove`.
+/// {@category Endpoint}
+class EndpointMultiplayer extends _isc.EndpointRef {
+  EndpointMultiplayer(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'multiplayer';
+
+  /// Ouvre une salle : émet `roomCreated` (avec le code), puis, à l'arrivée
+  /// de l'adversaire, les événements de la partie. Fermer ce stream avant
+  /// ferme la salle ; à expiration il émet `roomClosed` et se termine.
+  /// Une salle [isPublic] apparaît dans le lobby ([watchLobby]) ; sinon elle
+  /// ne se rejoint que par son code.
+  _ida.Stream<_iho1cjz0.GameEvent> hostRoom(bool isPublic) =>
+      caller.callStreamingServerEndpoint<
+        _ida.Stream<_iho1cjz0.GameEvent>,
+        _iho1cjz0.GameEvent
+      >(
+        'multiplayer',
+        'hostRoom',
+        {'isPublic': isPublic},
+        {},
+      );
+
+  /// Salles publiques ouvertes (sauf la sienne) : la liste au départ, puis
+  /// une nouvelle liste à chaque changement. On les rejoint par [joinRoom]
+  /// avec leur code — de deux joueurs qui choisissent la même, un seul
+  /// l'obtient, l'autre reçoit `roomNotFound`.
+  ///
+  /// Pas de générateur `async*` : annulé pendant un `await for`, il ne le
+  /// verrait qu'au changement suivant, et la session resterait ouverte.
+  _ida.Stream<_imc99i6z.LobbySnapshot> watchLobby() =>
+      caller.callStreamingServerEndpoint<
+        _ida.Stream<_imc99i6z.LobbySnapshot>,
+        _imc99i6z.LobbySnapshot
+      >(
+        'multiplayer',
+        'watchLobby',
+        {},
+        {},
+      );
+
+  /// Rejoint la salle [code] : crée la partie et émet ses événements, à
+  /// commencer par `gameStarted`.
+  _ida.Stream<_iho1cjz0.GameEvent> joinRoom(String code) =>
+      caller.callStreamingServerEndpoint<
+        _ida.Stream<_iho1cjz0.GameEvent>,
+        _iho1cjz0.GameEvent
+      >(
+        'multiplayer',
+        'joinRoom',
+        {'code': code},
+        {},
+      );
+}
+
+/// {@category Endpoint}
+class EndpointProfile extends _isc.EndpointRef {
+  EndpointProfile(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'profile';
+
+  _ida.Future<_i5lufru8.UserProfileDto> getMyProfile() =>
+      caller.callServerEndpoint<_i5lufru8.UserProfileDto>(
+        'profile',
+        'getMyProfile',
+        {},
+      );
+
+  /// Change le pseudo du User authentifié (seule modification de profil
+  /// pour l'instant — la photo passera par un endpoint d'upload séparé,
+  /// cf. T2.1.3). Lève [ProfileUpdateException] si [username] ne respecte
+  /// pas [_usernamePattern] ou est déjà pris (insensible à la casse).
+  _ida.Future<_i5lufru8.UserProfileDto> updateUsername(String username) =>
+      caller.callServerEndpoint<_i5lufru8.UserProfileDto>(
+        'profile',
+        'updateUsername',
+        {'username': username},
+      );
+
+  /// Remplace la photo de profil par [photo] (E2, US2.1) : le serveur la
+  /// vérifie et la réencode en miniature carrée (cf. [ProfilePhoto]), puis
+  /// supprime l'ancienne. Lève [ProfileUpdateException] (`photoTooLarge`,
+  /// `invalidPhoto`).
+  _ida.Future<_i5lufru8.UserProfileDto> uploadProfilePhoto(
+    _idt.ByteData photo,
+  ) => caller.callServerEndpoint<_i5lufru8.UserProfileDto>(
+    'profile',
+    'uploadProfilePhoto',
+    {'photo': photo},
+  );
+
+  /// Retire la photo de profil (retour aux initiales).
+  _ida.Future<_i5lufru8.UserProfileDto> removeProfilePhoto() =>
+      caller.callServerEndpoint<_i5lufru8.UserProfileDto>(
+        'profile',
+        'removeProfilePhoto',
         {},
       );
 }
@@ -567,7 +713,10 @@ class Client extends _isc.ServerpodClientShared {
     game = EndpointGame(this);
     greeting = EndpointGreeting(this);
     history = EndpointHistory(this);
+    leaderboard = EndpointLeaderboard(this);
     live = EndpointLive(this);
+    multiplayer = EndpointMultiplayer(this);
+    profile = EndpointProfile(this);
     ranked = EndpointRanked(this);
     review = EndpointReview(this);
     modules = Modules(this);
@@ -589,7 +738,13 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointHistory history;
 
+  late final EndpointLeaderboard leaderboard;
+
   late final EndpointLive live;
+
+  late final EndpointMultiplayer multiplayer;
+
+  late final EndpointProfile profile;
 
   late final EndpointRanked ranked;
 
@@ -607,7 +762,10 @@ class Client extends _isc.ServerpodClientShared {
     'game': game,
     'greeting': greeting,
     'history': history,
+    'leaderboard': leaderboard,
     'live': live,
+    'multiplayer': multiplayer,
+    'profile': profile,
     'ranked': ranked,
     'review': review,
   };

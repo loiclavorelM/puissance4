@@ -10,6 +10,7 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'dart:typed_data' as _idt;
 import 'package:puissance4_server/src/generated/game/enum_type.dart'
     as _ijl03sjm;
 import 'package:serverpod/serverpod.dart' as _is;
@@ -27,7 +28,10 @@ import '../connection/connection_endpoint.dart' as _in8dx5ef;
 import '../game/game_endpoint.dart' as _im5t12sm;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
 import '../history/history_endpoint.dart' as _iqb2o93i;
+import '../leaderboard/leaderboard_endpoint.dart' as _io6aq3ur;
 import '../live/live_endpoint.dart' as _i4k4ewet;
+import '../multiplayer/multiplayer_endpoint.dart' as _iznver3h;
+import '../profile/profile_endpoint.dart' as _i6ky944g;
 import '../ranked/ranked_endpoint.dart' as _iipq9d8b;
 import '../review/review_endpoint.dart' as _iypg8dvf;
 
@@ -83,10 +87,28 @@ class Endpoints extends _is.EndpointDispatch {
           'history',
           null,
         ),
+      'leaderboard': _io6aq3ur.LeaderboardEndpoint()
+        ..initialize(
+          server,
+          'leaderboard',
+          null,
+        ),
       'live': _i4k4ewet.LiveEndpoint()
         ..initialize(
           server,
           'live',
+          null,
+        ),
+      'multiplayer': _iznver3h.MultiplayerEndpoint()
+        ..initialize(
+          server,
+          'multiplayer',
+          null,
+        ),
+      'profile': _i6ky944g.ProfileEndpoint()
+        ..initialize(
+          server,
+          'profile',
           null,
         ),
       'ranked': _iipq9d8b.RankedEndpoint()
@@ -546,6 +568,49 @@ class Endpoints extends _is.EndpointDispatch {
         ),
       },
     );
+    connectors['leaderboard'] = _is.EndpointConnector(
+      name: 'leaderboard',
+      endpoint: endpoints['leaderboard']!,
+      methodConnectors: {
+        'getLeaderboard': _is.MethodConnector(
+          name: 'getLeaderboard',
+          params: {
+            'limit': _is.ParameterDescription(
+              name: 'limit',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'offset': _is.ParameterDescription(
+              name: 'offset',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['leaderboard'] as _io6aq3ur.LeaderboardEndpoint)
+                      .getLeaderboard(
+                        session,
+                        limit: params['limit'],
+                        offset: params['offset'],
+                      ),
+        ),
+        'getMyRank': _is.MethodConnector(
+          name: 'getMyRank',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['leaderboard'] as _io6aq3ur.LeaderboardEndpoint)
+                      .getMyRank(session),
+        ),
+      },
+    );
     connectors['live'] = _is.EndpointConnector(
       name: 'live',
       endpoint: endpoints['live']!,
@@ -563,6 +628,133 @@ class Endpoints extends _is.EndpointDispatch {
               ) => (endpoints['live'] as _i4k4ewet.LiveEndpoint).watchUpdates(
                 session,
               ),
+        ),
+      },
+    );
+    connectors['multiplayer'] = _is.EndpointConnector(
+      name: 'multiplayer',
+      endpoint: endpoints['multiplayer']!,
+      methodConnectors: {
+        'hostRoom': _is.MethodStreamConnector(
+          name: 'hostRoom',
+          params: {
+            'isPublic': _is.ParameterDescription(
+              name: 'isPublic',
+              type: _is.getType<bool>(),
+              nullable: false,
+            ),
+          },
+          streamParams: {},
+          returnType: _is.MethodStreamReturnType.streamType,
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+                Map<String, Stream> streamParams,
+              ) => (endpoints['multiplayer'] as _iznver3h.MultiplayerEndpoint)
+                  .hostRoom(
+                    session,
+                    params['isPublic'],
+                  ),
+        ),
+        'watchLobby': _is.MethodStreamConnector(
+          name: 'watchLobby',
+          params: {},
+          streamParams: {},
+          returnType: _is.MethodStreamReturnType.streamType,
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+                Map<String, Stream> streamParams,
+              ) => (endpoints['multiplayer'] as _iznver3h.MultiplayerEndpoint)
+                  .watchLobby(session),
+        ),
+        'joinRoom': _is.MethodStreamConnector(
+          name: 'joinRoom',
+          params: {
+            'code': _is.ParameterDescription(
+              name: 'code',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          streamParams: {},
+          returnType: _is.MethodStreamReturnType.streamType,
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+                Map<String, Stream> streamParams,
+              ) => (endpoints['multiplayer'] as _iznver3h.MultiplayerEndpoint)
+                  .joinRoom(
+                    session,
+                    params['code'],
+                  ),
+        ),
+      },
+    );
+    connectors['profile'] = _is.EndpointConnector(
+      name: 'profile',
+      endpoint: endpoints['profile']!,
+      methodConnectors: {
+        'getMyProfile': _is.MethodConnector(
+          name: 'getMyProfile',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6ky944g.ProfileEndpoint)
+                  .getMyProfile(session),
+        ),
+        'updateUsername': _is.MethodConnector(
+          name: 'updateUsername',
+          params: {
+            'username': _is.ParameterDescription(
+              name: 'username',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6ky944g.ProfileEndpoint)
+                  .updateUsername(
+                    session,
+                    params['username'],
+                  ),
+        ),
+        'uploadProfilePhoto': _is.MethodConnector(
+          name: 'uploadProfilePhoto',
+          params: {
+            'photo': _is.ParameterDescription(
+              name: 'photo',
+              type: _is.getType<_idt.ByteData>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6ky944g.ProfileEndpoint)
+                  .uploadProfilePhoto(
+                    session,
+                    params['photo'],
+                  ),
+        ),
+        'removeProfilePhoto': _is.MethodConnector(
+          name: 'removeProfilePhoto',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6ky944g.ProfileEndpoint)
+                  .removeProfilePhoto(session),
         ),
       },
     );
