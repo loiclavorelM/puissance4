@@ -3,17 +3,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../../core/utils/initials.dart';
 import '../../auth/viewmodel/auth_viewmodel.dart';
 import '../../bot/view/normal_mode_screen.dart';
 import '../../multiplayer/view/multiplayer_screen.dart';
 import '../../ranked/view/ranked_screen.dart';
+import '../../sensors/viewmodel/flat_provider.dart';
+import '../../sensors/viewmodel/motion_sensors_provider.dart';
+import '../model/game_launch.dart';
 import '../viewmodel/game_home_viewmodel.dart';
+import 'game_screen.dart';
+import '../../../core/l10n/l10n.dart';
+import '../../profile/view/profile_avatar.dart';
 
 /// Écran "Jouer" (onglet par défaut) — reprend `maquette-2.png` : résumé du
 /// profil, stats, et les modes de jeu : Normal (bot sur le téléphone, E5),
 /// Classé (bot joué par le serveur, compte pour l'Elo) et Multijoueur (E7) —
-/// ces deux derniers réservés à une session serveur.
+/// ces deux derniers réservés à une session serveur. Posé à plat, le
+/// téléphone fait apparaître « Face à face » (E10) : deux joueurs autour de
+/// la table, sur l'appareil. Sans capteurs de mouvement (web, ordinateur),
+/// ce mode est toujours proposé.
 class GameHomeScreen extends ConsumerStatefulWidget {
   const GameHomeScreen({super.key, required this.onOpenSettings});
 
@@ -34,6 +42,9 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
     final isAuthenticated =
         ref.watch(authViewModelProvider).status ==
         AuthStatus.serverAuthenticated;
+    final showFaceToFace =
+        !ref.watch(motionSensorsProvider) ||
+        (ref.watch(isFlatProvider).valueOrNull ?? false);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
@@ -42,16 +53,10 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
         children: [
           Row(
             children: [
-              CircleAvatar(
+              ProfileAvatar(
+                username: state.username,
+                thumbnailUrl: state.thumbnailUrl,
                 radius: 26,
-                backgroundColor: AppColors.card,
-                child: Text(
-                  initialsOf(state.username),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -67,7 +72,7 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
                       ),
                     ),
                     Text(
-                      'ELO ${state.elo}',
+                      context.l10n.eloLabel(state.elo),
                       style: const TextStyle(
                         color: AppColors.yellow,
                         fontWeight: FontWeight.bold,
@@ -79,7 +84,7 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
               ),
               IconButton(
                 onPressed: widget.onOpenSettings,
-                tooltip: 'Réglages',
+                tooltip: context.l10n.settings,
                 icon: const Icon(Icons.settings, color: Colors.white),
                 style: IconButton.styleFrom(
                   backgroundColor: AppColors.card,
@@ -92,11 +97,10 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
           ),
           const SizedBox(height: 20),
           if (state.hasProfileError)
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(bottom: 12),
               child: Text(
-                "Impossible de charger tes stats à jour — "
-                "valeurs par défaut affichées.",
+                context.l10n.statsLoadError,
                 style: TextStyle(color: AppColors.yellow, fontSize: 12),
               ),
             ),
@@ -105,7 +109,7 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
               Expanded(
                 child: _StatTile(
                   value: state.isProfileLoading ? '…' : '${state.parties}',
-                  label: 'Parties',
+                  label: context.l10n.statGames,
                   color: Colors.white,
                 ),
               ),
@@ -113,7 +117,7 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
               Expanded(
                 child: _StatTile(
                   value: state.isProfileLoading ? '…' : '${state.victoires}',
-                  label: 'Victoires',
+                  label: context.l10n.statWins,
                   color: AppColors.green,
                 ),
               ),
@@ -121,15 +125,15 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
               Expanded(
                 child: _StatTile(
                   value: state.isProfileLoading ? '…' : '${state.elo}',
-                  label: 'ELO',
+                  label: context.l10n.statElo,
                   color: AppColors.yellow,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 28),
-          const Text(
-            'CHOISIS TON MODE',
+          Text(
+            context.l10n.chooseMode,
             style: TextStyle(
               color: Colors.white54,
               fontSize: 12,
@@ -141,8 +145,8 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
           _ModeCard(
             icon: Icons.lock,
             color: AppColors.primary,
-            title: 'Normal',
-            subtitle: 'Choisis la difficulté du bot',
+            title: context.l10n.modeNormal,
+            subtitle: context.l10n.modeNormalSubtitle,
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const NormalModeScreen()),
             ),
@@ -151,8 +155,8 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
           _ModeCard(
             icon: Icons.emoji_events,
             color: AppColors.yellow,
-            title: 'Classé',
-            subtitle: 'Affronte le bot du serveur, fais monter ton Elo',
+            title: context.l10n.modeRanked,
+            subtitle: context.l10n.modeRankedSubtitle,
             onTap: () =>
                 _openOnline(context, isAuthenticated, const RankedScreen()),
           ),
@@ -160,13 +164,59 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
           _ModeCard(
             icon: Icons.people,
             color: AppColors.green,
-            title: 'Multijoueur',
-            subtitle: 'Défie un ami en 1v1',
+            title: context.l10n.modeMultiplayer,
+            subtitle: context.l10n.modeMultiplayerSubtitle,
             onTap: () => _openOnline(
               context,
               isAuthenticated,
               const MultiplayerScreen(),
             ),
+          ),
+          const SizedBox(height: 12),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: SizeTransition(sizeFactor: animation, child: child),
+            ),
+            child: showFaceToFace
+                ? _ModeCard(
+                    key: const ValueKey('face-a-face'),
+                    icon: Icons.table_restaurant,
+                    color: AppColors.blue,
+                    title: context.l10n.modeFaceToFace,
+                    subtitle: context.l10n.modeFaceToFaceSubtitle,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            GameScreen(launch: GameLaunch.faceToFace()),
+                      ),
+                    ),
+                  )
+                : Padding(
+                    key: ValueKey('face-a-face-hint'),
+                    padding: EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.table_restaurant,
+                          color: Colors.white38,
+                          size: 16,
+                        ),
+                        SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            context.l10n.layFlatHint,
+                            style: TextStyle(
+                              color: Colors.white38,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
           ),
         ],
       ),
@@ -182,8 +232,8 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
   ) {
     if (!isAuthenticated) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Ce mode nécessite une connexion au serveur.'),
+        SnackBar(
+          content: Text(context.l10n.needsServer),
         ),
       );
       return;
@@ -235,6 +285,7 @@ class _StatTile extends StatelessWidget {
 
 class _ModeCard extends StatelessWidget {
   const _ModeCard({
+    super.key,
     required this.icon,
     required this.color,
     required this.title,

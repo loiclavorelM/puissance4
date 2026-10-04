@@ -8,6 +8,7 @@ part '20260919132317234/migration.dart';
 part '20260921083724523-offline_match_result_user_id/migration.dart';
 part '20260921093603438-drop_offline_match_result_user_id/migration.dart';
 part '20260924214800389-offline-normal-game/migration.dart';
+part '20261004161501667/migration.dart';
 
 /// Migration registry for the client-side database.
 class MigrationRegistry {
@@ -18,6 +19,7 @@ class MigrationRegistry {
     _Migration20260921083724523_offline_match_result_user_id(),
     _Migration20260921093603438_drop_offline_match_result_user_id(),
     _Migration20260924214800389_offline_normal_game(),
+    _Migration20261004161501667(),
   ];
 
   /// List of all client-side database migration versions.

@@ -5,11 +5,12 @@ Build for multiple users. Authentication uses Serverpod's **native auth module**
 
 ## The app
 
-Puissance 4 (Connect Four) with three game modes, all rendered by **one** game screen:
+Puissance 4 (Connect Four) with four game modes, all rendered by **one** game screen:
 
 - **Normal** — vs a bot running on the phone, playable offline. Stored in `OfflineMatchResult` (`database: sync`, serverpod_offline_sync). No Elo.
 - **Classé** — vs a bot played **by the server** (`RankedEndpoint`), which validates every move; Elo (K = 32) updated at the end with an `EloHistory` row.
 - **Multijoueur** — 1v1 via a 6-char room code (`MultiplayerEndpoint`), real time over Serverpod streams. No Elo.
+- **Face à face** — two players on the same phone (`GameLaunch.faceToFace`, two `HumanSeat`s). Only offered on the Jouer screen while the phone lies flat (`isFlatProvider`); always offered without motion sensors (web, desktop — `motionSensorsProvider`). Offline, not recorded, no Elo.
 - **Replay** of any finished game from the history (moves are stored for every mode).
 
 Key pieces:
@@ -26,6 +27,7 @@ Follow **MVVM, feature-first**, in both packages — see `doc/03-Backlog-Epics-U
 
 - `puissance4_flutter/lib/features/<feature>/{model,view,viewmodel}` — required folder names for the course. `model` = plain business models/rules **and** repositories (Serverpod client calls, local storage), `view` = widgets, `viewmodel` = Riverpod Notifiers/Providers (state + presentation logic, testable without mounting a widget). No separate `UseCase` class per action, no full Clean Architecture ceremony.
 - `puissance4_server/lib/src/<feature>/` — one endpoint group per feature/epic.
+- **l10n (E11)**: every user-facing text is in `puissance4_flutter/lib/core/l10n/app_fr.arb` (template) and `app_en.arb` — widgets use `context.l10n.key`, viewmodels/engines without a `BuildContext` read `l10nProvider`. Models and engines return codes (enums such as `GameNotice`, `UsernameProblem`), never display text. Server data in French (bot names/descriptions) is translated client-side (`bot_labels.dart`).
 - New feature-specific code must be added inside the matching feature folder, not in global `screens/`, `models/`, `services/` folders. The one exception is `puissance4_flutter/lib/core/` (`theme/`, `widgets/`) for cross-cutting design-system pieces — the color palette (`AppColors`) and small reusable widgets shared across features (e.g. `ComingSoonTab`) — since duplicating those per feature is exactly what a design system exists to avoid.
 
 The user starts the server and Flutter app with `serverpod start`. There is no need to check if the server is running: make the changes and call the `serverpod` MCP tools as needed. If the server is not running, an informative error message will be received from the MCP server. Then STOP and ask the user to start it. NEVER start the server yourself. The Flutter app is started along with it, or can be launched from the MCP tool `spawn_flutter_app`.

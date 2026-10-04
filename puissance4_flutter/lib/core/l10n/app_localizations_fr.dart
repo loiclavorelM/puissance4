@@ -1,0 +1,773 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for French (`fr`).
+class AppLocalizationsFr extends AppLocalizations {
+  AppLocalizationsFr([String locale = 'fr']) : super(locale);
+
+  @override
+  String get abandon => 'Abandonner';
+
+  @override
+  String get abandonMessage =>
+      'Quitter compte comme une défaite (ou une partie annulée si tu n\'as joué aucun coup).';
+
+  @override
+  String get abandonTitle => 'Abandonner la partie ?';
+
+  @override
+  String get aboutLine => 'Puissance 4 RL · v0.1 · Serverpod';
+
+  @override
+  String get accountSection => 'COMPTE';
+
+  @override
+  String get actionImpossible => 'Action impossible.';
+
+  @override
+  String get alreadyInGame => 'Tu as déjà une partie en cours.';
+
+  @override
+  String get appTitle => 'Puissance 4';
+
+  @override
+  String get authAnd => ' et la ';
+
+  @override
+  String get authBackToSignIn => 'Retour à la connexion';
+
+  @override
+  String get authBackToSignUp => 'Retour à l\'inscription';
+
+  @override
+  String get authContinue => 'Continuer';
+
+  @override
+  String get authContinueAsGuest => 'Continuer sans compte';
+
+  @override
+  String get authEmailLabel => 'ADRESSE E-MAIL';
+
+  @override
+  String authError(String error) {
+    return 'Erreur de connexion : $error';
+  }
+
+  @override
+  String get authForgotPassword => 'Mot de passe oublié ?';
+
+  @override
+  String get authHaveAccount => 'Déjà un compte ? ';
+
+  @override
+  String get authNewPasswordLabel => 'NOUVEAU MOT DE PASSE';
+
+  @override
+  String get authNewPasswordTitle => 'Nouveau mot de passe';
+
+  @override
+  String get authNoAccount => 'Pas de compte ? ';
+
+  @override
+  String get authNoProviders =>
+      'Aucun moyen de connexion n\'est configuré sur le serveur.';
+
+  @override
+  String get authOfflineUnavailable =>
+      'Pas de connexion internet : indisponible hors-ligne.';
+
+  @override
+  String get authOr => 'ou';
+
+  @override
+  String get authPasswordLabel => 'MOT DE PASSE';
+
+  @override
+  String get authPrivacyPolicy => 'politique de confidentialité';
+
+  @override
+  String get authRequestReset => 'Envoyer';
+
+  @override
+  String get authResetPassword => 'Réinitialiser';
+
+  @override
+  String get authResetPasswordDescription =>
+      'Saisis ton adresse e-mail pour réinitialiser ton mot de passe.';
+
+  @override
+  String get authResetPasswordTitle => 'Réinitialiser le mot de passe';
+
+  @override
+  String get authSetPasswordTitle => 'Choisir un mot de passe';
+
+  @override
+  String get authSignIn => 'Se connecter';
+
+  @override
+  String get authSignUp => 'S\'inscrire';
+
+  @override
+  String get authSignUpTitle => 'Créer un compte';
+
+  @override
+  String get authTerms => 'conditions d\'utilisation';
+
+  @override
+  String get authTermsIntro => 'J\'ai lu et j\'accepte les ';
+
+  @override
+  String get authTitle => 'Connexion';
+
+  @override
+  String get authVerificationMessage =>
+      'Un e-mail de vérification a été envoyé. Vérifie ta boîte de réception et saisis le code ci-dessous.';
+
+  @override
+  String get authVerify => 'Vérifier';
+
+  @override
+  String get authVerifyAccountTitle => 'Vérifier le compte';
+
+  @override
+  String get authVerifyCodeTitle => 'Vérifier le code';
+
+  @override
+  String get back => 'Retour';
+
+  @override
+  String get bestMove => 'Meilleur coup selon l\'Expert';
+
+  @override
+  String get botBeginner => 'Débutant';
+
+  @override
+  String get botBeginnerDescription => 'Un bot qui débute au Puissance 4.';
+
+  @override
+  String botDisplayName(String name) {
+    return 'Bot $name';
+  }
+
+  @override
+  String get botExpert => 'Expert';
+
+  @override
+  String get botExpertDescription =>
+      'Le bot le plus fort, entraîné par apprentissage par renforcement.';
+
+  @override
+  String get botMedium => 'Medium';
+
+  @override
+  String get botMediumDescription => 'Un bot de niveau intermédiaire.';
+
+  @override
+  String botThinking(String name) {
+    return '$name réfléchit…';
+  }
+
+  @override
+  String get botsLoadError => 'Impossible de charger les bots.';
+
+  @override
+  String get cancel => 'Annuler';
+
+  @override
+  String get chooseMode => 'CHOISIS TON MODE';
+
+  @override
+  String get chooseOpponent => 'CHOISIS TON ADVERSAIRE';
+
+  @override
+  String get codeCopied => 'Code copié';
+
+  @override
+  String get codeHint => 'CODE';
+
+  @override
+  String get codeLength => 'Le code fait 6 caractères.';
+
+  @override
+  String get comingSoon => 'Bientôt disponible';
+
+  @override
+  String get continueAction => 'Continuer';
+
+  @override
+  String get copy => 'Copier';
+
+  @override
+  String get createGameFailedRetry =>
+      'Impossible de créer la partie. Réessaie.';
+
+  @override
+  String get createRoom => 'Créer et obtenir un code';
+
+  @override
+  String get createRoomSection => 'CRÉER UNE SALLE';
+
+  @override
+  String get darkTheme => 'Thème sombre';
+
+  @override
+  String dateToday(String time) {
+    return 'Aujourd\'hui, $time';
+  }
+
+  @override
+  String dateYesterday(String time) {
+    return 'Hier, $time';
+  }
+
+  @override
+  String get defaultPlayerName => 'Joueur';
+
+  @override
+  String get disconnected => 'Déconnecté';
+
+  @override
+  String get download => 'Télécharger';
+
+  @override
+  String get edit => 'Modifier';
+
+  @override
+  String get editNeedsServer => 'Connexion au serveur requise pour modifier';
+
+  @override
+  String get editProfileTitle => 'Modifier le profil';
+
+  @override
+  String eloLabel(int elo) {
+    return 'ELO $elo';
+  }
+
+  @override
+  String eloVariation(String variation) {
+    return ' ($variation Elo)';
+  }
+
+  @override
+  String get expertAnalysing => 'L\'Expert analyse ce coup…';
+
+  @override
+  String expertWouldPlay(int column) {
+    return 'L\'Expert jouait la colonne $column';
+  }
+
+  @override
+  String get explainInvalid => 'Ce coup ne peut pas être expliqué.';
+
+  @override
+  String get explainMove => 'Expliquer ce coup';
+
+  @override
+  String get explainNotConfigured =>
+      'L\'explication par IA n\'est pas activée sur ce serveur.';
+
+  @override
+  String get explainRateLimited =>
+      'Trop d\'explications demandées cette heure-ci. Réessaie plus tard.';
+
+  @override
+  String get explainSignIn => 'Connecte-toi pour obtenir une explication.';
+
+  @override
+  String get explainUnavailable =>
+      'Le service d\'explication ne répond pas. Réessaie plus tard.';
+
+  @override
+  String get filterAll => 'Tous';
+
+  @override
+  String get gameCancelled => 'Partie annulée';
+
+  @override
+  String get gameConnecting => 'Connexion à la partie…';
+
+  @override
+  String get gameDraw => 'Match nul';
+
+  @override
+  String get gameInProgressBanner => 'Tu as une partie en cours.';
+
+  @override
+  String get gameInProgressTitle => 'Partie en cours';
+
+  @override
+  String get gameLost => 'Défaite';
+
+  @override
+  String get gameLostByDisconnect => 'Défaite (déconnexion)';
+
+  @override
+  String get gameLostByForfeit => 'Défaite par abandon';
+
+  @override
+  String get gameLostOnTime => 'Défaite au temps';
+
+  @override
+  String get gameReconnecting => 'Connexion perdue — reconnexion…';
+
+  @override
+  String get gameWon => 'Victoire !';
+
+  @override
+  String get gameWonByDisconnect => 'Victoire (déconnexion) !';
+
+  @override
+  String get gameWonByForfeit => 'Victoire par abandon !';
+
+  @override
+  String get gameWonOnTime => 'Victoire au temps !';
+
+  @override
+  String get historyEmpty => 'Aucune partie pour l\'instant.';
+
+  @override
+  String get historyLoadError => 'Impossible de charger l\'historique.';
+
+  @override
+  String get historyTitle => 'Historique';
+
+  @override
+  String get join => 'Rejoindre';
+
+  @override
+  String get joinFriendSection => 'REJOINDRE UN AMI';
+
+  @override
+  String labelWithElo(String label, int elo) {
+    return '$label · ELO $elo';
+  }
+
+  @override
+  String get language => 'Langue';
+
+  @override
+  String get layFlatHint => 'Pose le téléphone à plat pour jouer à deux';
+
+  @override
+  String get leaderboardAlone => 'Personne d\'autre pour l\'instant.';
+
+  @override
+  String get leaderboardFriends => 'Amis';
+
+  @override
+  String get leaderboardGlobal => 'Global';
+
+  @override
+  String get leaderboardLoadError => 'Impossible de charger le classement.';
+
+  @override
+  String get leaderboardSignIn => 'Connecte-toi pour voir le classement.';
+
+  @override
+  String get lightThemeSoon =>
+      'Le thème clair arrive bientôt — ton choix est déjà mémorisé.';
+
+  @override
+  String get loginTagline => 'Défie l\'IA. Grimpe le classement.';
+
+  @override
+  String get loginWordmark => 'PUISSANCE ';
+
+  @override
+  String losingMove(int column) {
+    return 'Coup perdant — l\'Expert jouait la colonne $column';
+  }
+
+  @override
+  String get modeFaceToFace => 'Face à face';
+
+  @override
+  String get modeFaceToFaceSubtitle =>
+      'À deux sur ce téléphone, posé sur la table';
+
+  @override
+  String get modeMulti => 'Multi';
+
+  @override
+  String get modeMultiplayer => 'Multijoueur';
+
+  @override
+  String get modeMultiplayerSubtitle => 'Défie un ami en 1v1';
+
+  @override
+  String get modeNormal => 'Normal';
+
+  @override
+  String get modeNormalSubtitle => 'Choisis la difficulté du bot';
+
+  @override
+  String get modeRanked => 'Classé';
+
+  @override
+  String get modeRankedSubtitle =>
+      'Affronte le bot du serveur, fais monter ton Elo';
+
+  @override
+  String get needsServer => 'Ce mode nécessite une connexion au serveur.';
+
+  @override
+  String get newGame => 'Nouvelle partie';
+
+  @override
+  String get newGameFailed => 'Impossible de créer la partie.';
+
+  @override
+  String get newGameStarted => 'Nouvelle partie !';
+
+  @override
+  String get noOpenRooms =>
+      'Aucune salle publique pour le moment. Crée la tienne !';
+
+  @override
+  String get normalNeedsSession =>
+      'Connecte-toi (même en invité, en ligne) pour jouer.';
+
+  @override
+  String get notImplemented => 'Pas encore implémenté';
+
+  @override
+  String get noticeColumnFull => 'Colonne pleine.';
+
+  @override
+  String get noticeConnectionLost =>
+      'Connexion perdue — nouvelles tentatives en cours.';
+
+  @override
+  String get noticeGameNotFound => 'Partie introuvable.';
+
+  @override
+  String get noticeGameOver => 'La partie est terminée.';
+
+  @override
+  String get noticeMoveRefused => 'Coup refusé. Réessaie.';
+
+  @override
+  String get noticeMoveUnconfirmed =>
+      'Connexion instable — coup en attente de confirmation.';
+
+  @override
+  String get noticeNotYourTurn => 'Ce n\'est pas ton tour.';
+
+  @override
+  String get noticeSaveFailed =>
+      'La partie n\'a pas pu être enregistrée sur l\'appareil.';
+
+  @override
+  String get openRoomsSection => 'SALLES OUVERTES';
+
+  @override
+  String get openRoomsUnavailable => 'Liste des salles indisponible.';
+
+  @override
+  String get opponent => 'Adversaire';
+
+  @override
+  String get opponentDisconnected =>
+      'Adversaire déconnecté — victoire s\'il ne revient pas.';
+
+  @override
+  String get opponentTurn => 'Tour de l\'adversaire';
+
+  @override
+  String get ownRoom => 'C\'est ta propre salle : partage le code à un ami.';
+
+  @override
+  String get photoChange => 'Changer la photo';
+
+  @override
+  String get photoChoose => 'Choisir dans la galerie';
+
+  @override
+  String get photoInvalid => 'Ce fichier n\'est pas une image lisible.';
+
+  @override
+  String get photoNeedsServer =>
+      'Connexion au serveur requise pour changer la photo';
+
+  @override
+  String get photoPickFailed => 'Impossible d\'ouvrir la caméra ou la galerie.';
+
+  @override
+  String get photoRemove => 'Supprimer la photo';
+
+  @override
+  String get photoRemoved => 'Photo de profil supprimée.';
+
+  @override
+  String get photoTake => 'Prendre une photo';
+
+  @override
+  String get photoTooLarge => 'Cette image est trop grande.';
+
+  @override
+  String get photoUpdated => 'Photo de profil mise à jour.';
+
+  @override
+  String get player1 => 'Joueur 1';
+
+  @override
+  String get player2 => 'Joueur 2';
+
+  @override
+  String playerPlayedColumn(String name, int column) {
+    return '$name a joué la colonne $column';
+  }
+
+  @override
+  String playerWins(String name) {
+    return '$name gagne !';
+  }
+
+  @override
+  String get poweredByServerpod => 'Propulsé par Serverpod';
+
+  @override
+  String get preferencesSection => 'PRÉFÉRENCES';
+
+  @override
+  String get publicRoom => 'Salle publique';
+
+  @override
+  String get publicRoomOff => 'Seuls ceux qui ont le code peuvent rejoindre';
+
+  @override
+  String get publicRoomOn => 'Visible par tous dans les salles ouvertes';
+
+  @override
+  String rankedOpponent(String name, int elo) {
+    return 'Adversaire : Bot $name (ELO $elo)';
+  }
+
+  @override
+  String get rankedOpponentByElo => 'Adversaire choisi selon ton Elo';
+
+  @override
+  String get rankedRules =>
+      'Chaque coup est validé par le serveur. Victoire, défaite ou nul font varier ton Elo ; quitter la partie compte comme une défaite (sauf si tu n\'as joué aucun coup). 60 s par coup.';
+
+  @override
+  String get replayFirst => 'Début';
+
+  @override
+  String get replayLast => 'Fin';
+
+  @override
+  String replayMove(int cursor, int total) {
+    return 'Coup $cursor / $total';
+  }
+
+  @override
+  String get replayNext => 'Suivant';
+
+  @override
+  String get replayNoMoves =>
+      'Les coups de cette partie n\'ont pas été enregistrés.';
+
+  @override
+  String get replayPause => 'Pause';
+
+  @override
+  String get replayPlay => 'Lecture';
+
+  @override
+  String get replayPrevious => 'Précédent';
+
+  @override
+  String get replayTitle => 'Revoir la partie';
+
+  @override
+  String get replayUnavailable =>
+      'Replay indisponible pour le moment (réseau ?).';
+
+  @override
+  String get resultDraw => 'Match nul';
+
+  @override
+  String get resultLoss => 'Défaite';
+
+  @override
+  String get resultWin => 'Victoire';
+
+  @override
+  String get resume => 'Reprendre';
+
+  @override
+  String get retry => 'Réessayer';
+
+  @override
+  String get roomClosedNobody =>
+      'Salle fermée : personne ne l\'a rejointe à temps.';
+
+  @override
+  String roomClosesIn(String remaining) {
+    return 'La salle se ferme dans $remaining';
+  }
+
+  @override
+  String roomHostInfo(int elo, String remaining) {
+    return '$elo Elo · $remaining';
+  }
+
+  @override
+  String get roomNotFound => 'Code inconnu ou salle déjà fermée.';
+
+  @override
+  String get roomTaken => 'Salle déjà prise ou fermée.';
+
+  @override
+  String get save => 'Enregistrer';
+
+  @override
+  String secondsLeft(int seconds) {
+    return '$seconds s';
+  }
+
+  @override
+  String get serverConnectionLost => 'Connexion au serveur perdue.';
+
+  @override
+  String get serverUnreachableLater =>
+      'Impossible de joindre le serveur. Réessaie plus tard.';
+
+  @override
+  String get serverUnreachableRetry =>
+      'Impossible de joindre le serveur. Réessaie.';
+
+  @override
+  String get serversUnreachable =>
+      'Vous êtes connecté à internet, mais nos serveurs sont injoignables pour le moment.';
+
+  @override
+  String get settings => 'Réglages';
+
+  @override
+  String get shakeToStop => 'Secoue le téléphone pour arrêter la partie';
+
+  @override
+  String get shareCode => 'PARTAGE CE CODE';
+
+  @override
+  String get signOut => 'Se déconnecter';
+
+  @override
+  String get start => 'Démarrer';
+
+  @override
+  String get startGameFailed => 'Impossible de lancer la partie.';
+
+  @override
+  String get startRanked => 'Lancer une partie classée';
+
+  @override
+  String get starting => 'Lancement…';
+
+  @override
+  String get statElo => 'ELO';
+
+  @override
+  String get statGames => 'Parties';
+
+  @override
+  String get statWins => 'Victoires';
+
+  @override
+  String get statsLoadError =>
+      'Impossible de charger tes stats à jour — valeurs par défaut affichées.';
+
+  @override
+  String get statusConnected => 'Connecté';
+
+  @override
+  String get statusOffline => 'Hors ligne';
+
+  @override
+  String get statusUnknown => 'Statut inconnu';
+
+  @override
+  String get stop => 'Arrêter';
+
+  @override
+  String get stopCancels =>
+      'Tu n\'as pas encore joué : elle sera simplement annulée.';
+
+  @override
+  String get stopCountsAsLoss =>
+      'Tu as déjà joué : elle comptera comme une défaite.';
+
+  @override
+  String get stopGameTitle => 'Arrêter la partie ?';
+
+  @override
+  String get stopLoserIsPlayerToMove =>
+      'Le joueur dont c\'est le tour perdra la partie.';
+
+  @override
+  String get tabHistory => 'Historique';
+
+  @override
+  String get tabLeaderboard => 'Classement';
+
+  @override
+  String get tabPlay => 'Jouer';
+
+  @override
+  String turnOf(String name) {
+    return 'À $name de jouer';
+  }
+
+  @override
+  String get usernameInvalid => 'Ce pseudo n\'est pas valide.';
+
+  @override
+  String get usernameInvalidChars =>
+      'Lettres, chiffres, « _ » et « - » uniquement.';
+
+  @override
+  String get usernameLabel => 'PSEUDO';
+
+  @override
+  String get usernameTaken => 'Ce pseudo est déjà pris.';
+
+  @override
+  String usernameTooLong(int max) {
+    return '$max caractères maximum.';
+  }
+
+  @override
+  String usernameTooShort(int min) {
+    return 'Au moins $min caractères.';
+  }
+
+  @override
+  String get usernameUpdated => 'Pseudo mis à jour.';
+
+  @override
+  String get waitingOpponent => 'En attente d\'un adversaire…';
+
+  @override
+  String get you => 'Toi';
+
+  @override
+  String youAnd(String name) {
+    return 'Toi · $name';
+  }
+
+  @override
+  String youPlayedColumn(int column) {
+    return 'Tu as joué la colonne $column';
+  }
+
+  @override
+  String get yourElo => 'TON ELO';
+
+  @override
+  String get yourTurn => 'À toi de jouer';
+}

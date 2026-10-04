@@ -33,7 +33,7 @@ class GameViewModel
     return _engine.current;
   }
 
-  Stream<String> get notices => _engine.notices;
+  Stream<GameNotice> get notices => _engine.notices;
 
   ReplayControls? get replay => _engine.replay;
 

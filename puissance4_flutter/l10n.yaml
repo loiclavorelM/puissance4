@@ -1,0 +1,7 @@
+# Internationalisation (E11) : textes de l'UI en français (modèle) et en
+# anglais. `flutter pub get` / `flutter run` régénèrent AppLocalizations.
+arb-dir: lib/core/l10n
+template-arb-file: app_fr.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+nullable-getter: false

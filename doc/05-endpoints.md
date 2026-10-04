@@ -31,8 +31,20 @@ AGENTS.md).
 - `updateUsername(username: String) -> UserProfileDto`
   3 à 20 caractères `[A-Za-z0-9_-]`, unique (insensible à la casse). Lève
   `ProfileUpdateException(reason: invalidUsername | usernameTaken)`.
-- `updateProfilePhoto(...)` — *à venir* (US2.1/T2.1.3) : upload Serverpod
-  séparé qui remplit `User.thumbnailPath`.
+- `uploadProfilePhoto(photo: ByteData) -> UserProfileDto` (US2.1)
+  Miniature envoyée par l'app (carré 256×256). Le serveur la vérifie (JPEG ou
+  PNG, 512 Ko et 1024 px au plus), la réencode (carré 256 px, JPEG, sans
+  métadonnées), la stocke dans le stockage `public` sous
+  `avatars/<userId>/<horodatage>.jpg` (nom neuf à chaque envoi : pas de cache
+  périmé), remplit `User.thumbnailPath` et supprime l'ancienne. Lève
+  `ProfileUpdateException(reason: photoTooLarge | invalidPhoto)`. Notifie
+  profil et classement.
+- `removeProfilePhoto() -> UserProfileDto`
+  Supprime la photo (retour aux initiales).
+
+Les DTO (`UserProfileDto`, `LeaderboardEntryDto`, `LobbyRoom`) exposent
+`thumbnailUrl`, l'URL publique du fichier (`ProfilePhoto.url`), jamais le
+chemin ; `null` si le fichier a disparu du stockage.
 
 ### Bot — `BotEndpoint` (`client.bot`), `lib/src/bot/`
 - `getBotLevels() -> List<BotDto>`

@@ -144,7 +144,7 @@ class LocalGameEngine extends GameEngineBase {
     try {
       await write();
     } catch (_) {
-      notice("La partie n'a pas pu être enregistrée sur l'appareil.");
+      notice(GameNotice.saveFailed);
     }
   }
 }

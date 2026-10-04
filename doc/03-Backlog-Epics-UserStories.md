@@ -91,13 +91,14 @@ Tickets :
 
 ### US2.1 — En tant que joueur, je veux prendre une photo de profil, afin qu'elle apparaisse dans mon profil et le classement.
 Critères d'acceptation :
-- Prise de photo via la caméra (permission gérée).
-- Photo affichée dans le profil et le leaderboard.
+- Prise de photo via la caméra (permission gérée), ou choix dans la galerie ; suppression possible.
+- Photo recadrée au centre en carré de 256×256 px (JPEG) avant l'envoi ; le serveur la vérifie et la réencode (JPEG/PNG seulement, 512 Ko et 1024 px au plus, métadonnées retirées).
+- Photo affichée dans le profil, l'en-tête Jouer, le classement et le lobby Multi (URL publique du stockage Serverpod) ; initiales si elle manque ou ne charge pas.
 
 Tickets :
-- [ ] T2.1.1 — Écran profil + bouton "changer la photo" — `owner:A`
-- [ ] T2.1.2 — Intégration caméra (`camera`/`image_picker`) + gestion permissions — `owner:A`
-- [ ] T2.1.3 — Endpoint Serverpod `updateProfilePhoto` (upload + stockage fichier) — `owner:B` `area:backend`
+- [x] T2.1.1 — Écran profil + bouton "changer la photo" — `owner:A`
+- [x] T2.1.2 — Intégration caméra (`camera`/`image_picker`) + gestion permissions — `owner:A`
+- [x] T2.1.3 — Endpoint Serverpod `updateProfilePhoto` (upload + stockage fichier) — `owner:B` `area:backend` *(réalisé : `uploadProfilePhoto` / `removeProfilePhoto`)*
 
 ---
 
@@ -296,15 +297,19 @@ Tickets :
 - [x] T10.1.1 — Intégration capteur accéléromètre + détection de secousse — `owner:B`
 - [x] T10.1.2 — Câblage reset conditionnel selon le mode de jeu — `owner:B`
 
-### US10.2 — En tant que joueur, je veux que la partie se mette en pause automatiquement si je pose le téléphone à plat, afin de ne pas perdre le fil si je suis interrompu.
+### US10.2 — En tant que joueurs réunis autour d'une table, nous voulons qu'un mode « Face à face » apparaisse quand le téléphone est posé à plat, afin de jouer à deux sur le même appareil.
+*(Remplace la pause automatique « posé à plat » prévue initialement.)*
+
 Critères d'acceptation :
-- Détection "posé à plat" → pause automatique.
-- Actif uniquement en mode Normal et Ligue (contre un bot) — **pas de pause en
-  Multijoueur** (partie en direct, pas de mécanisme de pause côté serveur).
+- Détection "posé à plat" (accéléromètre, gravité comprise) : inclinaison sous 10° pendant 0,7 s ; n'est plus à plat au-delà de 20° (pas de clignotement).
+- À plat, l'écran Jouer affiche le mode **Face à face** ; il disparaît quand on relève le téléphone. Sinon, une indication invite à poser le téléphone.
+- Partie à deux humains sur l'appareil (moteur local), sans réseau ni compte, sans enregistrement ni Elo ; une partie commencée continue même si on relève le téléphone.
+- Recommençable comme une partie Normale (secousse, « Nouvelle partie »).
+- Sans capteurs de mouvement (web, ordinateur) : Face à face toujours proposé, et pas d'indication « Secoue le téléphone… » (affichée seulement sur Android/iOS).
 
 Tickets :
-- [ ] T10.2.1 — Détection "posé à plat" (accéléromètre/gyroscope) — `owner:A`
-- [ ] T10.2.2 — Câblage pause automatique, désactivé en mode Multijoueur — `owner:B`
+- [x] T10.2.1 — Détection "posé à plat" (`FlatDetector`, `isFlatProvider`) — `owner:A`
+- [x] T10.2.2 — Mode Face à face sur l'écran Jouer (`GameLaunch.faceToFace`) — `owner:B`
 
 ---
 
@@ -316,8 +321,8 @@ Critères d'acceptation :
 - Toutes les chaînes de l'UI passent par l10n Flutter (`.arb`), FR + EN.
 
 Tickets :
-- [ ] T11.1.1 — Setup `flutter_localizations` + fichiers `.arb` FR/EN — `owner:A`
-- [ ] T11.1.2 — Extraction de toutes les chaînes en dur vers l10n — `owner:A`/`owner:B`
+- [x] T11.1.1 — Setup `flutter_localizations` + fichiers `.arb` FR/EN — `owner:A` *(`lib/core/l10n/`, français = modèle ; langue de Réglages appliquée, sinon celle de l'appareil)*
+- [x] T11.1.2 — Extraction de toutes les chaînes en dur vers l10n — `owner:A`/`owner:B`
 
 ---
 

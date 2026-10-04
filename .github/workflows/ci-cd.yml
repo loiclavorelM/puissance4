@@ -21,7 +21,7 @@ concurrency:
 env:
   # Mêmes versions qu'en local : le code généré et le lockfile en dépendent.
   FLUTTER_VERSION: '3.47.4'
-  SERVERPOD_VERSION: '4.0.0'
+  SERVERPOD_VERSION: '4.0.3'
 
 jobs:
   lint:

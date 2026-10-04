@@ -10,6 +10,7 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'dart:typed_data' as _idt;
 import 'package:puissance4_server/src/generated/game/enum_type.dart'
     as _ijl03sjm;
 import 'package:serverpod/serverpod.dart' as _is;
@@ -725,6 +726,35 @@ class Endpoints extends _is.EndpointDispatch {
                     session,
                     params['username'],
                   ),
+        ),
+        'uploadProfilePhoto': _is.MethodConnector(
+          name: 'uploadProfilePhoto',
+          params: {
+            'photo': _is.ParameterDescription(
+              name: 'photo',
+              type: _is.getType<_idt.ByteData>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6ky944g.ProfileEndpoint)
+                  .uploadProfilePhoto(
+                    session,
+                    params['photo'],
+                  ),
+        ),
+        'removeProfilePhoto': _is.MethodConnector(
+          name: 'removeProfilePhoto',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6ky944g.ProfileEndpoint)
+                  .removeProfilePhoto(session),
         ),
       },
     );

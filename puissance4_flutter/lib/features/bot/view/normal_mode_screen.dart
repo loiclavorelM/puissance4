@@ -5,6 +5,8 @@ import 'package:puissance4_client/puissance4_client.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../game/view/game_screen.dart';
 import '../viewmodel/normal_mode_viewmodel.dart';
+import '../../../core/l10n/l10n.dart';
+import 'bot_labels.dart';
 
 /// Mode Normal — choix du bot parmi ceux renvoyés par le serveur, puis
 /// lancement d'une partie hors-ligne.
@@ -23,7 +25,7 @@ class NormalModeScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: AppColors.background,
         foregroundColor: Colors.white,
-        title: const Text('Normal'),
+        title: Text(context.l10n.modeNormal),
       ),
       body: SafeArea(
         child: Padding(
@@ -31,8 +33,8 @@ class NormalModeScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                'CHOISIS TON ADVERSAIRE',
+              Text(
+                context.l10n.chooseOpponent,
                 style: TextStyle(
                   color: Colors.white54,
                   fontSize: 12,
@@ -49,13 +51,13 @@ class NormalModeScreen extends ConsumerWidget {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text(
-                          'Impossible de charger les bots.',
+                        Text(
+                          context.l10n.botsLoadError,
                           style: TextStyle(color: Colors.white70),
                         ),
                         TextButton(
                           onPressed: () => ref.invalidate(botsProvider),
-                          child: const Text('Réessayer'),
+                          child: Text(context.l10n.retry),
                         ),
                       ],
                     ),
@@ -83,10 +85,10 @@ class NormalModeScreen extends ConsumerWidget {
                   ),
                 ),
               if (!canPlay)
-                const Padding(
+                Padding(
                   padding: EdgeInsets.only(bottom: 8),
                   child: Text(
-                    'Connecte-toi (même en invité, en ligne) pour jouer.',
+                    context.l10n.normalNeedsSession,
                     style: TextStyle(color: Colors.white54, fontSize: 12),
                   ),
                 ),
@@ -104,7 +106,7 @@ class NormalModeScreen extends ConsumerWidget {
                         dimension: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Démarrer'),
+                    : Text(context.l10n.start),
               ),
             ],
           ),
@@ -169,7 +171,7 @@ class _BotCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      bot.botName,
+                      localizedBotName(context.l10n, bot.botName),
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -177,7 +179,7 @@ class _BotCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'ELO ${bot.elo}',
+                      context.l10n.eloLabel(bot.elo),
                       style: const TextStyle(
                         color: AppColors.yellow,
                         fontWeight: FontWeight.bold,
@@ -186,7 +188,7 @@ class _BotCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      bot.description,
+                      localizedBotDescription(context.l10n, bot),
                       style: const TextStyle(
                         color: Colors.white54,
                         fontSize: 13,
@@ -199,7 +201,7 @@ class _BotCard extends StatelessWidget {
               // branché.
               IconButton(
                 onPressed: () {},
-                tooltip: 'Télécharger',
+                tooltip: context.l10n.download,
                 icon: const Icon(Icons.download, color: Colors.white54),
               ),
             ],

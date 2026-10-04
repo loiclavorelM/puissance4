@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import '../../../client.dart';
+import '../../../core/l10n/l10n.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../offline/view/server_connection_indicator.dart';
 import '../../offline/viewmodel/server_connection_provider.dart';
@@ -47,9 +48,9 @@ class LoginScreen extends StatelessWidget {
                             fontWeight: FontWeight.w900,
                             letterSpacing: 1,
                           ),
-                      children: const [
-                        TextSpan(text: 'PUISSANCE '),
-                        TextSpan(
+                      children: [
+                        TextSpan(text: context.l10n.loginWordmark),
+                        const TextSpan(
                           text: '4',
                           style: TextStyle(color: AppColors.primary),
                         ),
@@ -57,9 +58,9 @@ class LoginScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    "Défie l'IA. Grimpe le classement.",
-                    style: TextStyle(color: Colors.white70, fontSize: 15),
+                  Text(
+                    context.l10n.loginTagline,
+                    style: const TextStyle(color: Colors.white70, fontSize: 15),
                   ),
                   const SizedBox(height: 32),
                   Container(
@@ -72,9 +73,9 @@ class LoginScreen extends StatelessWidget {
                     child: _ThemedSignIn(onAuthenticated: onAuthenticated),
                   ),
                   const SizedBox(height: 32),
-                  const Text(
-                    'Propulsé par Serverpod',
-                    style: TextStyle(color: Colors.white38, fontSize: 12),
+                  Text(
+                    context.l10n.poweredByServerpod,
+                    style: const TextStyle(color: Colors.white38, fontSize: 12),
                   ),
                 ],
               ),
@@ -177,6 +178,7 @@ class _ThemedSignIn extends ConsumerWidget {
     // depuis l'extérieur — mais leur taille de police suit bien le
     // `bodyMedium` ambiant. On la rend dépendante de la largeur d'écran
     // pour rester lisible sans déborder sur les téléphones étroits.
+    final l10n = context.l10n;
     final screenWidth = MediaQuery.sizeOf(context).width;
     final bodyFontSize = screenWidth < 360 ? 12.0 : 14.0;
 
@@ -189,46 +191,41 @@ class _ThemedSignIn extends ConsumerWidget {
         ),
       ),
       child: SignInLocalizationProvider(
-        basic: const BasicSignInTexts(
-          noAuthenticationProvidersConfigured:
-              "Aucun moyen de connexion n'est configuré sur le serveur.",
-          orContinueWith: 'ou',
+        basic: BasicSignInTexts(
+          noAuthenticationProvidersConfigured: l10n.authNoProviders,
+          orContinueWith: l10n.authOr,
         ),
         email: EmailSignInTexts.defaults.copyWith(
-          title: 'Connexion',
-          emailLabel: 'ADRESSE E-MAIL',
-          passwordLabel: 'MOT DE PASSE',
-          signIn: 'Se connecter',
-          forgotPassword: 'Mot de passe oublié ?',
-          dontHaveAnAccount: 'Pas de compte ? ',
-          signUp: "S'inscrire",
-          signUpTitle: 'Créer un compte',
-          continueAction: 'Continuer',
-          alreadyHaveAnAccount: 'Déjà un compte ? ',
-          verifyAccountTitle: 'Vérifier le compte',
-          verifyResetCodeTitle: 'Vérifier le code',
-          verificationMessage:
-              'Un e-mail de vérification a été envoyé. Vérifie ta boîte de '
-              'réception et saisis le code ci-dessous.',
-          verify: 'Vérifier',
-          setAccountPasswordTitle: 'Choisir un mot de passe',
-          backToSignUp: "Retour à l'inscription",
-          setNewPasswordTitle: 'Nouveau mot de passe',
-          newPasswordLabel: 'NOUVEAU MOT DE PASSE',
-          resetPasswordTitle: 'Réinitialiser le mot de passe',
-          resetPasswordDescription:
-              'Saisis ton adresse e-mail pour réinitialiser ton mot de '
-              'passe.',
-          requestPasswordReset: 'Envoyer',
-          resetPassword: 'Réinitialiser',
-          backToSignIn: 'Retour à la connexion',
-          termsIntro: "J'ai lu et j'accepte les ",
-          termsAndConditions: "conditions d'utilisation",
-          andText: ' et la ',
-          privacyPolicy: 'politique de confidentialité',
+          title: l10n.authTitle,
+          emailLabel: l10n.authEmailLabel,
+          passwordLabel: l10n.authPasswordLabel,
+          signIn: l10n.authSignIn,
+          forgotPassword: l10n.authForgotPassword,
+          dontHaveAnAccount: l10n.authNoAccount,
+          signUp: l10n.authSignUp,
+          signUpTitle: l10n.authSignUpTitle,
+          continueAction: l10n.authContinue,
+          alreadyHaveAnAccount: l10n.authHaveAccount,
+          verifyAccountTitle: l10n.authVerifyAccountTitle,
+          verifyResetCodeTitle: l10n.authVerifyCodeTitle,
+          verificationMessage: l10n.authVerificationMessage,
+          verify: l10n.authVerify,
+          setAccountPasswordTitle: l10n.authSetPasswordTitle,
+          backToSignUp: l10n.authBackToSignUp,
+          setNewPasswordTitle: l10n.authNewPasswordTitle,
+          newPasswordLabel: l10n.authNewPasswordLabel,
+          resetPasswordTitle: l10n.authResetPasswordTitle,
+          resetPasswordDescription: l10n.authResetPasswordDescription,
+          requestPasswordReset: l10n.authRequestReset,
+          resetPassword: l10n.authResetPassword,
+          backToSignIn: l10n.authBackToSignIn,
+          termsIntro: l10n.authTermsIntro,
+          termsAndConditions: l10n.authTerms,
+          andText: l10n.authAnd,
+          privacyPolicy: l10n.authPrivacyPolicy,
         ),
-        anonymous: const AnonymousSignInTexts(
-          signInButton: 'Continuer sans compte',
+        anonymous: AnonymousSignInTexts(
+          signInButton: l10n.authContinueAsGuest,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -243,7 +240,7 @@ class _ThemedSignIn extends ConsumerWidget {
                   onAuthenticated: onAuthenticated,
                   onError: (error) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Erreur de connexion : $error')),
+                      SnackBar(content: Text(l10n.authError('$error'))),
                     );
                   },
                   // The package defaults the email flow to the sign-up
@@ -256,7 +253,7 @@ class _ThemedSignIn extends ConsumerWidget {
                     onAuthenticated: onAuthenticated,
                     onError: (error) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Erreur de connexion : $error')),
+                        SnackBar(content: Text(l10n.authError('$error'))),
                       );
                     },
                   ),
@@ -275,11 +272,11 @@ class _ThemedSignIn extends ConsumerWidget {
               ),
             ),
             if (!hasNetwork)
-              const Padding(
-                padding: EdgeInsets.only(top: 8),
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  'Pas de connexion internet : indisponible hors-ligne.',
-                  style: TextStyle(color: Colors.white38, fontSize: 12),
+                  l10n.authOfflineUnavailable,
+                  style: const TextStyle(color: Colors.white38, fontSize: 12),
                   textAlign: TextAlign.center,
                 ),
               ),

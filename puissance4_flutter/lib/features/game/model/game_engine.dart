@@ -12,8 +12,9 @@ abstract interface class GameEngine {
   GameSnapshot get current;
   Stream<GameSnapshot> get snapshots;
 
-  /// Messages ponctuels à afficher (coup refusé, erreur réseau…).
-  Stream<String> get notices;
+  /// Messages ponctuels à afficher (coup refusé, erreur réseau…), traduits
+  /// par l'écran de partie.
+  Stream<GameNotice> get notices;
 
   /// Coup du joueur de cet appareil ; ignoré si `current.acceptsInput` est
   /// faux.
@@ -25,6 +26,26 @@ abstract interface class GameEngine {
   ReplayControls? get replay;
 
   void dispose();
+}
+
+/// Message ponctuel d'un moteur de partie — un code plutôt qu'un texte, pour
+/// que l'écran l'affiche dans la langue de l'app (E11).
+enum GameNotice {
+  /// Partie locale : l'enregistrement sur l'appareil a échoué.
+  saveFailed,
+
+  /// Coup refusé par le serveur (raison non précisée).
+  moveRefused,
+  notYourTurn,
+  columnFull,
+  gameOver,
+
+  /// Erreur réseau en envoyant un coup : il a peut-être été joué.
+  moveUnconfirmed,
+  gameNotFound,
+
+  /// Plusieurs reconnexions ratées d'affilée.
+  connectionLost,
 }
 
 abstract interface class ReplayControls {
@@ -40,7 +61,7 @@ abstract class GameEngineBase implements GameEngine {
   GameEngineBase(this._current);
 
   final _snapshots = StreamController<GameSnapshot>.broadcast();
-  final _notices = StreamController<String>.broadcast();
+  final _notices = StreamController<GameNotice>.broadcast();
   GameSnapshot _current;
   bool _disposed = false;
 
@@ -51,7 +72,7 @@ abstract class GameEngineBase implements GameEngine {
   Stream<GameSnapshot> get snapshots => _snapshots.stream;
 
   @override
-  Stream<String> get notices => _notices.stream;
+  Stream<GameNotice> get notices => _notices.stream;
 
   @override
   ReplayControls? get replay => null;
@@ -66,8 +87,8 @@ abstract class GameEngineBase implements GameEngine {
   }
 
   @protected
-  void notice(String message) {
-    if (!_disposed) _notices.add(message);
+  void notice(GameNotice notice) {
+    if (!_disposed) _notices.add(notice);
   }
 
   @override

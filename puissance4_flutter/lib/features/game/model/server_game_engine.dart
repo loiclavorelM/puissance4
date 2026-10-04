@@ -76,13 +76,13 @@ class ServerGameEngine extends GameEngineBase {
     } on GameException catch (error) {
       // Refus du serveur : le coup n'a pas été joué.
       _pendingMoveCount = null;
-      notice(_messageFor(error, 'Coup refusé. Réessaie.'));
+      notice(_noticeFor(error, GameNotice.moveRefused));
       emit(current.copyWith(acceptsInput: _acceptsInput(current)));
     } catch (_) {
       // Erreur réseau : le coup a pu être joué (seule la réponse s'est
       // perdue). Le plateau reste bloqué jusqu'au prochain coup annoncé par
       // le stream, ou jusqu'à [pendingMoveTimeout].
-      notice('Connexion instable — coup en attente de confirmation.');
+      notice(GameNotice.moveUnconfirmed);
       _pendingMoveTimer?.cancel();
       _pendingMoveTimer = Timer(pendingMoveTimeout, _releasePendingMove);
     }
@@ -176,7 +176,7 @@ class ServerGameEngine extends GameEngineBase {
   void _onError(Object error) {
     _subscription = null;
     if (error is GameException) {
-      notice(_messageFor(error, 'Partie introuvable.'));
+      notice(_noticeFor(error, GameNotice.gameNotFound));
       return;
     }
     _connectionLost();
@@ -193,7 +193,7 @@ class ServerGameEngine extends GameEngineBase {
     if (isDisposed || current.isOver) return;
     _reconnectAttempts++;
     if (_reconnectAttempts == _quickReconnectAttempts + 1) {
-      notice('Connexion perdue — nouvelles tentatives en cours.');
+      notice(GameNotice.connectionLost);
     }
     emit(current.copyWith(isReconnecting: true, acceptsInput: false));
     Future<void>.delayed(reconnectDelay(_reconnectAttempts), () {
@@ -202,15 +202,13 @@ class ServerGameEngine extends GameEngineBase {
     });
   }
 
-  static String _messageFor(Object error, String fallback) {
-    if (error is! GameException) return fallback;
-    return switch (error.reason) {
-      EnumGameError.notYourTurn => "Ce n'est pas ton tour.",
-      EnumGameError.invalidMove => 'Colonne pleine.',
-      EnumGameError.gameOver => 'La partie est terminée.',
-      _ => fallback,
-    };
-  }
+  static GameNotice _noticeFor(GameException error, GameNotice fallback) =>
+      switch (error.reason) {
+        EnumGameError.notYourTurn => GameNotice.notYourTurn,
+        EnumGameError.invalidMove => GameNotice.columnFull,
+        EnumGameError.gameOver => GameNotice.gameOver,
+        _ => fallback,
+      };
 
   @override
   void dispose() {

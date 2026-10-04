@@ -11,6 +11,7 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _ida;
+import 'dart:typed_data' as _idt;
 import 'package:http/http.dart' as _i85jenna;
 import 'package:puissance4_client/src/protocol/bot/bot.dart' as _ighv8e6n;
 import 'package:puissance4_client/src/protocol/game/enum_type.dart'
@@ -583,6 +584,26 @@ class EndpointProfile extends _isc.EndpointRef {
         'profile',
         'updateUsername',
         {'username': username},
+      );
+
+  /// Remplace la photo de profil par [photo] (E2, US2.1) : le serveur la
+  /// vérifie et la réencode en miniature carrée (cf. [ProfilePhoto]), puis
+  /// supprime l'ancienne. Lève [ProfileUpdateException] (`photoTooLarge`,
+  /// `invalidPhoto`).
+  _ida.Future<_i5lufru8.UserProfileDto> uploadProfilePhoto(
+    _idt.ByteData photo,
+  ) => caller.callServerEndpoint<_i5lufru8.UserProfileDto>(
+    'profile',
+    'uploadProfilePhoto',
+    {'photo': photo},
+  );
+
+  /// Retire la photo de profil (retour aux initiales).
+  _ida.Future<_i5lufru8.UserProfileDto> removeProfilePhoto() =>
+      caller.callServerEndpoint<_i5lufru8.UserProfileDto>(
+        'profile',
+        'removeProfilePhoto',
+        {},
       );
 }
 

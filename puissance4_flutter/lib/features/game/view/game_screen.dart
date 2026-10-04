@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
+import '../../../core/l10n/l10n.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../sensors/viewmodel/motion_sensors_provider.dart';
 import '../../sensors/viewmodel/shake_provider.dart';
 import '../../review/view/move_review_card.dart';
 import '../model/color_mapping.dart';
@@ -35,7 +37,7 @@ class GameScreen extends ConsumerStatefulWidget {
 }
 
 class _GameScreenState extends ConsumerState<GameScreen> {
-  StreamSubscription<String>? _notices;
+  StreamSubscription<GameNotice>? _notices;
   var _restarting = false;
   var _stopping = false;
 
@@ -45,11 +47,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   @override
   void initState() {
     super.initState();
-    _notices = _viewModel.notices.listen((message) {
+    _notices = _viewModel.notices.listen((notice) {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+      ).showSnackBar(
+        SnackBar(content: Text(_noticeText(context.l10n, notice))),
+      );
     });
   }
 
@@ -75,7 +79,16 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     if (_stopping) return;
     _stopping = true;
     try {
-      if (await _confirmStop(context, forfeit: _viewModel.stopForfeits) &&
+      final snapshot = ref.read(gameViewModelProvider(widget.launch));
+      final l10n = context.l10n;
+      final message = snapshot.myColor == null
+          // Deux joueurs sur l'appareil : c'est le joueur au trait qui
+          // abandonne (cf. `LocalGameEngine.abandon`).
+          ? l10n.stopLoserIsPlayerToMove
+          : _viewModel.stopForfeits
+          ? l10n.stopCountsAsLoss
+          : l10n.stopCancels;
+      if (await _confirmStop(context, message: message) &&
           mounted &&
           ref.read(gameViewModelProvider(widget.launch)).isLive) {
         // Sans attendre l'enregistrement (synchro réseau en Normal) :
@@ -99,7 +112,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       } catch (_) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Impossible de créer la partie.')),
+            SnackBar(content: Text(context.l10n.newGameFailed)),
           );
         }
         return;
@@ -107,7 +120,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Nouvelle partie !')));
+      ).showSnackBar(SnackBar(content: Text(context.l10n.newGameStarted)));
       unawaited(
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => GameScreen(launch: next)),
@@ -122,8 +135,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   Widget build(BuildContext context) {
     final snapshot = ref.watch(gameViewModelProvider(widget.launch));
     final replayControls = _viewModel.replay;
-    // Le capteur n'est écouté que pour une partie recommençable.
-    if (_viewModel.canRestart) {
+    // Le capteur n'est écouté que pour une partie recommençable, sur un
+    // téléphone.
+    final shakeEnabled =
+        _viewModel.canRestart && ref.watch(motionSensorsProvider);
+    if (shakeEnabled) {
       ref.listen(shakeProvider, (_, shake) {
         if (shake is AsyncData) _onShake();
       });
@@ -144,7 +160,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         appBar: AppBar(
           backgroundColor: AppColors.background,
           foregroundColor: Colors.white,
-          title: Text(widget.launch.title),
+          title: Text(widget.launch.title(context.l10n)),
         ),
         body: SafeArea(
           // Largeur plafonnée : sur un écran large (web, tablette), le plateau
@@ -168,7 +184,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                             child: PlayerTile(
                               participant: snapshot.participant(color),
                               color: color,
-                              label: _labelFor(snapshot, color),
+                              label: _labelFor(context.l10n, snapshot, color),
                               isActive:
                                   !snapshot.isOver &&
                                   !snapshot.isConnecting &&
@@ -239,7 +255,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             ),
             onPressed: _restart,
             icon: const Icon(Icons.refresh),
-            label: const Text('Nouvelle partie'),
+            label: Text(context.l10n.newGame),
           ),
           const SizedBox(height: 12),
         ],
@@ -256,7 +272,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               ),
             ),
             icon: const Icon(Icons.replay),
-            label: const Text('Revoir la partie'),
+            label: Text(context.l10n.replayTitle),
           ),
         const SizedBox(height: 12),
         FilledButton(
@@ -266,22 +282,23 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             padding: const EdgeInsets.symmetric(vertical: 16),
           ),
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Retour'),
+          child: Text(context.l10n.back),
         ),
       ];
     }
     if (!snapshot.isLive) return const [];
     return [
-      if (_viewModel.canRestart)
-        const Row(
+      // Indication de secousse : seulement là où on lit l'accéléromètre.
+      if (_viewModel.canRestart && ref.watch(motionSensorsProvider))
+        Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.vibration, color: Colors.white38, size: 16),
-            SizedBox(width: 6),
+            const Icon(Icons.vibration, color: Colors.white38, size: 16),
+            const SizedBox(width: 6),
             Flexible(
               child: Text(
-                'Secoue le téléphone pour arrêter la partie',
-                style: TextStyle(color: Colors.white38, fontSize: 12),
+                context.l10n.shakeToStop,
+                style: const TextStyle(color: Colors.white38, fontSize: 12),
               ),
             ),
           ],
@@ -290,43 +307,55 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         onPressed: () async {
           if (await confirmAbandon(context)) await _viewModel.abandon();
         },
-        child: const Text(
-          'Abandonner',
-          style: TextStyle(color: Colors.white54),
+        child: Text(
+          context.l10n.abandon,
+          style: const TextStyle(color: Colors.white54),
         ),
       ),
     ];
   }
 
-  static String _labelFor(GameSnapshot snapshot, EnumColor color) {
+  static String _noticeText(AppLocalizations l10n, GameNotice notice) =>
+      switch (notice) {
+        GameNotice.saveFailed => l10n.noticeSaveFailed,
+        GameNotice.moveRefused => l10n.noticeMoveRefused,
+        GameNotice.notYourTurn => l10n.noticeNotYourTurn,
+        GameNotice.columnFull => l10n.noticeColumnFull,
+        GameNotice.gameOver => l10n.noticeGameOver,
+        GameNotice.moveUnconfirmed => l10n.noticeMoveUnconfirmed,
+        GameNotice.gameNotFound => l10n.noticeGameNotFound,
+        GameNotice.connectionLost => l10n.noticeConnectionLost,
+      };
+
+  static String _labelFor(
+    AppLocalizations l10n,
+    GameSnapshot snapshot,
+    EnumColor color,
+  ) {
     if (snapshot.myColor == null) {
-      return color == EnumColor.rouge ? 'Joueur 1' : 'Joueur 2';
+      return color == EnumColor.rouge ? l10n.player1 : l10n.player2;
     }
-    if (color == snapshot.myColor) return 'Toi';
-    return snapshot.opponentConnected ? 'Adversaire' : 'Déconnecté';
+    if (color == snapshot.myColor) return l10n.you;
+    return snapshot.opponentConnected ? l10n.opponent : l10n.disconnected;
   }
 
   static Future<bool> _confirmStop(
     BuildContext context, {
-    required bool forfeit,
+    required String message,
   }) async =>
       await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Arrêter la partie ?'),
-          content: Text(
-            forfeit
-                ? 'Tu as déjà joué : elle comptera comme une défaite.'
-                : "Tu n'as pas encore joué : elle sera simplement annulée.",
-          ),
+          title: Text(context.l10n.stopGameTitle),
+          content: Text(message),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Continuer'),
+              child: Text(context.l10n.continueAction),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Arrêter'),
+              child: Text(context.l10n.stop),
             ),
           ],
         ),
@@ -337,19 +366,16 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Abandonner la partie ?'),
-          content: const Text(
-            'Quitter compte comme une défaite (ou une partie annulée si tu '
-            "n'as joué aucun coup).",
-          ),
+          title: Text(context.l10n.abandonTitle),
+          content: Text(context.l10n.abandonMessage),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Continuer'),
+              child: Text(context.l10n.continueAction),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Abandonner'),
+              child: Text(context.l10n.abandon),
             ),
           ],
         ),

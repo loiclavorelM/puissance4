@@ -4,7 +4,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/initials.dart';
 
 /// Avatar du joueur : sa photo si [thumbnailUrl] est renseigné, sinon ses
-/// initiales. Point d'entrée unique pour la future photo de profil (US2.1).
+/// initiales (aussi tant que la photo charge, ou si elle ne charge pas).
 class ProfileAvatar extends StatelessWidget {
   const ProfileAvatar({
     super.key,
@@ -24,6 +24,8 @@ class ProfileAvatar extends StatelessWidget {
       radius: radius,
       backgroundColor: AppColors.fieldFill,
       foregroundImage: url != null ? NetworkImage(url) : null,
+      // Photo injoignable : les initiales restent affichées dessous.
+      onForegroundImageError: url != null ? (_, _) {} : null,
       child: Text(
         initialsOf(username),
         style: TextStyle(

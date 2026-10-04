@@ -8,6 +8,7 @@ import '../../game/model/server_game_engine.dart';
 import '../../game/viewmodel/game_home_viewmodel.dart';
 import '../../game/viewmodel/game_viewmodel.dart';
 import '../model/ranked_repository.dart';
+import '../../settings/viewmodel/locale_provider.dart';
 
 class RankedState {
   const RankedState({
@@ -66,12 +67,12 @@ class RankedViewModel extends AutoDisposeNotifier<RankedState> {
             ? error.partieId
             : null,
         errorMessage: error.reason == EnumGameError.alreadyInGame
-            ? 'Tu as déjà une partie en cours.'
-            : 'Impossible de lancer la partie.',
+            ? ref.read(l10nProvider).alreadyInGame
+            : ref.read(l10nProvider).startGameFailed,
       );
     } catch (_) {
-      state = const RankedState(
-        errorMessage: 'Impossible de joindre le serveur. Réessaie.',
+      state = RankedState(
+        errorMessage: ref.read(l10nProvider).serverUnreachableRetry,
       );
     }
     return null;
@@ -80,7 +81,7 @@ class RankedViewModel extends AutoDisposeNotifier<RankedState> {
   GameLaunch resume(UuidValue partieId) {
     final repository = ref.read(serverGameRepositoryProvider);
     return GameLaunch(
-      title: 'Classé',
+      title: (l10n) => l10n.modeRanked,
       createEngine: (_) => ServerGameEngine.watch(repository, partieId),
     );
   }

@@ -6,6 +6,7 @@ import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart';
 import '../game/game_stream.dart';
 import '../game/server_game.dart';
 import '../generated/protocol.dart';
+import '../profile/profile_photo.dart';
 import 'multiplayer_config.dart';
 import 'room_store.dart';
 
@@ -107,7 +108,7 @@ class MultiplayerEndpoint extends Endpoint {
           ? RoomHost(
               username: me.username,
               elo: me.elo,
-              thumbnailUrl: me.thumbnailPath,
+              thumbnailUrl: await ProfilePhoto.url(session, me.thumbnailPath),
             )
           : null,
     );
