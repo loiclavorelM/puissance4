@@ -22,6 +22,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get aboutLine => 'Puissance 4 RL · v0.1 · Serverpod';
 
   @override
+  String get accountCreated => 'Compte créé : ta progression est conservée.';
+
+  @override
   String get accountSection => 'COMPTE';
 
   @override
@@ -201,6 +204,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get copy => 'Copier';
 
   @override
+  String get createAccount => 'Créer un compte';
+
+  @override
+  String get createAccountIntro =>
+      'Ton Elo, tes parties et ton historique restent sur ce compte. Tu pourras ensuite te connecter par email sur n\'importe quel appareil.';
+
+  @override
+  String get createAccountSignInBlocked =>
+      'Pour te connecter à un compte existant, déconnecte-toi d\'abord depuis les réglages — ta progression d\'invité ne sera pas conservée.';
+
+  @override
   String get createGameFailedRetry =>
       'Impossible de créer la partie. Réessaie.';
 
@@ -324,6 +338,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get gameWonOnTime => 'Victoire au temps !';
+
+  @override
+  String get guestAccount => 'Compte invité';
+
+  @override
+  String get guestAccountHint =>
+      'Crée un compte pour ne pas perdre ta progression.';
 
   @override
   String get historyEmpty => 'Aucune partie pour l\'instant.';

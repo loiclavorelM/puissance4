@@ -1,10 +1,10 @@
 anonymousIdp:
   - login:
 emailIdp:
+  - finishRegistration:
   - login:
   - startRegistration:
   - verifyRegistrationCode:
-  - finishRegistration:
   - startPasswordReset:
   - verifyPasswordResetCode:
   - finishPasswordReset:

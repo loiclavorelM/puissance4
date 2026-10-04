@@ -122,6 +122,12 @@ abstract class AppLocalizations {
   /// **'Puissance 4 RL · v0.1 · Serverpod'**
   String get aboutLine;
 
+  /// No description provided for @accountCreated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte créé : ta progression est conservée.'**
+  String get accountCreated;
+
   /// No description provided for @accountSection.
   ///
   /// In fr, this message translates to:
@@ -458,6 +464,24 @@ abstract class AppLocalizations {
   /// **'Copier'**
   String get copy;
 
+  /// No description provided for @createAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créer un compte'**
+  String get createAccount;
+
+  /// No description provided for @createAccountIntro.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ton Elo, tes parties et ton historique restent sur ce compte. Tu pourras ensuite te connecter par email sur n\'importe quel appareil.'**
+  String get createAccountIntro;
+
+  /// No description provided for @createAccountSignInBlocked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pour te connecter à un compte existant, déconnecte-toi d\'abord depuis les réglages — ta progression d\'invité ne sera pas conservée.'**
+  String get createAccountSignInBlocked;
+
   /// No description provided for @createGameFailedRetry.
   ///
   /// In fr, this message translates to:
@@ -679,6 +703,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Victoire au temps !'**
   String get gameWonOnTime;
+
+  /// No description provided for @guestAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte invité'**
+  String get guestAccount;
+
+  /// No description provided for @guestAccountHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Crée un compte pour ne pas perdre ta progression.'**
+  String get guestAccountHint;
 
   /// No description provided for @historyEmpty.
   ///

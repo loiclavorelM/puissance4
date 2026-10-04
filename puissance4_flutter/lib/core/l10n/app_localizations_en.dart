@@ -22,6 +22,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aboutLine => 'Connect Four RL · v0.1 · Serverpod';
 
   @override
+  String get accountCreated => 'Account created: your progress is kept.';
+
+  @override
   String get accountSection => 'ACCOUNT';
 
   @override
@@ -201,6 +204,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get copy => 'Copy';
 
   @override
+  String get createAccount => 'Create an account';
+
+  @override
+  String get createAccountIntro =>
+      'Your Elo, games and history stay on this account. You can then sign in with your email on any device.';
+
+  @override
+  String get createAccountSignInBlocked =>
+      'To sign in to an existing account, sign out first from the settings — your guest progress will not be kept.';
+
+  @override
   String get createGameFailedRetry => 'Couldn\'t create the game. Try again.';
 
   @override
@@ -323,6 +337,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gameWonOnTime => 'You win on time!';
+
+  @override
+  String get guestAccount => 'Guest account';
+
+  @override
+  String get guestAccountHint =>
+      'Create an account so you don\'t lose your progress.';
 
   @override
   String get historyEmpty => 'No games yet.';

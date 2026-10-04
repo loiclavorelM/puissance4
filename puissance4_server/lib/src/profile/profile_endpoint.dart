@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart';
 
+import '../auth/guest_upgrade.dart';
 import '../game/enum_color_extensions.dart';
 import '../generated/protocol.dart';
 import '../live/live_notifier.dart';
@@ -216,6 +217,9 @@ class ProfileEndpoint extends Endpoint {
       elo: user.elo,
       nbParties: parties.length,
       nbVictoires: victoires,
+      isGuest:
+          user.authUserId != null &&
+          await isAnonymousAuthUser(session, user.authUserId!),
     );
   }
 }
