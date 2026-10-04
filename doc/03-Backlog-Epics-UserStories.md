@@ -112,9 +112,9 @@ Critères d'acceptation :
 - Client généré committé dans le repo.
 
 Tickets :
-- [ ] T3.1.1 — `serverpod create` + structure du monorepo (`_server`, `_client`, `_flutter`) — `owner:B`
-- [ ] T3.1.2 — Déclaration des endpoints du contrat (signatures vides/mock) — `owner:B`
-- [ ] T3.1.3 — Setup Postgres local (docker-compose fourni par Serverpod) — `owner:B`
+- [x] T3.1.1 — `serverpod create` + structure du monorepo (`_server`, `_client`, `_flutter`) — `owner:B` *(+ `puissance4_rules`, paquet partagé)*
+- [x] T3.1.2 — Déclaration des endpoints du contrat (signatures vides/mock) — `owner:B` *(implémentés et testés, cf. `doc/05-endpoints.md`)*
+- [x] T3.1.3 — Setup Postgres local (docker-compose fourni par Serverpod) — `owner:B` *(port 8090 ; base embarquée pour les tests)*
 - [ ] T3.1.4 — README "comment lancer le backend en local" — `owner:B`
 
 ### US3.2 — En tant qu'équipe, on veut déployer le serveur Serverpod quelque part d'accessible, afin de tester le multijoueur/l'auth réellement en réseau.
@@ -122,8 +122,8 @@ Critères d'acceptation :
 - Serveur accessible depuis un appareil de test hors réseau local.
 
 Tickets :
-- [ ] T3.2.1 — Choix d'un hébergement (Serverpod Cloud / VPS / autre) — `owner:A` `area:infra`
-- [ ] T3.2.2 — Déploiement + configuration des variables d'environnement — `owner:A` `area:infra`
+- [x] T3.2.1 — Choix d'un hébergement (Serverpod Cloud / VPS / autre) — `owner:A` `area:infra` *(Serverpod Cloud)*
+- [x] T3.2.2 — Déploiement + configuration des variables d'environnement — `owner:A` `area:infra` *(https://puissance4.api.serverpod.space/, déployé par la CI depuis `production` ; secrets dans Serverpod Cloud)*
 
 ---
 
