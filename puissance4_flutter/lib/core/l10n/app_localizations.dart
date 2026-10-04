@@ -716,6 +716,18 @@ abstract class AppLocalizations {
   /// **'Crée un compte pour ne pas perdre ta progression.'**
   String get guestAccountHint;
 
+  /// No description provided for @guestSignOutMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu joues en invité : en te déconnectant, tu perdras ta progression (Elo, parties, historique) sans pouvoir la retrouver.'**
+  String get guestSignOutMessage;
+
+  /// No description provided for @guestSignOutTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se déconnecter ?'**
+  String get guestSignOutTitle;
+
   /// No description provided for @historyEmpty.
   ///
   /// In fr, this message translates to:

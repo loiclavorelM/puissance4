@@ -346,6 +346,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Create an account so you don\'t lose your progress.';
 
   @override
+  String get guestSignOutMessage =>
+      'You are playing as a guest: if you sign out, you will lose your progress (Elo, games, history) for good.';
+
+  @override
+  String get guestSignOutTitle => 'Sign out?';
+
+  @override
   String get historyEmpty => 'No games yet.';
 
   @override

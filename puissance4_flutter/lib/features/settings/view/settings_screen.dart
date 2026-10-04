@@ -66,7 +66,9 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 32),
                   OutlinedButton(
-                    onPressed: () {
+                    onPressed: () async {
+                      if (!await _confirmSignOut(context, ref)) return;
+                      if (!context.mounted) return;
                       // `signOut()` passe `authViewModelProvider` à
                       // `unauthenticated` de façon synchrone (avant son
                       // premier `await`), donc `_AuthGate` a déjà
@@ -106,6 +108,51 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+enum _GuestSignOutChoice { cancel, createAccount, signOut }
+
+/// Un invité (anonyme ou local) qui se déconnecte perd sa progression pour
+/// de bon : on le prévient et, s'il est connecté au serveur, on lui propose
+/// de créer un compte à la place (US0.2). Un compte email se déconnecte
+/// sans confirmation.
+Future<bool> _confirmSignOut(BuildContext context, WidgetRef ref) async {
+  final isLocalGuest =
+      ref.read(authViewModelProvider).status == AuthStatus.localGuest;
+  final isGuest = ref.read(myProfileProvider).valueOrNull?.isGuest ?? false;
+  if (!isLocalGuest && !isGuest) return true;
+
+  final choice = await showDialog<_GuestSignOutChoice>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(context.l10n.guestSignOutTitle),
+      content: Text(context.l10n.guestSignOutMessage),
+      actions: [
+        TextButton(
+          onPressed: () =>
+              Navigator.of(context).pop(_GuestSignOutChoice.cancel),
+          child: Text(context.l10n.cancel),
+        ),
+        if (isGuest)
+          TextButton(
+            onPressed: () =>
+                Navigator.of(context).pop(_GuestSignOutChoice.createAccount),
+            child: Text(context.l10n.createAccount),
+          ),
+        TextButton(
+          onPressed: () =>
+              Navigator.of(context).pop(_GuestSignOutChoice.signOut),
+          child: Text(context.l10n.signOut),
+        ),
+      ],
+    ),
+  );
+  if (choice == _GuestSignOutChoice.createAccount && context.mounted) {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const CreateAccountScreen()),
+    );
+  }
+  return choice == _GuestSignOutChoice.signOut;
 }
 
 class _AccountCard extends ConsumerWidget {

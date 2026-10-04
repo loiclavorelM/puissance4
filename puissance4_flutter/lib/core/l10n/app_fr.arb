@@ -159,6 +159,8 @@
   "gameWonOnTime": "Victoire au temps !",
   "guestAccount": "Compte invité",
   "guestAccountHint": "Crée un compte pour ne pas perdre ta progression.",
+  "guestSignOutMessage": "Tu joues en invité : en te déconnectant, tu perdras ta progression (Elo, parties, historique) sans pouvoir la retrouver.",
+  "guestSignOutTitle": "Se déconnecter ?",
   "historyEmpty": "Aucune partie pour l'instant.",
   "historyLoadError": "Impossible de charger l'historique.",
   "historyTitle": "Historique",
