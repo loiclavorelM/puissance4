@@ -8,6 +8,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../offline/view/server_connection_indicator.dart';
 import '../../offline/viewmodel/server_connection_provider.dart';
 import '../viewmodel/auth_viewmodel.dart';
+import 'auth_form_theme.dart';
 
 /// Login screen (maquette "Connexion") — pure View: no ViewModel, no model.
 /// Wraps the native Serverpod [SignInWidget] (email + Anonymous,
@@ -120,9 +121,8 @@ class _Logo extends StatelessWidget {
   );
 }
 
-/// Applies the maquette's dark/coral palette to the native auth widget
-/// (input fields, buttons, links all read from the ambient [Theme] /
-/// [ColorScheme]) and translates its texts to French.
+/// The native [SignInWidget] in the app's look ([AuthFormTheme]), plus the
+/// "Continuer sans compte" button with its offline fallback.
 class _ThemedSignIn extends ConsumerWidget {
   const _ThemedSignIn({this.onAuthenticated});
 
@@ -137,161 +137,72 @@ class _ThemedSignIn extends ConsumerWidget {
     // reste actif : il a son propre repli local hors-ligne.
     final hasNetwork = ref.watch(serverConnectionTrackerProvider).hasNetwork;
 
-    final baseTheme = ThemeData(
-      brightness: Brightness.dark,
-      colorScheme: const ColorScheme.dark(
-        primary: AppColors.primary,
-        onPrimary: Colors.white,
-        surface: AppColors.card,
-        onSurface: Colors.white,
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: AppColors.fieldFill,
-        labelStyle: const TextStyle(
-          color: Colors.white60,
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
-          letterSpacing: 0.8,
-        ),
-        hintStyle: const TextStyle(color: Colors.white38),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(
-            color: AppColors.primary,
-            width: 1.5,
-          ),
-        ),
-      ),
-    );
-
-    // Le package d'auth (SignInWidget) code en dur certaines Rows, comme
-    // "Pas de compte ? S'inscrire", sans possibilité d'y injecter un Wrap
-    // depuis l'extérieur — mais leur taille de police suit bien le
-    // `bodyMedium` ambiant. On la rend dépendante de la largeur d'écran
-    // pour rester lisible sans déborder sur les téléphones étroits.
     final l10n = context.l10n;
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final bodyFontSize = screenWidth < 360 ? 12.0 : 14.0;
-
-    return Theme(
-      data: baseTheme.copyWith(
-        textTheme: baseTheme.textTheme.copyWith(
-          bodyMedium: baseTheme.textTheme.bodyMedium?.copyWith(
-            fontSize: bodyFontSize,
-          ),
-        ),
-      ),
-      child: SignInLocalizationProvider(
-        basic: BasicSignInTexts(
-          noAuthenticationProvidersConfigured: l10n.authNoProviders,
-          orContinueWith: l10n.authOr,
-        ),
-        email: EmailSignInTexts.defaults.copyWith(
-          title: l10n.authTitle,
-          emailLabel: l10n.authEmailLabel,
-          passwordLabel: l10n.authPasswordLabel,
-          signIn: l10n.authSignIn,
-          forgotPassword: l10n.authForgotPassword,
-          dontHaveAnAccount: l10n.authNoAccount,
-          signUp: l10n.authSignUp,
-          signUpTitle: l10n.authSignUpTitle,
-          continueAction: l10n.authContinue,
-          alreadyHaveAnAccount: l10n.authHaveAccount,
-          verifyAccountTitle: l10n.authVerifyAccountTitle,
-          verifyResetCodeTitle: l10n.authVerifyCodeTitle,
-          verificationMessage: l10n.authVerificationMessage,
-          verify: l10n.authVerify,
-          setAccountPasswordTitle: l10n.authSetPasswordTitle,
-          backToSignUp: l10n.authBackToSignUp,
-          setNewPasswordTitle: l10n.authNewPasswordTitle,
-          newPasswordLabel: l10n.authNewPasswordLabel,
-          resetPasswordTitle: l10n.authResetPasswordTitle,
-          resetPasswordDescription: l10n.authResetPasswordDescription,
-          requestPasswordReset: l10n.authRequestReset,
-          resetPassword: l10n.authResetPassword,
-          backToSignIn: l10n.authBackToSignIn,
-          termsIntro: l10n.authTermsIntro,
-          termsAndConditions: l10n.authTerms,
-          andText: l10n.authAnd,
-          privacyPolicy: l10n.authPrivacyPolicy,
-        ),
-        anonymous: AnonymousSignInTexts(
-          signInButton: l10n.authContinueAsGuest,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IgnorePointer(
-              ignoring: !hasNetwork,
-              child: AnimatedOpacity(
-                opacity: hasNetwork ? 1 : 0.4,
-                duration: const Duration(milliseconds: 200),
-                child: SignInWidget(
+    return AuthFormTheme(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IgnorePointer(
+            ignoring: !hasNetwork,
+            child: AnimatedOpacity(
+              opacity: hasNetwork ? 1 : 0.4,
+              duration: const Duration(milliseconds: 200),
+              child: SignInWidget(
+                client: client,
+                onAuthenticated: onAuthenticated,
+                onError: (error) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.authError('$error'))),
+                  );
+                },
+                // The package defaults the email flow to the sign-up
+                // screen (email only, no password) — this screen is
+                // "Connexion", so it must start on the login form (email +
+                // password) instead.
+                emailSignInWidget: EmailSignInWidget(
                   client: client,
+                  startScreen: EmailFlowScreen.login,
                   onAuthenticated: onAuthenticated,
                   onError: (error) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(l10n.authError('$error'))),
                     );
                   },
-                  // The package defaults the email flow to the sign-up
-                  // screen (email only, no password) — this screen is
-                  // "Connexion", so it must start on the login form (email +
-                  // password) instead.
-                  emailSignInWidget: EmailSignInWidget(
-                    client: client,
-                    startScreen: EmailFlowScreen.login,
-                    onAuthenticated: onAuthenticated,
-                    onError: (error) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(l10n.authError('$error'))),
-                      );
-                    },
-                  ),
-                  // The built-in anonymous button always surfaces a server
-                  // error — replaced below by one that falls back to a
-                  // local guest profile when the server is unreachable.
-                  disableAnonymousSignInWidget: true,
-                  // Shared look for every provider button (pill, coral) —
-                  // matches the maquette's single-accent-color aesthetic.
-                  buttonStyle: const SignInButtonStyle(
-                    shape: SignInButtonShape.pill,
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                  ),
+                ),
+                // The built-in anonymous button always surfaces a server
+                // error — replaced below by one that falls back to a
+                // local guest profile when the server is unreachable.
+                disableAnonymousSignInWidget: true,
+                // Shared look for every provider button (pill, coral) —
+                // matches the maquette's single-accent-color aesthetic.
+                buttonStyle: const SignInButtonStyle(
+                  shape: SignInButtonShape.pill,
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
                 ),
               ),
             ),
-            if (!hasNetwork)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  l10n.authOfflineUnavailable,
-                  style: const TextStyle(color: Colors.white38, fontSize: 12),
-                  textAlign: TextAlign.center,
-                ),
+          ),
+          if (!hasNetwork)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                l10n.authOfflineUnavailable,
+                style: const TextStyle(color: Colors.white38, fontSize: 12),
+                textAlign: TextAlign.center,
               ),
-            const SizedBox(height: 12),
-            AnonymousSignInButton(
-              onPressed: isGuestLoading
-                  ? null
-                  : () => ref
-                        .read(authViewModelProvider.notifier)
-                        .continueAsGuest(),
-              isLoading: isGuestLoading,
-              isDisabled: isGuestLoading,
             ),
-          ],
-        ),
+          const SizedBox(height: 12),
+          AnonymousSignInButton(
+            onPressed: isGuestLoading
+                ? null
+                : () => ref
+                      .read(authViewModelProvider.notifier)
+                      .continueAsGuest(),
+            isLoading: isGuestLoading,
+            isDisabled: isGuestLoading,
+          ),
+        ],
       ),
     );
   }

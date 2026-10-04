@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../auth/view/create_account_screen.dart';
 import '../../auth/viewmodel/auth_viewmodel.dart';
 import '../../offline/view/server_connection_indicator.dart';
 import '../../profile/view/edit_profile_screen.dart';
@@ -120,6 +121,9 @@ class _AccountCard extends ConsumerWidget {
         context.l10n.defaultPlayerName;
     // Invité local : aucun User serveur à modifier (pas d'authUserId).
     final isLocalGuest = auth.status == AuthStatus.localGuest;
+    // Invité connecté en anonyme : peut créer un compte en gardant sa
+    // progression (US0.2).
+    final isGuest = profile?.isGuest ?? false;
 
     return _Card(
       children: [
@@ -149,6 +153,11 @@ class _AccountCard extends ConsumerWidget {
                       Text(
                         context.l10n.editNeedsServer,
                         style: TextStyle(color: Colors.white38, fontSize: 12),
+                      )
+                    else if (isGuest)
+                      Text(
+                        context.l10n.guestAccount,
+                        style: TextStyle(color: Colors.white38, fontSize: 12),
                       ),
                   ],
                 ),
@@ -173,6 +182,24 @@ class _AccountCard extends ConsumerWidget {
             ],
           ),
         ),
+        if (isGuest) ...[
+          const Divider(height: 1, color: AppColors.fieldFill),
+          ListTile(
+            leading: const Icon(
+              Icons.person_add_alt_1,
+              color: AppColors.primary,
+            ),
+            title: Text(context.l10n.createAccount, style: _rowTitleStyle),
+            subtitle: Text(
+              context.l10n.guestAccountHint,
+              style: const TextStyle(color: Colors.white60, fontSize: 12),
+            ),
+            trailing: const Icon(Icons.chevron_right, color: Colors.white38),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const CreateAccountScreen()),
+            ),
+          ),
+        ],
       ],
     );
   }
