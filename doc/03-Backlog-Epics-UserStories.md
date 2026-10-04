@@ -29,10 +29,10 @@ Critères d'acceptation :
 - Cette fonctionnalité étant **expérimentale** en Serverpod 4.0, elle doit être validée par un spike avant adoption complète (cf. T0.1.1).
 
 Tickets :
-- [ ] T0.1.1 — (spike) Valider `database: sync` / `serverpod_offline_sync` sur un modèle simple (PoC isolé) avant adoption sur les modèles réels — `owner:B` `area:backend`
-- [ ] T0.1.2 — Modèle `.spy.yaml` annoté `database: sync` pour les stats/historique invité (SQLite locale générée automatiquement côté client) — `owner:B` `area:backend`
+- [x] T0.1.1 — (spike) Valider `database: sync` / `serverpod_offline_sync` sur un modèle simple (PoC isolé) avant adoption sur les modèles réels — `owner:B` `area:backend`
+- [x] T0.1.2 — Modèle `.spy.yaml` annoté `database: sync` pour les stats/historique invité (SQLite locale générée automatiquement côté client) — `owner:B` `area:backend` *(`OfflineMatchResult`)*
 - [ ] T0.1.3 — Embarquer un modèle de bot par défaut dans les assets de l'app — `owner:B` `area:rl`
-- [ ] T0.1.4 — UI : indicateur "mode invité / hors-ligne", désactivation Classé/Multijoueur — `owner:A`
+- [x] T0.1.4 — UI : indicateur "mode invité / hors-ligne", désactivation Classé/Multijoueur — `owner:A` *(`ServerConnectionIndicator`, message « nécessite une connexion »)*
 
 ### US0.2 — En tant que joueur invité qui se connecte pour la première fois, je veux que mon historique et mes stats locaux soient migrés vers mon compte, afin de ne pas perdre ma progression.
 Critères d'acceptation :
@@ -46,17 +46,23 @@ Tickets :
 - [ ] T0.2.3 — Gestion du cas où le compte a déjà un `User` côté serveur (l'index unique sur `authUserId` empêche un second lien direct) : **fusion de l'historique des deux comptes** (parties/stats du `User` invité rattachées au `User` déjà existant du compte, puis suppression du `User` invité devenu orphelin) — `owner:B` `area:backend`
 
 ### US0.3 — En tant que joueur déjà connecté qui perd sa connexion en cours d'utilisation, je veux que le résultat de ma partie (Normale ou Classée) ne soit pas perdu, afin que mes stats/Elo restent cohérents une fois reconnecté.
-Critères d'acceptation :
+
+**Révisée** : le Classé est joué par le serveur (E6) et ne peut pas être lancé
+hors-ligne — une coupure en cours de partie est gérée par le délai de grâce et
+la reprise de partie, pas par la synchro. Seules les parties **Normales**
+passent par `database: sync`, et elles ne modifient pas l'Elo : le recalcul
+d'Elo à la synchronisation (T0.3.2, T0.3.3) n'a plus d'objet. Critères
+d'origine, conservés pour l'historique :
 - Les résultats de partie sont persistés localement via un modèle `.spy.yaml` `database: sync` (pas de queue applicative faite main), pour Normal comme pour Classé.
 - La réplication CRDT ne garantissant pas d'ordre applicatif, le recalcul d'Elo reste un traitement **serveur séquentiel** : à la réception de résultats synchronisés, ils sont triés par horodatage avant recalcul pas à pas (nécessaire si plusieurs parties classées se sont enchaînées hors-ligne).
 - Le client est notifié (stream Serverpod) une fois la synchronisation et le recalcul d'Elo terminés.
 - Le lancement d'une **nouvelle** partie Classée est bloqué si l'absence de réseau est déjà détectée (le matchmaking a besoin de l'Elo serveur à jour).
 
 Tickets :
-- [ ] T0.3.1 — Modèle `.spy.yaml` `database: sync` pour les résultats de partie (Normale/Classée) — `owner:B` `area:backend`
-- [ ] T0.3.2 — Traitement serveur déclenché à la synchronisation : tri chronologique des résultats reçus + recalcul Elo séquentiel — `owner:B` `area:backend`
-- [ ] T0.3.3 — Notification client (stream) une fois le recalcul Elo terminé après reconnexion — `owner:A`
-- [ ] T0.3.4 — Désactiver le lancement d'une partie Classée si hors-ligne détecté — `owner:A`
+- [x] T0.3.1 — Modèle `.spy.yaml` `database: sync` pour les résultats de partie (Normale/Classée) — `owner:B` `area:backend` *(Normale seulement : `OfflineMatchResult`, synchronisé à la reconnexion)*
+- [ ] ~~T0.3.2 — Traitement serveur déclenché à la synchronisation : tri chronologique des résultats reçus + recalcul Elo séquentiel~~ — **sans objet** (cf. ci-dessus) — `owner:B` `area:backend`
+- [ ] ~~T0.3.3 — Notification client (stream) une fois le recalcul Elo terminé après reconnexion~~ — **sans objet** (cf. ci-dessus) — `owner:A`
+- [x] T0.3.4 — Désactiver le lancement d'une partie Classée si hors-ligne détecté — `owner:A`
 
 ---
 
@@ -69,9 +75,9 @@ Critères d'acceptation :
 - Session persistante entre relances de l'app (gérée par `client.auth`, déjà fourni par le module).
 
 Tickets :
-- [ ] T1.1.1 — Intégration de `SignInWidget` dans l'écran login/inscription (Flutter) — `owner:A`
-- [ ] T1.1.2 — Vérifier/adapter la configuration du provider email déjà présente dans `server.dart` (`ServerpodCloudEmailIdpConfig`) — `owner:B` `area:backend`
-- [ ] T1.1.3 — Écoute de `client.auth.authInfoListenable` pour réagir à l'état connecté/déconnecté (navigation, auto-login au démarrage) — `owner:A`
+- [x] T1.1.1 — Intégration de `SignInWidget` dans l'écran login/inscription (Flutter) — `owner:A`
+- [x] T1.1.2 — Vérifier/adapter la configuration du provider email déjà présente dans `server.dart` (`ServerpodCloudEmailIdpConfig`) — `owner:B` `area:backend`
+- [x] T1.1.3 — Écoute de `client.auth.authInfoListenable` pour réagir à l'état connecté/déconnecté (navigation, auto-login au démarrage) — `owner:A`
 
 ### US1.2 — En tant que backend, je veux associer un profil de jeu (username, photo, Elo) à chaque utilisateur authentifié, afin de stocker Elo/historique/profil côté serveur sans dupliquer ce que le module d'auth gère déjà (email, mot de passe).
 Critères d'acceptation :
@@ -80,8 +86,8 @@ Critères d'acceptation :
 - Aucune donnée déjà fournie par le module d'auth (email, mot de passe) n'est dupliquée dans `User`.
 
 Tickets :
-- [ ] T1.2.1 — Modèle `User` (`.spy.yaml`) lié à `AuthUser` par relation nullable (schéma Postgres généré par Serverpod) — `owner:B` `area:backend`
-- [ ] T1.2.2 — Création paresseuse du profil `User` au premier appel authentifié sans profil existant (ex. dans `getMyProfile`) — `owner:B` `area:backend`
+- [x] T1.2.1 — Modèle `User` (`.spy.yaml`) lié à `AuthUser` par relation nullable (schéma Postgres généré par Serverpod) — `owner:B` `area:backend`
+- [x] T1.2.2 — Création paresseuse du profil `User` au premier appel authentifié sans profil existant (ex. dans `getMyProfile`) — `owner:B` `area:backend` *(dès la création de l'`AuthUser` — `createUserForAuthUser` — avec filet dans `getMyProfile`)*
 - [ ] T1.2.3 — Écran de complétion de profil (choix du username) juste après la première inscription réussie — `owner:A`
 
 ---
@@ -159,7 +165,7 @@ Critères d'acceptation :
 - Le coup du bot est calculé localement (hors-ligne).
 
 Tickets :
-- [ ] T5.1.1 — Écran "Mode Normal — choix du niveau" (aligné sur 3 niveaux RL, cf. maquettes à ajuster) — `owner:A`/`owner:B`
+- [x] T5.1.1 — Écran "Mode Normal — choix du niveau" (aligné sur 3 niveaux RL, cf. maquettes à ajuster) — `owner:A`/`owner:B`
 - [ ] T5.1.2 — Intégration `tflite_flutter`/`onnxruntime` dans le client Flutter — `owner:B`
 - [ ] T5.1.3 — Appel du modèle local pour déterminer le coup du bot — `owner:B`
 
