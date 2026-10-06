@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../auth/view/create_account_screen.dart';
 import '../../auth/viewmodel/auth_viewmodel.dart';
 import '../../offline/view/server_connection_indicator.dart';
@@ -22,7 +22,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       body: SafeArea(
         child: Column(
           children: [
@@ -32,13 +32,13 @@ class SettingsScreen extends ConsumerWidget {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    icon: Icon(Icons.arrow_back, color: context.colors.text),
                   ),
                   const SizedBox(width: 4),
                   Text(
                     context.l10n.settings,
                     style: TextStyle(
-                      color: Colors.white,
+                      color: context.colors.text,
                       fontWeight: FontWeight.bold,
                       fontSize: 22,
                     ),
@@ -73,8 +73,8 @@ class SettingsScreen extends ConsumerWidget {
                       Navigator.of(context).pop();
                     },
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      side: const BorderSide(color: AppColors.primary),
+                      foregroundColor: context.colors.primary,
+                      side: BorderSide(color: context.colors.primary),
                       minimumSize: const Size.fromHeight(52),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
@@ -89,7 +89,10 @@ class SettingsScreen extends ConsumerWidget {
                   Center(
                     child: Text(
                       context.l10n.aboutLine,
-                      style: TextStyle(color: Colors.white38, fontSize: 12),
+                      style: TextStyle(
+                        color: context.colors.textFaint,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 ],
@@ -182,8 +185,8 @@ class _AccountCard extends ConsumerWidget {
                     Text(
                       username,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: context.colors.text,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -191,12 +194,18 @@ class _AccountCard extends ConsumerWidget {
                     if (isLocalGuest)
                       Text(
                         context.l10n.editNeedsServer,
-                        style: TextStyle(color: Colors.white38, fontSize: 12),
+                        style: TextStyle(
+                          color: context.colors.textFaint,
+                          fontSize: 12,
+                        ),
                       )
                     else if (isGuest)
                       Text(
                         context.l10n.guestAccount,
-                        style: TextStyle(color: Colors.white38, fontSize: 12),
+                        style: TextStyle(
+                          color: context.colors.textFaint,
+                          fontSize: 12,
+                        ),
                       ),
                   ],
                 ),
@@ -210,8 +219,8 @@ class _AccountCard extends ConsumerWidget {
                         ),
                       ),
                 style: TextButton.styleFrom(
-                  foregroundColor: AppColors.primary,
-                  disabledForegroundColor: Colors.white24,
+                  foregroundColor: context.colors.primary,
+                  disabledForegroundColor: context.colors.outline,
                 ),
                 child: Text(
                   context.l10n.edit,
@@ -222,18 +231,27 @@ class _AccountCard extends ConsumerWidget {
           ),
         ),
         if (isGuest) ...[
-          const Divider(height: 1, color: AppColors.fieldFill),
+          Divider(height: 1, color: context.colors.fieldFill),
           ListTile(
-            leading: const Icon(
+            leading: Icon(
               Icons.person_add_alt_1,
-              color: AppColors.primary,
+              color: context.colors.primary,
             ),
-            title: Text(context.l10n.createAccount, style: _rowTitleStyle),
+            title: Text(
+              context.l10n.createAccount,
+              style: _rowTitleStyle(context),
+            ),
             subtitle: Text(
               context.l10n.guestAccountHint,
-              style: const TextStyle(color: Colors.white60, fontSize: 12),
+              style: TextStyle(
+                color: context.colors.textSecondary,
+                fontSize: 12,
+              ),
             ),
-            trailing: const Icon(Icons.chevron_right, color: Colors.white38),
+            trailing: Icon(
+              Icons.chevron_right,
+              color: context.colors.textFaint,
+            ),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const CreateAccountScreen()),
             ),
@@ -257,7 +275,7 @@ class _PreferencesCard extends ConsumerWidget {
   }) {
     return showModalBottomSheet<T>(
       context: context,
-      backgroundColor: AppColors.card,
+      backgroundColor: context.colors.card,
       builder: (context) => SafeArea(
         child: RadioGroup<T>(
           groupValue: current,
@@ -268,10 +286,10 @@ class _PreferencesCard extends ConsumerWidget {
               for (final value in values)
                 RadioListTile<T>(
                   value: value,
-                  activeColor: AppColors.primary,
+                  activeColor: context.colors.primary,
                   title: Text(
                     label(value),
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(color: context.colors.text),
                   ),
                 ),
             ],
@@ -335,7 +353,7 @@ class _PreferencesCard extends ConsumerWidget {
           value: prefs.language.label,
           onTap: () => _pickLanguage(context, ref, prefs.language),
         ),
-        const Divider(height: 1, color: AppColors.fieldFill),
+        Divider(height: 1, color: context.colors.fieldFill),
         _ChoiceTile(
           title: context.l10n.theme,
           value: _themeModeLabel(context, prefs.themeMode),
@@ -361,12 +379,12 @@ class _ChoiceTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: Text(title, style: _rowTitleStyle),
+      title: Text(title, style: _rowTitleStyle(context)),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(value, style: const TextStyle(color: Colors.white60)),
-          const Icon(Icons.chevron_right, color: Colors.white38),
+          Text(value, style: TextStyle(color: context.colors.textSecondary)),
+          Icon(Icons.chevron_right, color: context.colors.textFaint),
         ],
       ),
       onTap: onTap,
@@ -374,8 +392,8 @@ class _ChoiceTile extends StatelessWidget {
   }
 }
 
-const _rowTitleStyle = TextStyle(
-  color: Colors.white,
+TextStyle _rowTitleStyle(BuildContext context) => TextStyle(
+  color: context.colors.text,
   fontWeight: FontWeight.w600,
 );
 
@@ -390,8 +408,8 @@ class _SectionTitle extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(4, 20, 4, 8),
       child: Text(
         text,
-        style: const TextStyle(
-          color: Colors.white60,
+        style: TextStyle(
+          color: context.colors.textSecondary,
           fontWeight: FontWeight.bold,
           fontSize: 12,
           letterSpacing: 0.8,
@@ -409,11 +427,11 @@ class _Card extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.card,
+      color: context.colors.card,
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppColors.fieldFill),
+        side: BorderSide(color: context.colors.fieldFill),
       ),
       child: Column(children: children),
     );
