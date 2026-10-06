@@ -12,6 +12,8 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:puissance4_server/src/generated/bot/bot.dart' as _iyz5ninx;
+import 'package:puissance4_server/src/generated/friends/player_search_result_dto.dart'
+    as _i259h1cp;
 import 'package:puissance4_server/src/generated/history/history_dto.dart'
     as _islja9se;
 import 'package:puissance4_server/src/generated/leaderboard/leaderboard_dto.dart'
@@ -26,6 +28,15 @@ import 'package:serverpod_offline_sync_server/serverpod_offline_sync_server.dart
     as _izehhkf5;
 import 'bot/bot.dart' as _iij7x2jd;
 import 'bot/enum_bot_level.dart' as _i65o1ott;
+import 'friends/enum_friend_relation.dart' as _it2shy0i;
+import 'friends/enum_friends_error.dart' as _if0hp53x;
+import 'friends/enum_friendship_status.dart' as _iiv2c9gb;
+import 'friends/friend_user_dto.dart' as _in6lw5u5;
+import 'friends/friends_exception.dart' as _i9j1nep3;
+import 'friends/friends_overview_dto.dart' as _ibsg885b;
+import 'friends/friendship.dart' as _ix1l50pg;
+import 'friends/friendship_dto.dart' as _if8yjfer;
+import 'friends/player_search_result_dto.dart' as _izsp853n;
 import 'game/enum_color.dart' as _im0plaxm;
 import 'game/enum_game_end_reason.dart' as _ilcsv24h;
 import 'game/enum_game_error.dart' as _isw7cqst;
@@ -58,6 +69,15 @@ import 'review/move_explanation.dart' as _i0n08bga;
 import 'review/review_exception.dart' as _i7k2kt7u;
 export 'bot/bot.dart';
 export 'bot/enum_bot_level.dart';
+export 'friends/enum_friend_relation.dart';
+export 'friends/enum_friends_error.dart';
+export 'friends/enum_friendship_status.dart';
+export 'friends/friend_user_dto.dart';
+export 'friends/friends_exception.dart';
+export 'friends/friends_overview_dto.dart';
+export 'friends/friendship.dart';
+export 'friends/friendship_dto.dart';
+export 'friends/player_search_result_dto.dart';
 export 'game/enum_color.dart';
 export 'game/enum_game_end_reason.dart';
 export 'game/enum_game_error.dart';
@@ -221,6 +241,122 @@ class Protocol extends _is.DatabaseSerializationManager {
         ),
       ],
       indexes: [],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'friendship',
+      dartName: 'Friendship',
+      schema: 'public',
+      module: 'puissance4',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'random_v7',
+        ),
+        _isp.ColumnDefinition(
+          name: 'requesterId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'addresseeId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'pairKey',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'status',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'protocol:EnumFriendshipStatus',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'now',
+        ),
+        _isp.ColumnDefinition(
+          name: 'respondedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'friendship_fk_0',
+          columns: ['requesterId'],
+          referenceTable: 'user',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+        _isp.ForeignKeyDefinition(
+          constraintName: 'friendship_fk_1',
+          columns: ['addresseeId'],
+          referenceTable: 'user',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'friendship_pair_key_unique_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'pairKey',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+        _isp.IndexDefinition(
+          indexName: 'friendship_requester_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'requesterId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+        _isp.IndexDefinition(
+          indexName: 'friendship_addressee_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'addresseeId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
       managed: true,
     ),
     _isp.TableDefinition(
@@ -611,6 +747,12 @@ class Protocol extends _is.DatabaseSerializationManager {
           columnDefault: '1000',
         ),
         _isp.ColumnDefinition(
+          name: 'friendCode',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
           name: 'createdAt',
           columnType: _isp.ColumnType.timestampWithoutTimeZone,
           isNullable: false,
@@ -644,6 +786,19 @@ class Protocol extends _is.DatabaseSerializationManager {
             _isp.IndexElementDefinition(
               type: _isp.IndexElementDefinitionType.column,
               definition: 'authUserId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+        _isp.IndexDefinition(
+          indexName: 'user_friend_code_unique_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'friendCode',
             ),
           ],
           type: 'btree',
@@ -704,6 +859,33 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _i65o1ott.EnumBotLevel) {
       return _i65o1ott.EnumBotLevel.fromJson(data) as T;
+    }
+    if (t == _it2shy0i.EnumFriendRelation) {
+      return _it2shy0i.EnumFriendRelation.fromJson(data) as T;
+    }
+    if (t == _if0hp53x.EnumFriendsError) {
+      return _if0hp53x.EnumFriendsError.fromJson(data) as T;
+    }
+    if (t == _iiv2c9gb.EnumFriendshipStatus) {
+      return _iiv2c9gb.EnumFriendshipStatus.fromJson(data) as T;
+    }
+    if (t == _in6lw5u5.FriendUserDto) {
+      return _in6lw5u5.FriendUserDto.fromJson(data) as T;
+    }
+    if (t == _i9j1nep3.FriendsException) {
+      return _i9j1nep3.FriendsException.fromJson(data) as T;
+    }
+    if (t == _ibsg885b.FriendsOverviewDto) {
+      return _ibsg885b.FriendsOverviewDto.fromJson(data) as T;
+    }
+    if (t == _ix1l50pg.Friendship) {
+      return _ix1l50pg.Friendship.fromJson(data) as T;
+    }
+    if (t == _if8yjfer.FriendshipDto) {
+      return _if8yjfer.FriendshipDto.fromJson(data) as T;
+    }
+    if (t == _izsp853n.PlayerSearchResultDto) {
+      return _izsp853n.PlayerSearchResultDto.fromJson(data) as T;
     }
     if (t == _im0plaxm.EnumColor) {
       return _im0plaxm.EnumColor.fromJson(data) as T;
@@ -800,6 +982,45 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _is.getType<_i65o1ott.EnumBotLevel?>()) {
       return (data != null ? _i65o1ott.EnumBotLevel.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_it2shy0i.EnumFriendRelation?>()) {
+      return (data != null ? _it2shy0i.EnumFriendRelation.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_if0hp53x.EnumFriendsError?>()) {
+      return (data != null ? _if0hp53x.EnumFriendsError.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_iiv2c9gb.EnumFriendshipStatus?>()) {
+      return (data != null
+              ? _iiv2c9gb.EnumFriendshipStatus.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _is.getType<_in6lw5u5.FriendUserDto?>()) {
+      return (data != null ? _in6lw5u5.FriendUserDto.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_i9j1nep3.FriendsException?>()) {
+      return (data != null ? _i9j1nep3.FriendsException.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_ibsg885b.FriendsOverviewDto?>()) {
+      return (data != null ? _ibsg885b.FriendsOverviewDto.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_ix1l50pg.Friendship?>()) {
+      return (data != null ? _ix1l50pg.Friendship.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_if8yjfer.FriendshipDto?>()) {
+      return (data != null ? _if8yjfer.FriendshipDto.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_izsp853n.PlayerSearchResultDto?>()) {
+      return (data != null
+              ? _izsp853n.PlayerSearchResultDto.fromJson(data)
+              : null)
+          as T;
     }
     if (t == _is.getType<_im0plaxm.EnumColor?>()) {
       return (data != null ? _im0plaxm.EnumColor.fromJson(data) : null) as T;
@@ -913,6 +1134,12 @@ class Protocol extends _is.DatabaseSerializationManager {
       return (data != null ? _i7k2kt7u.ReviewException.fromJson(data) : null)
           as T;
     }
+    if (t == List<_if8yjfer.FriendshipDto>) {
+      return (data as List)
+              .map((e) => deserialize<_if8yjfer.FriendshipDto>(e))
+              .toList()
+          as T;
+    }
     if (t == List<int>) {
       return (data as List).map((e) => deserialize<int>(e)).toList() as T;
     }
@@ -930,6 +1157,12 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == List<_iyz5ninx.Bot>) {
       return (data as List).map((e) => deserialize<_iyz5ninx.Bot>(e)).toList()
+          as T;
+    }
+    if (t == List<_i259h1cp.PlayerSearchResultDto>) {
+      return (data as List)
+              .map((e) => deserialize<_i259h1cp.PlayerSearchResultDto>(e))
+              .toList()
           as T;
     }
     if (t == List<_islja9se.HistoryDto>) {
@@ -966,6 +1199,15 @@ class Protocol extends _is.DatabaseSerializationManager {
     return switch (type) {
       _iij7x2jd.Bot => 'Bot',
       _i65o1ott.EnumBotLevel => 'EnumBotLevel',
+      _it2shy0i.EnumFriendRelation => 'EnumFriendRelation',
+      _if0hp53x.EnumFriendsError => 'EnumFriendsError',
+      _iiv2c9gb.EnumFriendshipStatus => 'EnumFriendshipStatus',
+      _in6lw5u5.FriendUserDto => 'FriendUserDto',
+      _i9j1nep3.FriendsException => 'FriendsException',
+      _ibsg885b.FriendsOverviewDto => 'FriendsOverviewDto',
+      _ix1l50pg.Friendship => 'Friendship',
+      _if8yjfer.FriendshipDto => 'FriendshipDto',
+      _izsp853n.PlayerSearchResultDto => 'PlayerSearchResultDto',
       _im0plaxm.EnumColor => 'EnumColor',
       _ilcsv24h.EnumGameEndReason => 'EnumGameEndReason',
       _isw7cqst.EnumGameError => 'EnumGameError',
@@ -1014,6 +1256,24 @@ class Protocol extends _is.DatabaseSerializationManager {
         return 'Bot';
       case _i65o1ott.EnumBotLevel():
         return 'EnumBotLevel';
+      case _it2shy0i.EnumFriendRelation():
+        return 'EnumFriendRelation';
+      case _if0hp53x.EnumFriendsError():
+        return 'EnumFriendsError';
+      case _iiv2c9gb.EnumFriendshipStatus():
+        return 'EnumFriendshipStatus';
+      case _in6lw5u5.FriendUserDto():
+        return 'FriendUserDto';
+      case _i9j1nep3.FriendsException():
+        return 'FriendsException';
+      case _ibsg885b.FriendsOverviewDto():
+        return 'FriendsOverviewDto';
+      case _ix1l50pg.Friendship():
+        return 'Friendship';
+      case _if8yjfer.FriendshipDto():
+        return 'FriendshipDto';
+      case _izsp853n.PlayerSearchResultDto():
+        return 'PlayerSearchResultDto';
       case _im0plaxm.EnumColor():
         return 'EnumColor';
       case _ilcsv24h.EnumGameEndReason():
@@ -1111,6 +1371,33 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (dataClassName == 'EnumBotLevel') {
       return deserialize<_i65o1ott.EnumBotLevel>(data['data']);
+    }
+    if (dataClassName == 'EnumFriendRelation') {
+      return deserialize<_it2shy0i.EnumFriendRelation>(data['data']);
+    }
+    if (dataClassName == 'EnumFriendsError') {
+      return deserialize<_if0hp53x.EnumFriendsError>(data['data']);
+    }
+    if (dataClassName == 'EnumFriendshipStatus') {
+      return deserialize<_iiv2c9gb.EnumFriendshipStatus>(data['data']);
+    }
+    if (dataClassName == 'FriendUserDto') {
+      return deserialize<_in6lw5u5.FriendUserDto>(data['data']);
+    }
+    if (dataClassName == 'FriendsException') {
+      return deserialize<_i9j1nep3.FriendsException>(data['data']);
+    }
+    if (dataClassName == 'FriendsOverviewDto') {
+      return deserialize<_ibsg885b.FriendsOverviewDto>(data['data']);
+    }
+    if (dataClassName == 'Friendship') {
+      return deserialize<_ix1l50pg.Friendship>(data['data']);
+    }
+    if (dataClassName == 'FriendshipDto') {
+      return deserialize<_if8yjfer.FriendshipDto>(data['data']);
+    }
+    if (dataClassName == 'PlayerSearchResultDto') {
+      return deserialize<_izsp853n.PlayerSearchResultDto>(data['data']);
     }
     if (dataClassName == 'EnumColor') {
       return deserialize<_im0plaxm.EnumColor>(data['data']);
@@ -1256,6 +1543,8 @@ class Protocol extends _is.DatabaseSerializationManager {
     switch (t) {
       case _iij7x2jd.Bot:
         return _iij7x2jd.Bot.t;
+      case _ix1l50pg.Friendship:
+        return _ix1l50pg.Friendship.t;
       case _ir8nzxqr.OfflineMatchResult:
         return _ir8nzxqr.OfflineMatchResult.t;
       case _iuas6tq9.Partie:

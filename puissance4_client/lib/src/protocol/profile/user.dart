@@ -24,6 +24,7 @@ abstract class User
     required this.username,
     this.thumbnailPath,
     int? elo,
+    this.friendCode,
     DateTime? createdAt,
     this.updatedAt,
   }) : elo = elo ?? 1000,
@@ -36,6 +37,7 @@ abstract class User
     required String username,
     String? thumbnailPath,
     int? elo,
+    String? friendCode,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _UserImpl;
@@ -58,6 +60,7 @@ abstract class User
       username: jsonSerialization['username'] as String,
       thumbnailPath: jsonSerialization['thumbnailPath'] as String?,
       elo: jsonSerialization['elo'] as int?,
+      friendCode: jsonSerialization['friendCode'] as String?,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
           : _isc.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
@@ -82,6 +85,8 @@ abstract class User
 
   int elo;
 
+  String? friendCode;
+
   DateTime createdAt;
 
   DateTime? updatedAt;
@@ -96,6 +101,7 @@ abstract class User
     String? username,
     String? thumbnailPath,
     int? elo,
+    String? friendCode,
     DateTime? createdAt,
     DateTime? updatedAt,
   });
@@ -109,6 +115,7 @@ abstract class User
       'username': username,
       if (thumbnailPath != null) 'thumbnailPath': thumbnailPath,
       'elo': elo,
+      if (friendCode != null) 'friendCode': friendCode,
       'createdAt': createdAt.toJson(),
       if (updatedAt != null) 'updatedAt': updatedAt?.toJson(),
     };
@@ -124,6 +131,7 @@ abstract class User
       'username': username,
       if (thumbnailPath != null) 'thumbnailPath': thumbnailPath,
       'elo': elo,
+      if (friendCode != null) 'friendCode': friendCode,
       'createdAt': createdAt.toJson(),
       if (updatedAt != null) 'updatedAt': updatedAt?.toJson(),
     };
@@ -145,6 +153,7 @@ class _UserImpl extends User {
     required String username,
     String? thumbnailPath,
     int? elo,
+    String? friendCode,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : super._(
@@ -154,6 +163,7 @@ class _UserImpl extends User {
          username: username,
          thumbnailPath: thumbnailPath,
          elo: elo,
+         friendCode: friendCode,
          createdAt: createdAt,
          updatedAt: updatedAt,
        );
@@ -169,6 +179,7 @@ class _UserImpl extends User {
     String? username,
     Object? thumbnailPath = _Undefined,
     int? elo,
+    Object? friendCode = _Undefined,
     DateTime? createdAt,
     Object? updatedAt = _Undefined,
   }) {
@@ -183,6 +194,7 @@ class _UserImpl extends User {
           ? thumbnailPath
           : this.thumbnailPath,
       elo: elo ?? this.elo,
+      friendCode: friendCode is String? ? friendCode : this.friendCode,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt is DateTime? ? updatedAt : this.updatedAt,
     );

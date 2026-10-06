@@ -1,0 +1,167 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:puissance4_client/puissance4_client.dart';
+import 'package:puissance4_flutter/features/friends/model/friends_repository.dart';
+import 'package:puissance4_flutter/features/friends/view/friends_screen.dart';
+import 'package:puissance4_flutter/features/friends/viewmodel/friends_viewmodel.dart';
+
+import '../../helpers/l10n.dart';
+
+class _FakeFriendsRepository implements FriendsRepository {
+  _FakeFriendsRepository(this.results);
+
+  final List<PlayerSearchResultDto> results;
+  final queries = <String>[];
+
+  @override
+  Future<List<PlayerSearchResultDto>> search(String query) async {
+    queries.add(query);
+    return results;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+void main() {
+  var nextId = 0;
+  UuidValue id() => UuidValue.fromString(
+    '00000000-0000-4000-8000-${(nextId++).toString().padLeft(12, '0')}',
+  );
+  FriendUserDto player(String username) =>
+      FriendUserDto(userId: id(), username: username, elo: 1000);
+  FriendshipDto friendship(
+    String username, {
+    EnumFriendshipStatus status = EnumFriendshipStatus.accepted,
+    bool incoming = false,
+  }) => FriendshipDto(
+    id: id(),
+    other: player(username),
+    status: status,
+    incoming: incoming,
+    createdAt: DateTime.now(),
+  );
+
+  Future<void> pump(
+    WidgetTester tester, {
+    FriendsAccess access = FriendsAccess.member,
+    FriendsOverviewDto? overview,
+    FriendsRepository? repository,
+  }) async {
+    tester.view.physicalSize = const Size(1080, 2340);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...l10nOverrides,
+          friendsAccessProvider.overrideWithValue(access),
+          friendsOverviewProvider.overrideWith((ref) => Stream.value(overview)),
+          if (repository != null)
+            friendsRepositoryProvider.overrideWithValue(repository),
+        ],
+        child: localizedApp(home: const Scaffold(body: FriendsScreen())),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('another screen can open the Add tab', (tester) async {
+    await pump(
+      tester,
+      overview: FriendsOverviewDto(
+        friendCode: '7KQ2X9',
+        friends: [],
+        incoming: [],
+        outgoing: [],
+      ),
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(FriendsScreen)),
+    );
+
+    container
+        .read(friendsTabRequestProvider.notifier)
+        .open(FriendsScreen.addTabIndex);
+    await tester.pumpAndSettle();
+
+    expect(find.text('P4-7KQ2X9'), findsOneWidget);
+    expect(container.read(friendsTabRequestProvider), isNull);
+  });
+
+  testWidgets('a guest is invited to create an account', (tester) async {
+    await pump(tester, access: FriendsAccess.guest);
+
+    expect(find.text('Créer un compte'), findsOneWidget);
+    expect(find.text('Mes amis'), findsNothing);
+  });
+
+  testWidgets('friends are listed and requests are counted', (tester) async {
+    await pump(
+      tester,
+      overview: FriendsOverviewDto(
+        friendCode: '7KQ2X9',
+        friends: [friendship('bob')],
+        incoming: [
+          friendship(
+            'carol',
+            status: EnumFriendshipStatus.pending,
+            incoming: true,
+          ),
+        ],
+        outgoing: [],
+      ),
+    );
+
+    expect(find.text('bob'), findsOneWidget);
+    // Badge du sous-onglet Demandes.
+    expect(find.text('1'), findsOneWidget);
+
+    await tester.tap(find.text('Demandes'));
+    await tester.pumpAndSettle();
+    expect(find.text('carol'), findsOneWidget);
+    expect(find.text('REÇUES'), findsOneWidget);
+  });
+
+  testWidgets('searching shows my code and the matching players', (
+    tester,
+  ) async {
+    final repository = _FakeFriendsRepository([
+      PlayerSearchResultDto(
+        player: player('dave'),
+        relation: EnumFriendRelation.none,
+      ),
+      PlayerSearchResultDto(
+        player: player('davina'),
+        relation: EnumFriendRelation.friend,
+      ),
+    ]);
+    await pump(
+      tester,
+      repository: repository,
+      overview: FriendsOverviewDto(
+        friendCode: '7KQ2X9',
+        friends: [],
+        incoming: [],
+        outgoing: [],
+      ),
+    );
+
+    await tester.tap(find.text('Ajouter').first);
+    await tester.pumpAndSettle();
+    expect(find.text('P4-7KQ2X9'), findsOneWidget);
+
+    // Trop court : pas d'appel serveur.
+    await tester.enterText(find.byType(TextField), 'da');
+    await tester.pump(FriendSearchViewModel.debounce);
+    expect(repository.queries, isEmpty);
+
+    await tester.enterText(find.byType(TextField), 'dav');
+    await tester.pump(FriendSearchViewModel.debounce);
+    await tester.pumpAndSettle();
+    expect(repository.queries, ['dav']);
+    expect(find.text('dave'), findsOneWidget);
+    expect(find.text('Ami'), findsOneWidget);
+  });
+}

@@ -1,0 +1,426 @@
+import 'package:serverpod/serverpod.dart';
+import 'package:serverpod_auth_idp_server/core.dart';
+
+import '../auth/guest_upgrade.dart';
+import '../generated/protocol.dart';
+import '../live/live_notifier.dart';
+import '../profile/profile_photo.dart';
+import 'friend_code.dart';
+
+/// Amis (E15) : demandes d'ami, liste d'amis, recherche de joueurs. Réservé
+/// aux comptes email — un invité (compte anonyme) reçoit
+/// `FriendsException(guestNotAllowed)` et n'apparaît jamais dans les
+/// recherches. Chaque changement prévient les deux joueurs
+/// (`LiveEvent.friendsChanged`).
+class FriendsEndpoint extends Endpoint {
+  @override
+  bool get requireLogin => true;
+
+  static const maxFriends = 200;
+  static const minSearchLength = 3;
+  static const searchLimit = 20;
+
+  /// Tout l'onglet Amis : code ami (attribué au premier appel), amis triés
+  /// par Elo, demandes reçues et envoyées (plus récentes d'abord).
+  Future<FriendsOverviewDto> getOverview(Session session) async {
+    final me = await _requireMember(session);
+    final rows = await Friendship.db.find(
+      session,
+      where: (t) => t.requesterId.equals(me.id) | t.addresseeId.equals(me.id),
+      orderBy: (t) => t.createdAt.desc(),
+    );
+    final dtos = await _toDtos(session, me, rows);
+
+    final friends =
+        dtos.where((f) => f.status == EnumFriendshipStatus.accepted).toList()
+          ..sort((a, b) => b.other.elo.compareTo(a.other.elo));
+    final pending = dtos.where((f) => f.status == EnumFriendshipStatus.pending);
+    return FriendsOverviewDto(
+      friendCode: await _ensureFriendCode(session, me),
+      friends: friends,
+      incoming: pending.where((f) => f.incoming).toList(),
+      outgoing: pending.where((f) => !f.incoming).toList(),
+    );
+  }
+
+  /// Joueurs dont le pseudo commence par [query] (à partir de
+  /// [minSearchLength] caractères), précédés de celui dont c'est le code ami
+  /// le cas échéant. Ni soi-même, ni les invités.
+  Future<List<PlayerSearchResultDto>> searchPlayers(
+    Session session,
+    String query,
+  ) async {
+    final me = await _requireMember(session);
+    final trimmed = query.trim();
+
+    final candidates = <User>[];
+    final code = FriendCode.parse(trimmed);
+    if (code != null) {
+      final byCode = await User.db.findFirstRow(
+        session,
+        where: (t) => t.friendCode.equals(code),
+      );
+      if (byCode != null) candidates.add(byCode);
+    }
+    if (trimmed.length >= minSearchLength) {
+      // `_` et `%` sont des jokers ILIKE : les échapper.
+      final escaped = trimmed
+          .replaceAll(r'\', r'\\')
+          .replaceAll('_', r'\_')
+          .replaceAll('%', r'\%');
+      candidates.addAll(
+        await User.db.find(
+          session,
+          where: (t) => t.username.ilike('$escaped%') & t.id.notEquals(me.id),
+          orderBy: (t) => t.username,
+          // De la marge pour les invités retirés ci-dessous.
+          limit: searchLimit * 2,
+        ),
+      );
+    }
+
+    final guests = await _guestAuthUserIds(session, candidates);
+    final seen = <UuidValue>{me.id!};
+    final players = [
+      for (final user in candidates)
+        if (!guests.contains(user.authUserId) && seen.add(user.id!)) user,
+    ].take(searchLimit).toList();
+    if (players.isEmpty) return [];
+
+    final rows = await Friendship.db.find(
+      session,
+      where: (t) => t.pairKey.inSet({
+        for (final user in players) friendPairKey(me.id!, user.id!),
+      }),
+    );
+    final byOther = {
+      for (final row in rows)
+        row.requesterId == me.id ? row.addresseeId : row.requesterId: row,
+    };
+    final photoUrls = await ProfilePhoto.urls(
+      session,
+      players.map((u) => u.thumbnailPath),
+    );
+    return [
+      for (final user in players)
+        PlayerSearchResultDto(
+          player: _userDto(user, photoUrls),
+          relation: _relation(me, byOther[user.id]),
+          friendshipId: byOther[user.id]?.id,
+        ),
+    ];
+  }
+
+  /// Envoie une demande d'ami à [userId] — ou accepte directement la sienne
+  /// s'il en avait déjà envoyé une.
+  Future<FriendshipDto> sendRequest(Session session, UuidValue userId) async {
+    final me = await _requireMember(session);
+    if (userId == me.id) {
+      throw FriendsException(reason: EnumFriendsError.cannotAddSelf);
+    }
+    final other = await User.db.findById(session, userId);
+    if (other == null ||
+        other.authUserId == null ||
+        await isAnonymousAuthUser(session, other.authUserId!)) {
+      throw FriendsException(reason: EnumFriendsError.userNotFound);
+    }
+
+    final Friendship row;
+    try {
+      row = await session.db.transaction((transaction) async {
+        final existing = await Friendship.db.findFirstRow(
+          session,
+          where: (t) => t.pairKey.equals(friendPairKey(me.id!, other.id!)),
+          transaction: transaction,
+          lockMode: LockMode.forUpdate,
+        );
+        if (existing == null) {
+          await _checkFriendLimit(session, me, transaction);
+          return Friendship.db.insertRow(
+            session,
+            Friendship(
+              requesterId: me.id!,
+              addresseeId: other.id!,
+              pairKey: friendPairKey(me.id!, other.id!),
+              status: EnumFriendshipStatus.pending,
+            ),
+            transaction: transaction,
+          );
+        }
+        if (existing.status == EnumFriendshipStatus.accepted) {
+          throw FriendsException(reason: EnumFriendsError.alreadyFriends);
+        }
+        if (existing.requesterId == me.id) {
+          throw FriendsException(reason: EnumFriendsError.requestAlreadySent);
+        }
+        return _accept(session, existing, transaction);
+      });
+    } on DatabaseUniqueViolationException {
+      // L'autre joueur a envoyé sa demande au même instant : la sienne est
+      // passée, on la traite comme une demande déjà là.
+      return sendRequest(session, userId);
+    }
+
+    await _notifyBoth(session, me, other);
+    return _toDto(session, me, row, other);
+  }
+
+  /// Accepte la demande [friendshipId] reçue par le joueur courant.
+  Future<FriendshipDto> acceptRequest(
+    Session session,
+    UuidValue friendshipId,
+  ) async {
+    final me = await _requireMember(session);
+    final row = await session.db.transaction((transaction) async {
+      final pending = await _lockPending(session, friendshipId, transaction);
+      if (pending.addresseeId != me.id) {
+        throw FriendsException(reason: EnumFriendsError.requestNotFound);
+      }
+      return _accept(session, pending, transaction);
+    });
+    final other = (await User.db.findById(session, row.requesterId))!;
+    await _notifyBoth(session, me, other);
+    return _toDto(session, me, row, other);
+  }
+
+  /// Refuse la demande [friendshipId] reçue par le joueur courant.
+  Future<void> declineRequest(Session session, UuidValue friendshipId) =>
+      _deletePending(session, friendshipId, incoming: true);
+
+  /// Annule la demande [friendshipId] envoyée par le joueur courant.
+  Future<void> cancelRequest(Session session, UuidValue friendshipId) =>
+      _deletePending(session, friendshipId, incoming: false);
+
+  /// Retire [userId] des amis du joueur courant (et inversement).
+  Future<void> removeFriend(Session session, UuidValue userId) async {
+    final me = await _requireMember(session);
+    final deleted = await Friendship.db.deleteWhere(
+      session,
+      where: (t) =>
+          t.pairKey.equals(friendPairKey(me.id!, userId)) &
+          t.status.equals(EnumFriendshipStatus.accepted),
+    );
+    if (deleted.isEmpty) {
+      throw FriendsException(reason: EnumFriendsError.notFriends);
+    }
+    final other = await User.db.findById(session, userId);
+    await _notifyBoth(session, me, other);
+  }
+
+  Future<void> _deletePending(
+    Session session,
+    UuidValue friendshipId, {
+    required bool incoming,
+  }) async {
+    final me = await _requireMember(session);
+    final deleted = await Friendship.db.deleteWhere(
+      session,
+      where: (t) =>
+          t.id.equals(friendshipId) &
+          t.status.equals(EnumFriendshipStatus.pending) &
+          (incoming
+              ? t.addresseeId.equals(me.id)
+              : t.requesterId.equals(me.id)),
+    );
+    if (deleted.isEmpty) {
+      throw FriendsException(reason: EnumFriendsError.requestNotFound);
+    }
+    final row = deleted.single;
+    final other = await User.db.findById(
+      session,
+      incoming ? row.requesterId : row.addresseeId,
+    );
+    await _notifyBoth(session, me, other);
+  }
+
+  Future<Friendship> _lockPending(
+    Session session,
+    UuidValue friendshipId,
+    Transaction transaction,
+  ) async {
+    final row = await Friendship.db.findById(
+      session,
+      friendshipId,
+      transaction: transaction,
+      lockMode: LockMode.forUpdate,
+    );
+    if (row == null || row.status != EnumFriendshipStatus.pending) {
+      throw FriendsException(reason: EnumFriendsError.requestNotFound);
+    }
+    return row;
+  }
+
+  /// Passe [pending] en ami, si aucun des deux n'a atteint [maxFriends].
+  Future<Friendship> _accept(
+    Session session,
+    Friendship pending,
+    Transaction transaction,
+  ) async {
+    for (final userId in [pending.requesterId, pending.addresseeId]) {
+      final count = await Friendship.db.count(
+        session,
+        where: (t) =>
+            (t.requesterId.equals(userId) | t.addresseeId.equals(userId)) &
+            t.status.equals(EnumFriendshipStatus.accepted),
+        transaction: transaction,
+      );
+      if (count >= maxFriends) {
+        throw FriendsException(reason: EnumFriendsError.tooManyFriends);
+      }
+    }
+    return Friendship.db.updateRow(
+      session,
+      pending.copyWith(
+        status: EnumFriendshipStatus.accepted,
+        respondedAt: DateTime.now(),
+      ),
+      transaction: transaction,
+    );
+  }
+
+  /// Une demande de plus n'aurait aucune chance d'être acceptée.
+  Future<void> _checkFriendLimit(
+    Session session,
+    User me,
+    Transaction transaction,
+  ) async {
+    final count = await Friendship.db.count(
+      session,
+      where: (t) =>
+          (t.requesterId.equals(me.id) | t.addresseeId.equals(me.id)) &
+          t.status.equals(EnumFriendshipStatus.accepted),
+      transaction: transaction,
+    );
+    if (count >= maxFriends) {
+      throw FriendsException(reason: EnumFriendsError.tooManyFriends);
+    }
+  }
+
+  Future<User> _requireMember(Session session) async {
+    final authUserId = session.authenticated!.authUserId;
+    if (await isAnonymousAuthUser(session, authUserId)) {
+      throw FriendsException(reason: EnumFriendsError.guestNotAllowed);
+    }
+    final user = await User.db.findFirstRow(
+      session,
+      where: (t) => t.authUserId.equals(authUserId),
+    );
+    if (user == null) {
+      throw StateError('Aucun User pour l\'AuthUser $authUserId');
+    }
+    return user;
+  }
+
+  /// Code ami de [me], tiré au hasard au premier appel.
+  Future<String> _ensureFriendCode(Session session, User me) async {
+    if (me.friendCode != null) return me.friendCode!;
+    while (true) {
+      final code = FriendCode.generate();
+      try {
+        await User.db.updateRow(
+          session,
+          me.copyWith(friendCode: code),
+          columns: (t) => [t.friendCode],
+        );
+        return code;
+      } on DatabaseUniqueViolationException {
+        // Code déjà pris : on en tire un autre.
+      }
+    }
+  }
+
+  Future<Set<UuidValue>> _guestAuthUserIds(
+    Session session,
+    List<User> users,
+  ) async {
+    final authUserIds = {
+      for (final user in users)
+        if (user.authUserId != null) user.authUserId!,
+    };
+    if (authUserIds.isEmpty) return {};
+    final accounts = await AnonymousAccount.db.find(
+      session,
+      where: (t) => t.authUserId.inSet(authUserIds),
+    );
+    return {for (final account in accounts) account.authUserId};
+  }
+
+  Future<void> _notifyBoth(Session session, User me, User? other) async {
+    for (final authUserId in [me.authUserId, other?.authUserId]) {
+      if (authUserId != null) {
+        await notifyUser(session, authUserId, friends: true);
+      }
+    }
+  }
+
+  EnumFriendRelation _relation(User me, Friendship? row) {
+    if (row == null) return EnumFriendRelation.none;
+    if (row.status == EnumFriendshipStatus.accepted) {
+      return EnumFriendRelation.friend;
+    }
+    return row.requesterId == me.id
+        ? EnumFriendRelation.requestSent
+        : EnumFriendRelation.requestReceived;
+  }
+
+  Future<FriendshipDto> _toDto(
+    Session session,
+    User me,
+    Friendship row,
+    User other,
+  ) async {
+    final photoUrls = await ProfilePhoto.urls(session, [other.thumbnailPath]);
+    return _friendshipDto(me, row, other, photoUrls);
+  }
+
+  Future<List<FriendshipDto>> _toDtos(
+    Session session,
+    User me,
+    List<Friendship> rows,
+  ) async {
+    if (rows.isEmpty) return [];
+    final others = await User.db.find(
+      session,
+      where: (t) => t.id.inSet(<UuidValue>{
+        for (final row in rows)
+          row.requesterId == me.id ? row.addresseeId : row.requesterId,
+      }),
+    );
+    final byId = {for (final user in others) user.id!: user};
+    final photoUrls = await ProfilePhoto.urls(
+      session,
+      others.map((u) => u.thumbnailPath),
+    );
+    return [
+      for (final row in rows)
+        _friendshipDto(
+          me,
+          row,
+          byId[row.requesterId == me.id ? row.addresseeId : row.requesterId]!,
+          photoUrls,
+        ),
+    ];
+  }
+
+  FriendshipDto _friendshipDto(
+    User me,
+    Friendship row,
+    User other,
+    Map<String, String> photoUrls,
+  ) => FriendshipDto(
+    id: row.id!,
+    other: _userDto(other, photoUrls),
+    status: row.status,
+    incoming: row.addresseeId == me.id,
+    createdAt: row.createdAt,
+    respondedAt: row.respondedAt,
+  );
+
+  FriendUserDto _userDto(User user, Map<String, String> photoUrls) =>
+      FriendUserDto(
+        userId: user.id!,
+        username: user.username,
+        thumbnailUrl: photoUrls[user.thumbnailPath],
+        elo: user.elo,
+      );
+}

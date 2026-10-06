@@ -16,7 +16,8 @@ enum EnumLiveEventType implements _is.SerializableModel {
   profileChanged,
   historyChanged,
   leaderboardChanged,
-  lobbyChanged;
+  lobbyChanged,
+  friendsChanged;
 
   static EnumLiveEventType fromJson(String name) {
     switch (name) {
@@ -28,6 +29,8 @@ enum EnumLiveEventType implements _is.SerializableModel {
         return EnumLiveEventType.leaderboardChanged;
       case 'lobbyChanged':
         return EnumLiveEventType.lobbyChanged;
+      case 'friendsChanged':
+        return EnumLiveEventType.friendsChanged;
       default:
         throw ArgumentError(
           'Value "$name" cannot be converted to "EnumLiveEventType"',

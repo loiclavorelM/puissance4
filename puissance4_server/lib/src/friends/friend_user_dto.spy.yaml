@@ -1,0 +1,7 @@
+# Un autre joueur tel qu'affiché dans l'onglet Amis — pas de table.
+class: FriendUserDto
+fields:
+  userId: UuidValue
+  username: String
+  thumbnailUrl: String?
+  elo: int

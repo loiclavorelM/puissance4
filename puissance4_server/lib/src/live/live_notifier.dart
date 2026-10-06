@@ -22,12 +22,14 @@ Future<void> notifyLeaderboardChanged(Session session) async {
 }
 
 /// Prévient les appareils connectés de [authUserId] (ex. un autre téléphone
-/// sur le même compte) que son profil et/ou son historique ont changé.
+/// sur le même compte) que son profil, son historique et/ou ses amis ont
+/// changé.
 Future<void> notifyUser(
   Session session,
   UuidValue authUserId, {
   bool profile = false,
   bool history = false,
+  bool friends = false,
 }) async {
   final channel = liveUserChannel(authUserId);
   if (profile) {
@@ -40,6 +42,12 @@ Future<void> notifyUser(
     await session.messages.postMessage(
       channel,
       LiveEvent(type: EnumLiveEventType.historyChanged),
+    );
+  }
+  if (friends) {
+    await session.messages.postMessage(
+      channel,
+      LiveEvent(type: EnumLiveEventType.friendsChanged),
     );
   }
 }

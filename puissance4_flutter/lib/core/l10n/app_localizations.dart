@@ -620,6 +620,240 @@ abstract class AppLocalizations {
   /// **'Tous'**
   String get filterAll;
 
+  /// No description provided for @friendAccept.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accepter'**
+  String get friendAccept;
+
+  /// No description provided for @friendAccepted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous êtes maintenant amis avec {name} !'**
+  String friendAccepted(String name);
+
+  /// No description provided for @friendAdd.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter'**
+  String get friendAdd;
+
+  /// No description provided for @friendCodeCopied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code ami copié.'**
+  String get friendCodeCopied;
+
+  /// No description provided for @friendCodeCopy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Copier le code'**
+  String get friendCodeCopy;
+
+  /// No description provided for @friendCodeHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Donne-le à un ami pour qu\'il t\'ajoute.'**
+  String get friendCodeHint;
+
+  /// No description provided for @friendDecline.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refuser'**
+  String get friendDecline;
+
+  /// No description provided for @friendRelationFriend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ami'**
+  String get friendRelationFriend;
+
+  /// No description provided for @friendRelationSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demande envoyée'**
+  String get friendRelationSent;
+
+  /// No description provided for @friendRemove.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer'**
+  String get friendRemove;
+
+  /// No description provided for @friendRemoveMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu disparaîtras aussi de sa liste.'**
+  String get friendRemoveMessage;
+
+  /// No description provided for @friendRemoveTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer {name} de tes amis ?'**
+  String friendRemoveTitle(String name);
+
+  /// No description provided for @friendRequestDaysAgo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il y a {days} jours'**
+  String friendRequestDaysAgo(int days);
+
+  /// No description provided for @friendRequestSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demande envoyée à {name}.'**
+  String friendRequestSent(String name);
+
+  /// No description provided for @friendRequestToday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aujourd\'hui'**
+  String get friendRequestToday;
+
+  /// No description provided for @friendRequestYesterday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hier'**
+  String get friendRequestYesterday;
+
+  /// No description provided for @friendRequestsEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune demande en attente.'**
+  String get friendRequestsEmpty;
+
+  /// No description provided for @friendRequestsReceived.
+  ///
+  /// In fr, this message translates to:
+  /// **'REÇUES'**
+  String get friendRequestsReceived;
+
+  /// No description provided for @friendRequestsSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'ENVOYÉES'**
+  String get friendRequestsSent;
+
+  /// No description provided for @friendSearchHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pseudo ou code ami (P4-…)'**
+  String get friendSearchHint;
+
+  /// No description provided for @friendSearchNoResult.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun joueur trouvé.'**
+  String get friendSearchNoResult;
+
+  /// No description provided for @friendSearchTooShort.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tape au moins 3 caractères, ou un code ami.'**
+  String get friendSearchTooShort;
+
+  /// No description provided for @friendsEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas encore d\'amis. Ajoute les joueurs que tu croises !'**
+  String get friendsEmpty;
+
+  /// No description provided for @friendsEmptyAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter des amis'**
+  String get friendsEmptyAction;
+
+  /// No description provided for @friendsErrorAlreadyFriends.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous êtes déjà amis.'**
+  String get friendsErrorAlreadyFriends;
+
+  /// No description provided for @friendsErrorAlreadySent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demande déjà envoyée.'**
+  String get friendsErrorAlreadySent;
+
+  /// No description provided for @friendsErrorNotFriends.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous n\'êtes plus amis.'**
+  String get friendsErrorNotFriends;
+
+  /// No description provided for @friendsErrorRequestNotFound.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette demande n\'existe plus.'**
+  String get friendsErrorRequestNotFound;
+
+  /// No description provided for @friendsErrorSelf.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tu ne peux pas t\'ajouter toi-même.'**
+  String get friendsErrorSelf;
+
+  /// No description provided for @friendsErrorTooMany.
+  ///
+  /// In fr, this message translates to:
+  /// **'Limite de 200 amis atteinte.'**
+  String get friendsErrorTooMany;
+
+  /// No description provided for @friendsErrorUserNotFound.
+  ///
+  /// In fr, this message translates to:
+  /// **'Joueur introuvable.'**
+  String get friendsErrorUserNotFound;
+
+  /// No description provided for @friendsGuestMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Crée un compte pour ajouter des amis : tu gardes ta progression.'**
+  String get friendsGuestMessage;
+
+  /// No description provided for @friendsLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger tes amis.'**
+  String get friendsLoadError;
+
+  /// No description provided for @friendsLocalGuestMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connecte-toi au serveur pour ajouter des amis.'**
+  String get friendsLocalGuestMessage;
+
+  /// No description provided for @friendsSince.
+  ///
+  /// In fr, this message translates to:
+  /// **'Amis depuis le {date}'**
+  String friendsSince(String date);
+
+  /// No description provided for @friendsTabAdd.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter'**
+  String get friendsTabAdd;
+
+  /// No description provided for @friendsTabList.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes amis'**
+  String get friendsTabList;
+
+  /// No description provided for @friendsTabRequests.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demandes'**
+  String get friendsTabRequests;
+
+  /// No description provided for @friendsTabRivalries.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rivalités'**
+  String get friendsTabRivalries;
+
   /// No description provided for @gameCancelled.
   ///
   /// In fr, this message translates to:
@@ -800,6 +1034,12 @@ abstract class AppLocalizations {
   /// **'Impossible de charger le classement.'**
   String get leaderboardLoadError;
 
+  /// No description provided for @leaderboardNoFriends.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoute des amis pour te comparer à eux.'**
+  String get leaderboardNoFriends;
+
   /// No description provided for @leaderboardSignIn.
   ///
   /// In fr, this message translates to:
@@ -883,6 +1123,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Affronte le bot du serveur, fais monter ton Elo'**
   String get modeRankedSubtitle;
+
+  /// No description provided for @myFriendCode.
+  ///
+  /// In fr, this message translates to:
+  /// **'MON CODE AMI'**
+  String get myFriendCode;
 
   /// No description provided for @needsServer.
   ///
@@ -1417,6 +1663,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Le joueur dont c\'est le tour perdra la partie.'**
   String get stopLoserIsPlayerToMove;
+
+  /// No description provided for @tabFriends.
+  ///
+  /// In fr, this message translates to:
+  /// **'Amis'**
+  String get tabFriends;
 
   /// No description provided for @tabHistory.
   ///

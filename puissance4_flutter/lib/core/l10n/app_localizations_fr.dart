@@ -298,6 +298,137 @@ class AppLocalizationsFr extends AppLocalizations {
   String get filterAll => 'Tous';
 
   @override
+  String get friendAccept => 'Accepter';
+
+  @override
+  String friendAccepted(String name) {
+    return 'Vous êtes maintenant amis avec $name !';
+  }
+
+  @override
+  String get friendAdd => 'Ajouter';
+
+  @override
+  String get friendCodeCopied => 'Code ami copié.';
+
+  @override
+  String get friendCodeCopy => 'Copier le code';
+
+  @override
+  String get friendCodeHint => 'Donne-le à un ami pour qu\'il t\'ajoute.';
+
+  @override
+  String get friendDecline => 'Refuser';
+
+  @override
+  String get friendRelationFriend => 'Ami';
+
+  @override
+  String get friendRelationSent => 'Demande envoyée';
+
+  @override
+  String get friendRemove => 'Retirer';
+
+  @override
+  String get friendRemoveMessage => 'Tu disparaîtras aussi de sa liste.';
+
+  @override
+  String friendRemoveTitle(String name) {
+    return 'Retirer $name de tes amis ?';
+  }
+
+  @override
+  String friendRequestDaysAgo(int days) {
+    return 'Il y a $days jours';
+  }
+
+  @override
+  String friendRequestSent(String name) {
+    return 'Demande envoyée à $name.';
+  }
+
+  @override
+  String get friendRequestToday => 'Aujourd\'hui';
+
+  @override
+  String get friendRequestYesterday => 'Hier';
+
+  @override
+  String get friendRequestsEmpty => 'Aucune demande en attente.';
+
+  @override
+  String get friendRequestsReceived => 'REÇUES';
+
+  @override
+  String get friendRequestsSent => 'ENVOYÉES';
+
+  @override
+  String get friendSearchHint => 'Pseudo ou code ami (P4-…)';
+
+  @override
+  String get friendSearchNoResult => 'Aucun joueur trouvé.';
+
+  @override
+  String get friendSearchTooShort =>
+      'Tape au moins 3 caractères, ou un code ami.';
+
+  @override
+  String get friendsEmpty =>
+      'Pas encore d\'amis. Ajoute les joueurs que tu croises !';
+
+  @override
+  String get friendsEmptyAction => 'Ajouter des amis';
+
+  @override
+  String get friendsErrorAlreadyFriends => 'Vous êtes déjà amis.';
+
+  @override
+  String get friendsErrorAlreadySent => 'Demande déjà envoyée.';
+
+  @override
+  String get friendsErrorNotFriends => 'Vous n\'êtes plus amis.';
+
+  @override
+  String get friendsErrorRequestNotFound => 'Cette demande n\'existe plus.';
+
+  @override
+  String get friendsErrorSelf => 'Tu ne peux pas t\'ajouter toi-même.';
+
+  @override
+  String get friendsErrorTooMany => 'Limite de 200 amis atteinte.';
+
+  @override
+  String get friendsErrorUserNotFound => 'Joueur introuvable.';
+
+  @override
+  String get friendsGuestMessage =>
+      'Crée un compte pour ajouter des amis : tu gardes ta progression.';
+
+  @override
+  String get friendsLoadError => 'Impossible de charger tes amis.';
+
+  @override
+  String get friendsLocalGuestMessage =>
+      'Connecte-toi au serveur pour ajouter des amis.';
+
+  @override
+  String friendsSince(String date) {
+    return 'Amis depuis le $date';
+  }
+
+  @override
+  String get friendsTabAdd => 'Ajouter';
+
+  @override
+  String get friendsTabList => 'Mes amis';
+
+  @override
+  String get friendsTabRequests => 'Demandes';
+
+  @override
+  String get friendsTabRivalries => 'Rivalités';
+
+  @override
   String get gameCancelled => 'Partie annulée';
 
   @override
@@ -392,6 +523,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get leaderboardLoadError => 'Impossible de charger le classement.';
 
   @override
+  String get leaderboardNoFriends => 'Ajoute des amis pour te comparer à eux.';
+
+  @override
   String get leaderboardSignIn => 'Connecte-toi pour voir le classement.';
 
   @override
@@ -437,6 +571,9 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get modeRankedSubtitle =>
       'Affronte le bot du serveur, fais monter ton Elo';
+
+  @override
+  String get myFriendCode => 'MON CODE AMI';
 
   @override
   String get needsServer => 'Ce mode nécessite une connexion au serveur.';
@@ -736,6 +873,9 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get stopLoserIsPlayerToMove =>
       'Le joueur dont c\'est le tour perdra la partie.';
+
+  @override
+  String get tabFriends => 'Amis';
 
   @override
   String get tabHistory => 'Historique';

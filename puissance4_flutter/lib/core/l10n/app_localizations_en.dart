@@ -297,6 +297,136 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filterAll => 'All';
 
   @override
+  String get friendAccept => 'Accept';
+
+  @override
+  String friendAccepted(String name) {
+    return 'You\'re now friends with $name!';
+  }
+
+  @override
+  String get friendAdd => 'Add';
+
+  @override
+  String get friendCodeCopied => 'Friend code copied.';
+
+  @override
+  String get friendCodeCopy => 'Copy code';
+
+  @override
+  String get friendCodeHint => 'Give it to a friend so they can add you.';
+
+  @override
+  String get friendDecline => 'Decline';
+
+  @override
+  String get friendRelationFriend => 'Friend';
+
+  @override
+  String get friendRelationSent => 'Request sent';
+
+  @override
+  String get friendRemove => 'Remove';
+
+  @override
+  String get friendRemoveMessage => 'You\'ll disappear from their list too.';
+
+  @override
+  String friendRemoveTitle(String name) {
+    return 'Remove $name from your friends?';
+  }
+
+  @override
+  String friendRequestDaysAgo(int days) {
+    return '$days days ago';
+  }
+
+  @override
+  String friendRequestSent(String name) {
+    return 'Request sent to $name.';
+  }
+
+  @override
+  String get friendRequestToday => 'Today';
+
+  @override
+  String get friendRequestYesterday => 'Yesterday';
+
+  @override
+  String get friendRequestsEmpty => 'No pending requests.';
+
+  @override
+  String get friendRequestsReceived => 'RECEIVED';
+
+  @override
+  String get friendRequestsSent => 'SENT';
+
+  @override
+  String get friendSearchHint => 'Username or friend code (P4-…)';
+
+  @override
+  String get friendSearchNoResult => 'No player found.';
+
+  @override
+  String get friendSearchTooShort =>
+      'Type at least 3 characters, or a friend code.';
+
+  @override
+  String get friendsEmpty => 'No friends yet. Add the players you meet!';
+
+  @override
+  String get friendsEmptyAction => 'Add friends';
+
+  @override
+  String get friendsErrorAlreadyFriends => 'You\'re already friends.';
+
+  @override
+  String get friendsErrorAlreadySent => 'Request already sent.';
+
+  @override
+  String get friendsErrorNotFriends => 'You\'re no longer friends.';
+
+  @override
+  String get friendsErrorRequestNotFound => 'This request no longer exists.';
+
+  @override
+  String get friendsErrorSelf => 'You can\'t add yourself.';
+
+  @override
+  String get friendsErrorTooMany => '200-friend limit reached.';
+
+  @override
+  String get friendsErrorUserNotFound => 'Player not found.';
+
+  @override
+  String get friendsGuestMessage =>
+      'Create an account to add friends: you keep your progress.';
+
+  @override
+  String get friendsLoadError => 'Couldn\'t load your friends.';
+
+  @override
+  String get friendsLocalGuestMessage =>
+      'Connect to the server to add friends.';
+
+  @override
+  String friendsSince(String date) {
+    return 'Friends since $date';
+  }
+
+  @override
+  String get friendsTabAdd => 'Add';
+
+  @override
+  String get friendsTabList => 'My friends';
+
+  @override
+  String get friendsTabRequests => 'Requests';
+
+  @override
+  String get friendsTabRivalries => 'Rivalries';
+
+  @override
   String get gameCancelled => 'Game cancelled';
 
   @override
@@ -391,6 +521,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leaderboardLoadError => 'Couldn\'t load the leaderboard.';
 
   @override
+  String get leaderboardNoFriends =>
+      'Add friends to compare yourself with them.';
+
+  @override
   String get leaderboardSignIn => 'Sign in to see the leaderboard.';
 
   @override
@@ -435,6 +569,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get modeRankedSubtitle => 'Play the server\'s bot, raise your Elo';
+
+  @override
+  String get myFriendCode => 'MY FRIEND CODE';
 
   @override
   String get needsServer => 'This mode needs a connection to the server.';
@@ -726,6 +863,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get stopLoserIsPlayerToMove =>
       'The player whose turn it is will lose the game.';
+
+  @override
+  String get tabFriends => 'Friends';
 
   @override
   String get tabHistory => 'History';

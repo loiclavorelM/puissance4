@@ -143,6 +143,80 @@
   "explainSignIn": "Connecte-toi pour obtenir une explication.",
   "explainUnavailable": "Le service d'explication ne répond pas. Réessaie plus tard.",
   "filterAll": "Tous",
+  "friendAccept": "Accepter",
+  "friendAccepted": "Vous êtes maintenant amis avec {name} !",
+  "@friendAccepted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendAdd": "Ajouter",
+  "friendCodeCopied": "Code ami copié.",
+  "friendCodeCopy": "Copier le code",
+  "friendCodeHint": "Donne-le à un ami pour qu'il t'ajoute.",
+  "friendDecline": "Refuser",
+  "friendRelationFriend": "Ami",
+  "friendRelationSent": "Demande envoyée",
+  "friendRemove": "Retirer",
+  "friendRemoveMessage": "Tu disparaîtras aussi de sa liste.",
+  "friendRemoveTitle": "Retirer {name} de tes amis ?",
+  "@friendRemoveTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendRequestDaysAgo": "Il y a {days} jours",
+  "@friendRequestDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "friendRequestSent": "Demande envoyée à {name}.",
+  "@friendRequestSent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendRequestToday": "Aujourd'hui",
+  "friendRequestYesterday": "Hier",
+  "friendRequestsEmpty": "Aucune demande en attente.",
+  "friendRequestsReceived": "REÇUES",
+  "friendRequestsSent": "ENVOYÉES",
+  "friendSearchHint": "Pseudo ou code ami (P4-…)",
+  "friendSearchNoResult": "Aucun joueur trouvé.",
+  "friendSearchTooShort": "Tape au moins 3 caractères, ou un code ami.",
+  "friendsEmpty": "Pas encore d'amis. Ajoute les joueurs que tu croises !",
+  "friendsEmptyAction": "Ajouter des amis",
+  "friendsErrorAlreadyFriends": "Vous êtes déjà amis.",
+  "friendsErrorAlreadySent": "Demande déjà envoyée.",
+  "friendsErrorNotFriends": "Vous n'êtes plus amis.",
+  "friendsErrorRequestNotFound": "Cette demande n'existe plus.",
+  "friendsErrorSelf": "Tu ne peux pas t'ajouter toi-même.",
+  "friendsErrorTooMany": "Limite de 200 amis atteinte.",
+  "friendsErrorUserNotFound": "Joueur introuvable.",
+  "friendsGuestMessage": "Crée un compte pour ajouter des amis : tu gardes ta progression.",
+  "friendsLoadError": "Impossible de charger tes amis.",
+  "friendsLocalGuestMessage": "Connecte-toi au serveur pour ajouter des amis.",
+  "friendsSince": "Amis depuis le {date}",
+  "@friendsSince": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsTabAdd": "Ajouter",
+  "friendsTabList": "Mes amis",
+  "friendsTabRequests": "Demandes",
+  "friendsTabRivalries": "Rivalités",
   "gameCancelled": "Partie annulée",
   "gameConnecting": "Connexion à la partie…",
   "gameDraw": "Match nul",
@@ -183,6 +257,7 @@
   "leaderboardFriends": "Amis",
   "leaderboardGlobal": "Global",
   "leaderboardLoadError": "Impossible de charger le classement.",
+  "leaderboardNoFriends": "Ajoute des amis pour te comparer à eux.",
   "leaderboardSignIn": "Connecte-toi pour voir le classement.",
   "lightThemeSoon": "Le thème clair arrive bientôt — ton choix est déjà mémorisé.",
   "loginTagline": "Défie l'IA. Grimpe le classement.",
@@ -204,6 +279,7 @@
   "modeNormalSubtitle": "Choisis la difficulté du bot",
   "modeRanked": "Classé",
   "modeRankedSubtitle": "Affronte le bot du serveur, fais monter ton Elo",
+  "myFriendCode": "MON CODE AMI",
   "needsServer": "Ce mode nécessite une connexion au serveur.",
   "newGame": "Nouvelle partie",
   "newGameFailed": "Impossible de créer la partie.",
@@ -354,6 +430,7 @@
   "stopCountsAsLoss": "Tu as déjà joué : elle comptera comme une défaite.",
   "stopGameTitle": "Arrêter la partie ?",
   "stopLoserIsPlayerToMove": "Le joueur dont c'est le tour perdra la partie.",
+  "tabFriends": "Amis",
   "tabHistory": "Historique",
   "tabLeaderboard": "Classement",
   "tabPlay": "Jouer",

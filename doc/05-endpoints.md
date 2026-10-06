@@ -148,10 +148,30 @@ RL (E5).
 ### Temps réel — `LiveEndpoint` (`client.live`), `lib/src/live/`
 - `watchUpdates() -> Stream<LiveEvent>`
   Stream (WebSocket) ouvert par le client tant qu'il est connecté. Émet
-  `LiveEvent(type: profileChanged | historyChanged | leaderboardChanged)` —
+  `LiveEvent(type: profileChanged | historyChanged | leaderboardChanged |
+  friendsChanged)` —
   sans payload : le client recharge la donnée concernée (cache local puis
   réseau). Alimenté par `session.messages` via `live_notifier.dart` : canal
   `live.user.<authUserId>` (profil/historique) et `live.leaderboard` (tous).
+
+### Amis `[hors cahier des charges]` — `FriendsEndpoint` (`client.friends`), `lib/src/friends/`
+Réservé aux comptes email : un invité reçoit `FriendsException(guestNotAllowed)`
+et n'apparaît jamais dans les recherches. Chaque changement envoie
+`LiveEvent(friendsChanged)` aux deux joueurs.
+- `getOverview() -> FriendsOverviewDto`
+  Code ami (attribué au premier appel), amis (par Elo), demandes reçues et
+  envoyées.
+- `searchPlayers(query: String) -> List<PlayerSearchResultDto>`
+  Pseudos commençant par `query` (3 caractères min., 20 résultats), précédés du
+  joueur dont c'est le code ami (`P4-XXXXXX`, préfixe et casse libres) ; chaque
+  résultat porte la relation (`none | friend | requestSent | requestReceived`).
+- `sendRequest(userId: Guid) -> FriendshipDto`
+  Accepte directement si l'autre avait déjà envoyé une demande.
+- `acceptRequest(friendshipId)`, `declineRequest(friendshipId)`,
+  `cancelRequest(friendshipId)`, `removeFriend(userId)`
+  Lèvent `FriendsException(reason: userNotFound | cannotAddSelf |
+  alreadyFriends | requestAlreadySent | requestNotFound | notFriends |
+  tooManyFriends)` — 200 amis au plus.
 
 ### Revue de partie IA `[optionnel]` — `ReviewEndpoint` (`client.review`), `lib/src/review/`
 - `explainMove(moves: List<int>, moveIndex: int, language: String) -> String`

@@ -25,6 +25,7 @@ abstract class User
     required this.username,
     this.thumbnailPath,
     int? elo,
+    this.friendCode,
     DateTime? createdAt,
     this.updatedAt,
   }) : elo = elo ?? 1000,
@@ -37,6 +38,7 @@ abstract class User
     required String username,
     String? thumbnailPath,
     int? elo,
+    String? friendCode,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _UserImpl;
@@ -59,6 +61,7 @@ abstract class User
       username: jsonSerialization['username'] as String,
       thumbnailPath: jsonSerialization['thumbnailPath'] as String?,
       elo: jsonSerialization['elo'] as int?,
+      friendCode: jsonSerialization['friendCode'] as String?,
       createdAt: jsonSerialization['createdAt'] == null
           ? null
           : _is.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
@@ -85,6 +88,8 @@ abstract class User
 
   int elo;
 
+  String? friendCode;
+
   DateTime createdAt;
 
   DateTime? updatedAt;
@@ -102,6 +107,7 @@ abstract class User
     String? username,
     String? thumbnailPath,
     int? elo,
+    String? friendCode,
     DateTime? createdAt,
     DateTime? updatedAt,
   });
@@ -115,6 +121,7 @@ abstract class User
       'username': username,
       if (thumbnailPath != null) 'thumbnailPath': thumbnailPath,
       'elo': elo,
+      if (friendCode != null) 'friendCode': friendCode,
       'createdAt': createdAt.toJson(),
       if (updatedAt != null) 'updatedAt': updatedAt?.toJson(),
     };
@@ -130,6 +137,7 @@ abstract class User
       'username': username,
       if (thumbnailPath != null) 'thumbnailPath': thumbnailPath,
       'elo': elo,
+      if (friendCode != null) 'friendCode': friendCode,
       'createdAt': createdAt.toJson(),
       if (updatedAt != null) 'updatedAt': updatedAt?.toJson(),
     };
@@ -173,6 +181,7 @@ class _UserImpl extends User {
     required String username,
     String? thumbnailPath,
     int? elo,
+    String? friendCode,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : super._(
@@ -182,6 +191,7 @@ class _UserImpl extends User {
          username: username,
          thumbnailPath: thumbnailPath,
          elo: elo,
+         friendCode: friendCode,
          createdAt: createdAt,
          updatedAt: updatedAt,
        );
@@ -197,6 +207,7 @@ class _UserImpl extends User {
     String? username,
     Object? thumbnailPath = _Undefined,
     int? elo,
+    Object? friendCode = _Undefined,
     DateTime? createdAt,
     Object? updatedAt = _Undefined,
   }) {
@@ -211,6 +222,7 @@ class _UserImpl extends User {
           ? thumbnailPath
           : this.thumbnailPath,
       elo: elo ?? this.elo,
+      friendCode: friendCode is String? ? friendCode : this.friendCode,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt is DateTime? ? updatedAt : this.updatedAt,
     );
@@ -240,6 +252,11 @@ class UserUpdateTable extends _is.UpdateTable<UserTable> {
 
   _is.ColumnValue<int, int> elo(int value) => _is.ColumnValue(
     table.elo,
+    value,
+  );
+
+  _is.ColumnValue<String, String> friendCode(String? value) => _is.ColumnValue(
+    table.friendCode,
     value,
   );
 
@@ -276,6 +293,10 @@ class UserTable extends _is.Table<_is.UuidValue?> {
       this,
       hasDefault: true,
     );
+    friendCode = _is.ColumnString(
+      'friendCode',
+      this,
+    );
     createdAt = _is.ColumnDateTime(
       'createdAt',
       this,
@@ -298,6 +319,8 @@ class UserTable extends _is.Table<_is.UuidValue?> {
   late final _is.ColumnString thumbnailPath;
 
   late final _is.ColumnInt elo;
+
+  late final _is.ColumnString friendCode;
 
   late final _is.ColumnDateTime createdAt;
 
@@ -323,6 +346,7 @@ class UserTable extends _is.Table<_is.UuidValue?> {
     username,
     thumbnailPath,
     elo,
+    friendCode,
     createdAt,
     updatedAt,
   ];

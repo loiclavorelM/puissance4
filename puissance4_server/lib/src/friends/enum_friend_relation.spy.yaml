@@ -1,0 +1,8 @@
+# Relation entre le joueur courant et un autre joueur, vue du joueur courant
+# (résultats de recherche de l'onglet « Ajouter »).
+enum: EnumFriendRelation
+values:
+  - none
+  - friend
+  - requestSent
+  - requestReceived

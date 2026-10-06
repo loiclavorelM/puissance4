@@ -7,6 +7,8 @@ import 'core/l10n/l10n.dart';
 import 'core/theme/app_colors.dart';
 import 'features/auth/view/login_screen.dart';
 import 'features/auth/viewmodel/auth_viewmodel.dart';
+import 'features/friends/view/friends_screen.dart';
+import 'features/friends/viewmodel/friends_viewmodel.dart';
 import 'features/game/view/game_home_screen.dart';
 import 'features/history/view/history_screen.dart';
 import 'features/history/viewmodel/history_viewmodel.dart';
@@ -108,9 +110,9 @@ class _AuthGate extends ConsumerWidget {
   }
 }
 
-/// Coquille de navigation principale (post connexion) — 3 onglets : Jouer,
+/// Coquille de navigation principale (post connexion) — 4 onglets : Jouer,
 /// Classement, Historique (`doc/latex/figures/maquette-2.png` et
-/// suivantes). Réglages n'a pas son propre onglet : l'icône engrenage de
+/// suivantes) et Amis (E15, hors maquettes). Réglages n'a pas son propre onglet : l'icône engrenage de
 /// l'écran Jouer le pousse en route à part (pas besoin des deux accès).
 /// `IndexedStack` garde l'état de chaque onglet en mémoire (ex. le bouton de
 /// test en cours sur Jouer) quand on change d'onglet.
@@ -124,6 +126,7 @@ class _MainShell extends ConsumerStatefulWidget {
 class _MainShellState extends ConsumerState<_MainShell> {
   static const _leaderboardTabIndex = 1;
   static const _historyTabIndex = 2;
+  static const _friendsTabIndex = 3;
 
   int _selectedIndex = 0;
 
@@ -141,6 +144,17 @@ class _MainShellState extends ConsumerState<_MainShell> {
       ref.invalidate(serverHistoryProvider);
       ref.invalidate(offlineHistoryProvider);
     }
+    if (index == _friendsTabIndex) {
+      ref.invalidate(friendsOverviewProvider);
+    }
+  }
+
+  /// « Ajouter des amis » depuis le classement entre amis vide.
+  void _openAddFriends() {
+    ref
+        .read(friendsTabRequestProvider.notifier)
+        .open(FriendsScreen.addTabIndex);
+    _openTab(_friendsTabIndex);
   }
 
   void _openSettings() {
@@ -159,9 +173,11 @@ class _MainShellState extends ConsumerState<_MainShell> {
 
     final screens = [
       GameHomeScreen(onOpenSettings: _openSettings),
-      const LeaderboardScreen(),
+      LeaderboardScreen(onAddFriends: _openAddFriends),
       const HistoryScreen(),
+      const FriendsScreen(),
     ];
+    final incomingRequests = ref.watch(incomingFriendRequestCountProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -205,6 +221,19 @@ class _MainShellState extends ConsumerState<_MainShell> {
             NavigationDestination(
               icon: const Icon(Icons.history),
               label: context.l10n.tabHistory,
+            ),
+            NavigationDestination(
+              icon: Badge(
+                isLabelVisible: incomingRequests > 0,
+                label: Text('$incomingRequests'),
+                child: const Icon(Icons.people_outline),
+              ),
+              selectedIcon: Badge(
+                isLabelVisible: incomingRequests > 0,
+                label: Text('$incomingRequests'),
+                child: const Icon(Icons.people),
+              ),
+              label: context.l10n.tabFriends,
             ),
           ],
         ),

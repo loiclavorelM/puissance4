@@ -14,6 +14,12 @@ import 'dart:async' as _ida;
 import 'dart:typed_data' as _idt;
 import 'package:http/http.dart' as _i85jenna;
 import 'package:puissance4_client/src/protocol/bot/bot.dart' as _ighv8e6n;
+import 'package:puissance4_client/src/protocol/friends/friends_overview_dto.dart'
+    as _ibtv0qn2;
+import 'package:puissance4_client/src/protocol/friends/friendship_dto.dart'
+    as _izlxexk7;
+import 'package:puissance4_client/src/protocol/friends/player_search_result_dto.dart'
+    as _ionzpnek;
 import 'package:puissance4_client/src/protocol/game/enum_type.dart'
     as _i6ui2hi8;
 import 'package:puissance4_client/src/protocol/game/game_event.dart'
@@ -319,6 +325,81 @@ class EndpointConnection extends _isc.EndpointRef {
     'ping',
     {},
   );
+}
+
+/// Amis (E15) : demandes d'ami, liste d'amis, recherche de joueurs. Réservé
+/// aux comptes email — un invité (compte anonyme) reçoit
+/// `FriendsException(guestNotAllowed)` et n'apparaît jamais dans les
+/// recherches. Chaque changement prévient les deux joueurs
+/// (`LiveEvent.friendsChanged`).
+/// {@category Endpoint}
+class EndpointFriends extends _isc.EndpointRef {
+  EndpointFriends(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'friends';
+
+  /// Tout l'onglet Amis : code ami (attribué au premier appel), amis triés
+  /// par Elo, demandes reçues et envoyées (plus récentes d'abord).
+  _ida.Future<_ibtv0qn2.FriendsOverviewDto> getOverview() =>
+      caller.callServerEndpoint<_ibtv0qn2.FriendsOverviewDto>(
+        'friends',
+        'getOverview',
+        {},
+      );
+
+  /// Joueurs dont le pseudo commence par [query] (à partir de
+  /// [minSearchLength] caractères), précédés de celui dont c'est le code ami
+  /// le cas échéant. Ni soi-même, ni les invités.
+  _ida.Future<List<_ionzpnek.PlayerSearchResultDto>> searchPlayers(
+    String query,
+  ) => caller.callServerEndpoint<List<_ionzpnek.PlayerSearchResultDto>>(
+    'friends',
+    'searchPlayers',
+    {'query': query},
+  );
+
+  /// Envoie une demande d'ami à [userId] — ou accepte directement la sienne
+  /// s'il en avait déjà envoyé une.
+  _ida.Future<_izlxexk7.FriendshipDto> sendRequest(_isc.UuidValue userId) =>
+      caller.callServerEndpoint<_izlxexk7.FriendshipDto>(
+        'friends',
+        'sendRequest',
+        {'userId': userId},
+      );
+
+  /// Accepte la demande [friendshipId] reçue par le joueur courant.
+  _ida.Future<_izlxexk7.FriendshipDto> acceptRequest(
+    _isc.UuidValue friendshipId,
+  ) => caller.callServerEndpoint<_izlxexk7.FriendshipDto>(
+    'friends',
+    'acceptRequest',
+    {'friendshipId': friendshipId},
+  );
+
+  /// Refuse la demande [friendshipId] reçue par le joueur courant.
+  _ida.Future<void> declineRequest(_isc.UuidValue friendshipId) =>
+      caller.callServerEndpoint<void>(
+        'friends',
+        'declineRequest',
+        {'friendshipId': friendshipId},
+      );
+
+  /// Annule la demande [friendshipId] envoyée par le joueur courant.
+  _ida.Future<void> cancelRequest(_isc.UuidValue friendshipId) =>
+      caller.callServerEndpoint<void>(
+        'friends',
+        'cancelRequest',
+        {'friendshipId': friendshipId},
+      );
+
+  /// Retire [userId] des amis du joueur courant (et inversement).
+  _ida.Future<void> removeFriend(_isc.UuidValue userId) =>
+      caller.callServerEndpoint<void>(
+        'friends',
+        'removeFriend',
+        {'userId': userId},
+      );
 }
 
 /// Partie serveur en cours, quel que soit le mode (Multi ou Classé) : la
@@ -703,6 +784,7 @@ class Client extends _isc.ServerpodClientShared {
     jwtRefresh = EndpointJwtRefresh(this);
     bot = EndpointBot(this);
     connection = EndpointConnection(this);
+    friends = EndpointFriends(this);
     game = EndpointGame(this);
     greeting = EndpointGreeting(this);
     history = EndpointHistory(this);
@@ -724,6 +806,8 @@ class Client extends _isc.ServerpodClientShared {
   late final EndpointBot bot;
 
   late final EndpointConnection connection;
+
+  late final EndpointFriends friends;
 
   late final EndpointGame game;
 
@@ -752,6 +836,7 @@ class Client extends _isc.ServerpodClientShared {
     'jwtRefresh': jwtRefresh,
     'bot': bot,
     'connection': connection,
+    'friends': friends,
     'game': game,
     'greeting': greeting,
     'history': history,

@@ -20,6 +20,7 @@ authUser: module:serverpod_auth_core:AuthUser?, relation(onDelete=Cascade)
 string username
 string thumbnail_path
 int elo = 1000
+string? friendCode   // code ami E15 (6 caractères, unique), attribué au besoin
 {Champs d'audits}
 ```
 ### Bot
@@ -77,6 +78,18 @@ string explanation
 string model         // modèle Ollama utilisé
 Guid requestedBy     // AuthUser qui l'a générée (limite par heure)
 DateTime createdAt
+```
+
+### Friendship
+```
+// Amis (E15) : demande puis amitié. Refus / annulation / retrait = suppression.
+Guid id
+Guid requesterId FK User   // qui a envoyé la demande
+Guid addresseeId FK User
+string pairKey             // les deux ids triés — unique : une ligne par paire
+EnumFriendshipStatus status  // pending | accepted
+DateTime createdAt
+DateTime? respondedAt
 ```
 
 ## Enum

@@ -15,6 +15,14 @@ bot:
   - getBots:
 connection:
   - ping:
+friends:
+  - getOverview:
+  - searchPlayers:
+  - sendRequest:
+  - acceptRequest:
+  - declineRequest:
+  - cancelRequest:
+  - removeFriend:
 game:
   - getActivePartie:
   - watchPartie:

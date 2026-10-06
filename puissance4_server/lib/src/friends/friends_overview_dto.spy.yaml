@@ -1,0 +1,8 @@
+# Tout l'onglet Amis en un appel (FriendsEndpoint.getOverview), mis en cache
+# d'un bloc côté app.
+class: FriendsOverviewDto
+fields:
+  friendCode: String
+  friends: List<FriendshipDto>
+  incoming: List<FriendshipDto>
+  outgoing: List<FriendshipDto>

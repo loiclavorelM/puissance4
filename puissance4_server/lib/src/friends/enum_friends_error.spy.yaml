@@ -1,0 +1,12 @@
+# Raison d'un refus de FriendsEndpoint (cf. FriendsException).
+enum: EnumFriendsError
+values:
+  # Les invités (compte anonyme) n'ont pas d'amis : créer un compte d'abord.
+  - guestNotAllowed
+  - userNotFound
+  - cannotAddSelf
+  - alreadyFriends
+  - requestAlreadySent
+  - requestNotFound
+  - notFriends
+  - tooManyFriends
