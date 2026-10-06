@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../friends/viewmodel/friends_viewmodel.dart';
 import '../../profile/view/profile_avatar.dart';
 import '../viewmodel/leaderboard_viewmodel.dart';
@@ -36,7 +36,7 @@ class LeaderboardScreen extends ConsumerWidget {
           Text(
             context.l10n.tabLeaderboard,
             style: TextStyle(
-              color: Colors.white,
+              color: context.colors.text,
               fontWeight: FontWeight.bold,
               fontSize: 28,
             ),
@@ -75,8 +75,8 @@ class LeaderboardScreen extends ConsumerWidget {
                   child: Text(
                     context.l10n.leaderboardLoadError,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: AppColors.yellow,
+                    style: TextStyle(
+                      color: context.colors.yellow,
                       fontSize: 13,
                     ),
                   ),
@@ -138,13 +138,15 @@ class _FilterChip extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: selected ? AppColors.primary : Colors.white24,
+              color: selected ? context.colors.primary : context.colors.outline,
             ),
           ),
           child: Text(
             label,
             style: TextStyle(
-              color: selected ? AppColors.primary : Colors.white70,
+              color: selected
+                  ? context.colors.primary
+                  : context.colors.textSecondary,
               fontWeight: FontWeight.bold,
               fontSize: 13,
             ),
@@ -173,14 +175,14 @@ class _CenteredMessage extends StatelessWidget {
             Text(
               text,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white54, fontSize: 13),
+              style: TextStyle(color: context.colors.textMuted, fontSize: 13),
             ),
             if (actionLabel != null && onAction != null) ...[
               const SizedBox(height: 12),
               FilledButton(
                 onPressed: onAction,
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: context.colors.primary,
                 ),
                 child: Text(actionLabel!),
               ),
@@ -217,7 +219,10 @@ class _LeaderboardBody extends StatelessWidget {
               ? Center(
                   child: Text(
                     context.l10n.leaderboardAlone,
-                    style: TextStyle(color: Colors.white54, fontSize: 13),
+                    style: TextStyle(
+                      color: context.colors.textMuted,
+                      fontSize: 13,
+                    ),
                   ),
                 )
               : ListView(
@@ -311,15 +316,15 @@ class _PodiumSlot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = isMe
-        ? AppColors.primary
+        ? context.colors.primary
         : isFirst
-        ? AppColors.yellow
-        : Colors.white24;
+        ? context.colors.yellow
+        : context.colors.outline;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         if (isFirst) ...[
-          const Icon(Icons.emoji_events, color: AppColors.yellow, size: 26),
+          Icon(Icons.emoji_events, color: context.colors.yellow, size: 26),
           const SizedBox(height: 4),
         ],
         Container(
@@ -340,15 +345,15 @@ class _PodiumSlot extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: isMe ? AppColors.primary : Colors.white,
+            color: isMe ? context.colors.primary : context.colors.text,
             fontWeight: FontWeight.bold,
             fontSize: 13,
           ),
         ),
         Text(
           '${entry.elo}',
-          style: const TextStyle(
-            color: AppColors.yellow,
+          style: TextStyle(
+            color: context.colors.yellow,
             fontWeight: FontWeight.bold,
             fontSize: 12,
           ),
@@ -372,9 +377,11 @@ class _LeaderboardTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: context.colors.card,
         borderRadius: BorderRadius.circular(16),
-        border: isMe ? Border.all(color: AppColors.primary, width: 2) : null,
+        border: isMe
+            ? Border.all(color: context.colors.primary, width: 2)
+            : null,
       ),
       child: Row(
         children: [
@@ -383,7 +390,7 @@ class _LeaderboardTile extends StatelessWidget {
             child: Text(
               '${entry.rank}',
               style: TextStyle(
-                color: isMe ? AppColors.primary : Colors.white54,
+                color: isMe ? context.colors.primary : context.colors.textMuted,
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
               ),
@@ -402,7 +409,7 @@ class _LeaderboardTile extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: isMe ? AppColors.primary : Colors.white,
+                color: isMe ? context.colors.primary : context.colors.text,
                 fontWeight: FontWeight.bold,
                 fontSize: 15,
               ),
@@ -411,7 +418,7 @@ class _LeaderboardTile extends StatelessWidget {
           Text(
             '${entry.elo}',
             style: TextStyle(
-              color: isMe ? AppColors.primary : AppColors.yellow,
+              color: isMe ? context.colors.primary : context.colors.yellow,
               fontWeight: FontWeight.bold,
               fontSize: 14,
             ),
@@ -427,11 +434,11 @@ class _PinnedSeparator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Text(
         '···',
         style: TextStyle(
-          color: Colors.white24,
+          color: context.colors.outline,
           fontWeight: FontWeight.bold,
           letterSpacing: 4,
         ),

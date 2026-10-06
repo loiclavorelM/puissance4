@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
 import '../../../core/l10n/l10n.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../game/view/game_screen.dart';
 import '../../game/viewmodel/game_home_viewmodel.dart';
 import '../model/history_item.dart';
@@ -30,8 +30,8 @@ class HistoryScreen extends ConsumerWidget {
         children: [
           Text(
             context.l10n.historyTitle,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: context.colors.text,
               fontWeight: FontWeight.bold,
               fontSize: 28,
             ),
@@ -49,8 +49,8 @@ class HistoryScreen extends ConsumerWidget {
                   child: Text(
                     context.l10n.historyLoadError,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: AppColors.yellow,
+                    style: TextStyle(
+                      color: context.colors.yellow,
                       fontSize: 13,
                     ),
                   ),
@@ -120,13 +120,15 @@ class _FilterChip extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: selected ? AppColors.primary : Colors.white24,
+              color: selected ? context.colors.primary : context.colors.outline,
             ),
           ),
           child: Text(
             label,
             style: TextStyle(
-              color: selected ? AppColors.primary : Colors.white70,
+              color: selected
+                  ? context.colors.primary
+                  : context.colors.textSecondary,
               fontWeight: FontWeight.bold,
               fontSize: 13,
             ),
@@ -148,7 +150,7 @@ class _HistoryList extends StatelessWidget {
       return Center(
         child: Text(
           context.l10n.historyEmpty,
-          style: const TextStyle(color: Colors.white54, fontSize: 13),
+          style: TextStyle(color: context.colors.textMuted, fontSize: 13),
         ),
       );
     }
@@ -201,7 +203,7 @@ class HistoryTile extends ConsumerWidget {
           );
 
     return Material(
-      color: AppColors.card,
+      color: context.colors.card,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
@@ -218,8 +220,8 @@ class HistoryTile extends ConsumerWidget {
                   children: [
                     Text(
                       '${_resultLabel(context, item.resultat)} · $adversaire',
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: context.colors.text,
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
@@ -228,8 +230,8 @@ class HistoryTile extends ConsumerWidget {
                     Text(
                       '${_modeLabel(context, item.mode)} · '
                       '${formatRelativeDate(context, item.date)}',
-                      style: const TextStyle(
-                        color: Colors.white54,
+                      style: TextStyle(
+                        color: context.colors.textMuted,
                         fontSize: 12,
                       ),
                     ),
@@ -253,9 +255,9 @@ class _ResultBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (color, icon) = switch (resultat) {
-      EnumMatchResult.win => (AppColors.green, Icons.check),
-      EnumMatchResult.loss => (AppColors.primary, Icons.close),
-      EnumMatchResult.draw => (Colors.white38, Icons.circle_outlined),
+      EnumMatchResult.win => (context.colors.green, Icons.check),
+      EnumMatchResult.loss => (context.colors.primary, Icons.close),
+      EnumMatchResult.draw => (context.colors.textFaint, Icons.circle_outlined),
     };
     return Container(
       width: 44,
@@ -282,15 +284,15 @@ class _Trailing extends StatelessWidget {
       return Text(
         '${positive ? '+' : ''}$eloVariation',
         style: TextStyle(
-          color: positive ? AppColors.green : AppColors.primary,
+          color: positive ? context.colors.green : context.colors.primary,
           fontWeight: FontWeight.bold,
           fontSize: 14,
         ),
       );
     }
     final dotColor = item.playedAs == EnumColor.rouge
-        ? AppColors.primary
-        : AppColors.yellow;
+        ? context.colors.primary
+        : context.colors.yellow;
     return Container(
       width: 12,
       height: 12,
