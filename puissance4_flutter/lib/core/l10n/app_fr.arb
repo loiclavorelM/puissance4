@@ -7,6 +7,50 @@
   "accountCreated": "Compte créé : ta progression est conservée.",
   "accountSection": "COMPTE",
   "actionImpossible": "Action impossible.",
+  "activityDraw": "{friend} a fait match nul en {mode} contre {opponent}",
+  "@activityDraw": {
+    "placeholders": {
+      "friend": {
+        "type": "String"
+      },
+      "mode": {
+        "type": "String"
+      },
+      "opponent": {
+        "type": "String"
+      }
+    }
+  },
+  "activityEmpty": "Pas de partie chez tes amis cette semaine.",
+  "activityLost": "{friend} a perdu en {mode} contre {opponent}",
+  "@activityLost": {
+    "placeholders": {
+      "friend": {
+        "type": "String"
+      },
+      "mode": {
+        "type": "String"
+      },
+      "opponent": {
+        "type": "String"
+      }
+    }
+  },
+  "activityWon": "{friend} a gagné en {mode} contre {opponent}",
+  "@activityWon": {
+    "placeholders": {
+      "friend": {
+        "type": "String"
+      },
+      "mode": {
+        "type": "String"
+      },
+      "opponent": {
+        "type": "String"
+      }
+    }
+  },
+  "activityYou": "toi",
   "alreadyInGame": "Tu as déjà une partie en cours.",
   "appTitle": "Puissance 4",
   "authAnd": " et la ",
@@ -452,6 +496,35 @@
   "resultWin": "Victoire",
   "resume": "Reprendre",
   "retry": "Réessayer",
+  "rivalriesActivity": "ACTIVITÉ DE TES AMIS",
+  "rivalriesEmpty": "Ajoute des amis pour suivre vos rivalités.",
+  "rivalriesHeadToHead": "TÊTE-À-TÊTE",
+  "rivalryChallengeOffline": "Défier (quand il sera en ligne)",
+  "rivalryDraws": "{count} nul(s)",
+  "@rivalryDraws": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rivalryGames": "VOS PARTIES",
+  "rivalryGamesEmpty": "Défie-le pour commencer votre rivalité !",
+  "rivalryNoGames": "Pas encore joué ensemble",
+  "rivalryRecord": "{wins} V · {losses} D · {draws} N",
+  "@rivalryRecord": {
+    "placeholders": {
+      "wins": {
+        "type": "int"
+      },
+      "losses": {
+        "type": "int"
+      },
+      "draws": {
+        "type": "int"
+      }
+    }
+  },
   "roomClosedNobody": "Salle fermée : personne ne l'a rejointe à temps.",
   "roomClosesIn": "La salle se ferme dans {remaining}",
   "@roomClosesIn": {

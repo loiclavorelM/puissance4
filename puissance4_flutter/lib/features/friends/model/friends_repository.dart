@@ -42,6 +42,13 @@ class FriendsRepository {
   /// temps (US15.6), ou `null` après ~2 s.
   Future<PlayerSearchResultDto?> shakeToAdd() => client.friends.shakeToAdd();
 
+  /// Bilan tête-à-tête avec chaque ami (US15.7).
+  Future<List<RivalryDto>> rivalries() => client.friends.getRivalries();
+
+  /// Parties récentes des amis (fil d'activité, US15.7).
+  Future<List<FriendActivityDto>> activity() =>
+      client.friends.getFriendsActivity();
+
   Future<List<PlayerSearchResultDto>> recentOpponents() =>
       client.friends.recentOpponents();
 

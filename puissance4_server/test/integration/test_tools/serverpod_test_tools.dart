@@ -15,6 +15,8 @@ import 'dart:async' as _ida;
 import 'dart:io' as _idi;
 import 'dart:typed_data' as _idt;
 import 'package:puissance4_server/src/generated/bot/bot.dart' as _iyz5ninx;
+import 'package:puissance4_server/src/generated/friends/friend_activity_dto.dart'
+    as _io800lu2;
 import 'package:puissance4_server/src/generated/friends/friend_challenge_dto.dart'
     as _ifqc6g4v;
 import 'package:puissance4_server/src/generated/friends/friends_overview_dto.dart'
@@ -23,6 +25,8 @@ import 'package:puissance4_server/src/generated/friends/friendship_dto.dart'
     as _i3g0h0jv;
 import 'package:puissance4_server/src/generated/friends/player_search_result_dto.dart'
     as _i259h1cp;
+import 'package:puissance4_server/src/generated/friends/rivalry_dto.dart'
+    as _ixwte3qx;
 import 'package:puissance4_server/src/generated/game/enum_type.dart'
     as _ijl03sjm;
 import 'package:puissance4_server/src/generated/game/game_event.dart'
@@ -813,6 +817,66 @@ class _FriendsEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<List<_i259h1cp.PlayerSearchResultDto>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<List<_ixwte3qx.RivalryDto>> getRivalries(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'friends',
+            method: 'getRivalries',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'friends',
+          methodName: 'getRivalries',
+          parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_ixwte3qx.RivalryDto>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<List<_io800lu2.FriendActivityDto>> getFriendsActivity(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'friends',
+            method: 'getFriendsActivity',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'friends',
+          methodName: 'getFriendsActivity',
+          parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_io800lu2.FriendActivityDto>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

@@ -52,6 +52,8 @@ void main() {
     FriendsOverviewDto? overview,
     FriendsRepository? repository,
     List<PlayerSearchResultDto> recent = const [],
+    List<RivalryDto> rivalries = const [],
+    List<FriendActivityDto> activity = const [],
   }) async {
     tester.view.physicalSize = const Size(1080, 2340);
     tester.view.devicePixelRatio = 3;
@@ -62,6 +64,8 @@ void main() {
           ...l10nOverrides,
           friendsAccessProvider.overrideWithValue(access),
           friendsOverviewProvider.overrideWith((ref) => Stream.value(overview)),
+          rivalriesProvider.overrideWith((ref) async => rivalries),
+          friendsActivityProvider.overrideWith((ref) async => activity),
           recentOpponentsProvider.overrideWith((ref) async {
             recentLoads++;
             return recent;
@@ -292,5 +296,60 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(recentLoads, greaterThan(first));
+  });
+
+  testWidgets('rivalries show the activity feed and head-to-head records', (
+    tester,
+  ) async {
+    final bob = player('bob');
+    await pump(
+      tester,
+      overview: FriendsOverviewDto(
+        friendCode: '7KQ2X9',
+        friends: [friendship('bob')],
+        incoming: [],
+        outgoing: [],
+      ),
+      rivalries: [
+        RivalryDto(
+          friend: bob,
+          wins: 3,
+          losses: 1,
+          draws: 0,
+          streak: 2,
+          partieIds: [id()],
+          lastPlayedAt: DateTime.now(),
+        ),
+        RivalryDto(
+          friend: player('cleo'),
+          wins: 0,
+          losses: 0,
+          draws: 0,
+          streak: 0,
+          partieIds: [],
+        ),
+      ],
+      activity: [
+        FriendActivityDto(
+          partieId: id(),
+          friend: bob,
+          typePartie: EnumType.classe,
+          result: EnumMatchResult.win,
+          opponent: 'Expert',
+          eloVariation: 24,
+          at: DateTime.now(),
+        ),
+      ],
+    );
+
+    await tester.tap(find.text('Rivalités'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('ACTIVITÉ DE TES AMIS'), findsOneWidget);
+    expect(find.textContaining('bob a gagné en Classé'), findsOneWidget);
+    expect(find.text('+24'), findsOneWidget);
+    expect(find.text('3 V · 1 D · 0 N'), findsOneWidget);
+    expect(find.text('🔥 2'), findsOneWidget);
+    expect(find.text('Pas encore joué ensemble'), findsOneWidget);
   });
 }

@@ -31,6 +31,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get actionImpossible => 'Can\'t do that.';
 
   @override
+  String activityDraw(String friend, String mode, String opponent) {
+    return '$friend drew in $mode against $opponent';
+  }
+
+  @override
+  String get activityEmpty => 'No games from your friends this week.';
+
+  @override
+  String activityLost(String friend, String mode, String opponent) {
+    return '$friend lost in $mode against $opponent';
+  }
+
+  @override
+  String activityWon(String friend, String mode, String opponent) {
+    return '$friend won in $mode against $opponent';
+  }
+
+  @override
+  String get activityYou => 'you';
+
+  @override
   String get alreadyInGame => 'You already have a game in progress.';
 
   @override
@@ -838,6 +859,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get retry => 'Retry';
+
+  @override
+  String get rivalriesActivity => 'YOUR FRIENDS\' ACTIVITY';
+
+  @override
+  String get rivalriesEmpty => 'Add friends to follow your rivalries.';
+
+  @override
+  String get rivalriesHeadToHead => 'HEAD TO HEAD';
+
+  @override
+  String get rivalryChallengeOffline => 'Challenge (once they\'re online)';
+
+  @override
+  String rivalryDraws(int count) {
+    return '$count draw(s)';
+  }
+
+  @override
+  String get rivalryGames => 'YOUR GAMES';
+
+  @override
+  String get rivalryGamesEmpty => 'Challenge them to start your rivalry!';
+
+  @override
+  String get rivalryNoGames => 'Not played together yet';
+
+  @override
+  String rivalryRecord(int wins, int losses, int draws) {
+    return '$wins W · $losses L · $draws D';
+  }
 
   @override
   String get roomClosedNobody => 'Room closed: nobody joined in time.';

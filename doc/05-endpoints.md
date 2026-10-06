@@ -174,6 +174,12 @@ et n'apparaît jamais dans les recherches. Chaque changement envoie
   Accepte directement si l'autre avait déjà envoyé une demande.
 - `recentOpponents() -> List<PlayerSearchResultDto>`
   10 derniers adversaires Multi (une fois chacun), avec leur relation.
+- `getRivalries() -> List<RivalryDto>`
+  Tête-à-tête avec chaque ami : victoires, défaites, nuls (Multi), série en
+  cours, parties communes (ids, plus récentes d'abord).
+- `getFriendsActivity() -> List<FriendActivityDto>`
+  Parties Multi et Classé des amis sur 7 jours (20 au plus), avec la
+  variation d'Elo.
 - `shakeToAdd() -> PlayerSearchResultDto?`
   « Secouer pour s'ajouter » : attend au plus 2 s une secousse d'un autre
   joueur (`ShakeMatcher`, en mémoire) et le renvoie avec sa relation, sinon

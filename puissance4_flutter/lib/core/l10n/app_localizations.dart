@@ -140,6 +140,36 @@ abstract class AppLocalizations {
   /// **'Action impossible.'**
   String get actionImpossible;
 
+  /// No description provided for @activityDraw.
+  ///
+  /// In fr, this message translates to:
+  /// **'{friend} a fait match nul en {mode} contre {opponent}'**
+  String activityDraw(String friend, String mode, String opponent);
+
+  /// No description provided for @activityEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas de partie chez tes amis cette semaine.'**
+  String get activityEmpty;
+
+  /// No description provided for @activityLost.
+  ///
+  /// In fr, this message translates to:
+  /// **'{friend} a perdu en {mode} contre {opponent}'**
+  String activityLost(String friend, String mode, String opponent);
+
+  /// No description provided for @activityWon.
+  ///
+  /// In fr, this message translates to:
+  /// **'{friend} a gagné en {mode} contre {opponent}'**
+  String activityWon(String friend, String mode, String opponent);
+
+  /// No description provided for @activityYou.
+  ///
+  /// In fr, this message translates to:
+  /// **'toi'**
+  String get activityYou;
+
   /// No description provided for @alreadyInGame.
   ///
   /// In fr, this message translates to:
@@ -1603,6 +1633,60 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Réessayer'**
   String get retry;
+
+  /// No description provided for @rivalriesActivity.
+  ///
+  /// In fr, this message translates to:
+  /// **'ACTIVITÉ DE TES AMIS'**
+  String get rivalriesActivity;
+
+  /// No description provided for @rivalriesEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoute des amis pour suivre vos rivalités.'**
+  String get rivalriesEmpty;
+
+  /// No description provided for @rivalriesHeadToHead.
+  ///
+  /// In fr, this message translates to:
+  /// **'TÊTE-À-TÊTE'**
+  String get rivalriesHeadToHead;
+
+  /// No description provided for @rivalryChallengeOffline.
+  ///
+  /// In fr, this message translates to:
+  /// **'Défier (quand il sera en ligne)'**
+  String get rivalryChallengeOffline;
+
+  /// No description provided for @rivalryDraws.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} nul(s)'**
+  String rivalryDraws(int count);
+
+  /// No description provided for @rivalryGames.
+  ///
+  /// In fr, this message translates to:
+  /// **'VOS PARTIES'**
+  String get rivalryGames;
+
+  /// No description provided for @rivalryGamesEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Défie-le pour commencer votre rivalité !'**
+  String get rivalryGamesEmpty;
+
+  /// No description provided for @rivalryNoGames.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas encore joué ensemble'**
+  String get rivalryNoGames;
+
+  /// No description provided for @rivalryRecord.
+  ///
+  /// In fr, this message translates to:
+  /// **'{wins} V · {losses} D · {draws} N'**
+  String rivalryRecord(int wins, int losses, int draws);
 
   /// No description provided for @roomClosedNobody.
   ///

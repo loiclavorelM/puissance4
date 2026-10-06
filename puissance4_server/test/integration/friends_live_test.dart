@@ -110,6 +110,10 @@ void main() {
         (ServerGameConfig.scheduler as LocalTimerScheduler).cancelAll();
         ServerGame.releaseStreams();
         final session = sessionBuilder.build();
+        await EloHistory.db.deleteWhere(
+          session,
+          where: (t) => t.id.notEquals(null),
+        );
         await Partie.db.deleteWhere(
           session,
           where: (t) => t.id.notEquals(null),
@@ -123,7 +127,35 @@ void main() {
           session,
           where: (t) => t.id.notEquals(null),
         );
+        await Bot.db.deleteWhere(session, where: (t) => t.id.notEquals(null));
       });
+
+      /// Partie terminée entre [rouge] et [jaune] (un `User` ou un `Bot`).
+      Future<Partie> finishedGame(
+        Object rouge,
+        Object jaune, {
+        required EnumType type,
+        required EnumOutcome winner,
+        DateTime? at,
+      }) async {
+        final session = sessionBuilder.build();
+        Future<Player> seat(Object who) => Player.db.insertRow(
+          session,
+          who is User ? Player(userId: who.id) : Player(botId: (who as Bot).id),
+        );
+        return Partie.db.insertRow(
+          session,
+          Partie(
+            typePartie: type,
+            playerRougeId: (await seat(rouge)).id!,
+            playerJauneId: (await seat(jaune)).id!,
+            status: EnumStatut.finished,
+            winner: winner,
+            moves: const [],
+            createdAt: at ?? DateTime.now().toUtc(),
+          ),
+        );
+      }
 
       test('a friend with the live stream open is online, then seen', () async {
         final (alice, aliceUser) = await player('alice');
@@ -272,6 +304,86 @@ void main() {
           endpoints.friends.shakeToAdd(alice),
         ).wait;
         expect(both, (null, null));
+      });
+
+      test('rivalries count head-to-head results and the streak', () async {
+        final (alice, aliceUser) = await player('alice');
+        final (_, bobUser) = await player('bob');
+        final (_, carolUser) = await player('carol');
+        final (_, daveUser) = await player('dave');
+        await befriend(aliceUser, bobUser);
+        await befriend(aliceUser, carolUser);
+        Future<void> multi(User rouge, User jaune, EnumOutcome w, int day) =>
+            finishedGame(
+              rouge,
+              jaune,
+              type: EnumType.multi,
+              winner: w,
+              at: DateTime.utc(2026, 10, day),
+            );
+        await multi(aliceUser, bobUser, EnumOutcome.jaune, 1); // défaite
+        await multi(bobUser, aliceUser, EnumOutcome.jaune, 2); // victoire
+        await multi(aliceUser, bobUser, EnumOutcome.rouge, 3); // victoire
+        await multi(aliceUser, daveUser, EnumOutcome.rouge, 4); // pas un ami
+
+        final rivalries = await endpoints.friends.getRivalries(alice);
+
+        expect(rivalries.map((r) => r.friend.username), ['bob', 'carol']);
+        final bob = rivalries.first;
+        expect((bob.wins, bob.losses, bob.draws), (2, 1, 0));
+        expect(bob.streak, 2);
+        expect(bob.partieIds, hasLength(3));
+        expect(bob.lastPlayedAt, DateTime.utc(2026, 10, 3));
+        expect(rivalries.last.partieIds, isEmpty);
+      });
+
+      test("the activity feed lists friends' recent games", () async {
+        final (alice, aliceUser) = await player('alice');
+        final (_, bobUser) = await player('bob');
+        final (_, strangerUser) = await player('stranger');
+        await befriend(aliceUser, bobUser);
+        final bot = await Bot.db.insertRow(
+          sessionBuilder.build(),
+          Bot(botName: 'Expert', elo: 1500, pathModel: '', description: ''),
+        );
+        final ranked = await finishedGame(
+          bobUser,
+          bot,
+          type: EnumType.classe,
+          winner: EnumOutcome.rouge,
+        );
+        await EloHistory.db.insertRow(
+          sessionBuilder.build(),
+          EloHistory(
+            userId: bobUser.id!,
+            partieId: ranked.id!,
+            eloVariation: 24,
+            newElo: 1024,
+          ),
+        );
+        await finishedGame(
+          strangerUser,
+          bot,
+          type: EnumType.classe,
+          winner: EnumOutcome.rouge,
+        );
+        await finishedGame(
+          aliceUser,
+          bobUser,
+          type: EnumType.multi,
+          winner: EnumOutcome.rouge,
+          at: DateTime.now().toUtc().subtract(const Duration(days: 30)),
+        );
+
+        final activity = await endpoints.friends.getFriendsActivity(alice);
+
+        // Ni l'inconnu, ni la partie trop ancienne.
+        expect(activity, hasLength(1));
+        expect(activity.single.friend.username, 'bob');
+        expect(activity.single.typePartie, EnumType.classe);
+        expect(activity.single.result, EnumMatchResult.win);
+        expect(activity.single.opponent, 'Expert');
+        expect(activity.single.eloVariation, 24);
       });
 
       test('recent Multi opponents come newest first, once each', () async {

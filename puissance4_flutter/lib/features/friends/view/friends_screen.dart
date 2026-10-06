@@ -3,16 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/l10n.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/coming_soon_tab.dart';
 import '../../auth/view/create_account_screen.dart';
 import '../viewmodel/friends_viewmodel.dart';
 import 'add_friend_tab.dart';
 import 'friend_requests_tab.dart';
 import 'friend_tile.dart';
 import 'friends_list_tab.dart';
+import 'rivalries_tab.dart';
 
 /// Onglet « Amis » de la barre de navigation (E15) : sous-onglets Mes amis,
-/// Demandes, Ajouter et Rivalités (lot P4, pas encore construit). Réservé
+/// Demandes, Ajouter et Rivalités. Réservé
 /// aux comptes email.
 class FriendsScreen extends ConsumerWidget {
   const FriendsScreen({super.key});
@@ -156,7 +156,7 @@ class _FriendsTabsState extends ConsumerState<_FriendsTabs>
               const FriendsListTab(),
               const FriendRequestsTab(),
               const AddFriendTab(),
-              ComingSoonTab(title: context.l10n.friendsTabRivalries),
+              const RivalriesTab(),
             ],
           ),
         ),

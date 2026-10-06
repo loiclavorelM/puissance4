@@ -411,7 +411,7 @@ dehors du code de salle Multi. Nouvel onglet « Amis » dans la barre de
 navigation (badge = demandes reçues), découpé en sous-onglets **Mes amis**,
 **Demandes**, **Ajouter** et **Rivalités**. Réservé aux comptes email : un
 invité (anonyme ou local) voit une invitation à créer un compte (US0.2). Livré
-en lots : P1 = US15.1-15.3, P2 = US15.4-15.5, P3 = US15.6, P4 = US15.7-15.8.
+en lots : P1 = US15.1-15.3, P2 = US15.4-15.5, P3 = US15.6, P4 = US15.7 (US15.8 abandonnée).
 
 ### US15.1 — En tant que joueur, je veux envoyer une demande d'ami par pseudo ou par code ami, afin de retrouver les gens avec qui je joue.
 Critères d'acceptation :
@@ -479,26 +479,29 @@ Tickets :
 
 ### US15.7 — En tant que joueur, je veux comparer mes résultats à ceux de mes amis, afin d'entretenir une rivalité.
 Critères d'acceptation :
-- Onglet **Rivalités** : classement entre amis (aussi derrière le filtre « Amis » du Classement), bilan tête-à-tête et série en cours par ami, liste des parties communes rejouables.
-- Fil d'activité des amis tiré de `EloHistory`/`Partie` (pas de nouvelle table).
+- Onglet **Rivalités** : bilan tête-à-tête par ami (victoires, défaites, nuls en Multi, série en cours 🔥/❄️), ceux avec qui on a le plus joué d'abord ; écran détail avec le score, « Défier » (ami en ligne) et les parties communes, rejouables comme dans l'Historique. Le classement entre amis est le filtre « Amis » du Classement.
+- Fil d'activité des amis tiré de `EloHistory`/`Partie` (pas de nouvelle table) : leurs parties Multi et Classé des 7 derniers jours, variation d'Elo comprise.
 
 Tickets :
-- [ ] T15.7.1 — `friendsLeaderboard`, `headToHead`, `activityFeed` — `owner:B` `area:backend`
+- [x] T15.7.1 — `getRivalries` (tête-à-tête) et `getFriendsActivity` ; le classement entre amis est calculé côté app (T15.7.2a) — `owner:B` `area:backend`
 - [x] T15.7.2a — Filtre « Amis » du Classement : moi et mes amis triés par Elo, calculé côté app depuis `getOverview` (au plus 201 lignes, pas d'endpoint dédié) ; invité → invitation à créer un compte ; aucun ami → bouton vers Amis › Ajouter — `owner:A`
-- [ ] T15.7.2b — UI sous-onglet « Rivalités » — `owner:A`
+- [x] T15.7.2b — UI sous-onglet « Rivalités » + écran tête-à-tête — `owner:A`
 
-### US15.8 — En tant que joueur, je veux envoyer une position de replay à un ami comme puzzle, afin de lui lancer un défi tactique.
-Critères d'acceptation :
-- Depuis un replay : « Envoyer cette position à un ami » ; l'ami la joue dans `GameScreen` via un `LocalGameEngine` démarré depuis cette position.
+### US15.8 — En tant que joueur, je veux envoyer une position de replay à un ami comme puzzle, afin de lui lancer un défi tactique. *(abandonnée)*
+
+**Abandonnée** : prototypée (position gagnante en un coup envoyée depuis un
+replay, une tentative jugée par le serveur) puis retirée — jugée sans
+intérêt pour les joueurs face au défi direct (US15.5) et aux rivalités
+(US15.7). Rien n'en reste dans le code ni en base.
 
 Tickets :
-- [ ] T15.8.1 — Modèle et endpoint des puzzles — `owner:B` `area:backend`
-- [ ] T15.8.2 — Envoi depuis le replay + écran de résolution — `owner:A`
+- [ ] ~~T15.8.1 — Modèle et endpoint des puzzles~~ — **abandonné** — `owner:B` `area:backend`
+- [ ] ~~T15.8.2 — Envoi depuis le replay + écran de résolution~~ — **abandonné** — `owner:A`
 
 ---
 
 ## Récapitulatif
-16 epics, 36 user stories (dont US7.3 abandonnée), 99 tickets. E15 (amis)
+16 epics, 36 user stories (dont US7.3 et US15.8 abandonnées), 99 tickets. E15 (amis)
 a été ajoutée hors cahier des charges. Tout le
 système d'Elo est porté par E6 (mode Classé contre un bot joué par le
 serveur) ; le Multijoueur (E7) ne modifie pas l'Elo. E0 (mode invité local),

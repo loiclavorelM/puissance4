@@ -12,10 +12,14 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:puissance4_client/src/protocol/bot/bot.dart' as _ighv8e6n;
+import 'package:puissance4_client/src/protocol/friends/friend_activity_dto.dart'
+    as _ikasuekg;
 import 'package:puissance4_client/src/protocol/friends/friend_challenge_dto.dart'
     as _im2ichtj;
 import 'package:puissance4_client/src/protocol/friends/player_search_result_dto.dart'
     as _ionzpnek;
+import 'package:puissance4_client/src/protocol/friends/rivalry_dto.dart'
+    as _ixxp4699;
 import 'package:puissance4_client/src/protocol/history/history_dto.dart'
     as _igkkg43x;
 import 'package:puissance4_client/src/protocol/leaderboard/leaderboard_dto.dart'
@@ -34,6 +38,7 @@ import 'friends/enum_friend_presence.dart' as _ifm42sdi;
 import 'friends/enum_friend_relation.dart' as _it2shy0i;
 import 'friends/enum_friends_error.dart' as _if0hp53x;
 import 'friends/enum_friendship_status.dart' as _iiv2c9gb;
+import 'friends/friend_activity_dto.dart' as _iubkg2x5;
 import 'friends/friend_challenge_dto.dart' as _iqz9h2tk;
 import 'friends/friend_user_dto.dart' as _in6lw5u5;
 import 'friends/friends_exception.dart' as _i9j1nep3;
@@ -41,6 +46,7 @@ import 'friends/friends_overview_dto.dart' as _ibsg885b;
 import 'friends/friendship.dart' as _ix1l50pg;
 import 'friends/friendship_dto.dart' as _if8yjfer;
 import 'friends/player_search_result_dto.dart' as _izsp853n;
+import 'friends/rivalry_dto.dart' as _iouwl73l;
 import 'game/enum_color.dart' as _im0plaxm;
 import 'game/enum_game_end_reason.dart' as _ilcsv24h;
 import 'game/enum_game_error.dart' as _isw7cqst;
@@ -77,6 +83,7 @@ export 'friends/enum_friend_presence.dart';
 export 'friends/enum_friend_relation.dart';
 export 'friends/enum_friends_error.dart';
 export 'friends/enum_friendship_status.dart';
+export 'friends/friend_activity_dto.dart';
 export 'friends/friend_challenge_dto.dart';
 export 'friends/friend_user_dto.dart';
 export 'friends/friends_exception.dart';
@@ -84,6 +91,7 @@ export 'friends/friends_overview_dto.dart';
 export 'friends/friendship.dart';
 export 'friends/friendship_dto.dart';
 export 'friends/player_search_result_dto.dart';
+export 'friends/rivalry_dto.dart';
 export 'game/enum_color.dart';
 export 'game/enum_game_end_reason.dart';
 export 'game/enum_game_error.dart';
@@ -268,6 +276,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _iiv2c9gb.EnumFriendshipStatus) {
       return _iiv2c9gb.EnumFriendshipStatus.fromJson(data) as T;
     }
+    if (t == _iubkg2x5.FriendActivityDto) {
+      return _iubkg2x5.FriendActivityDto.fromJson(data) as T;
+    }
     if (t == _iqz9h2tk.FriendChallengeDto) {
       return _iqz9h2tk.FriendChallengeDto.fromJson(data) as T;
     }
@@ -288,6 +299,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (t == _izsp853n.PlayerSearchResultDto) {
       return _izsp853n.PlayerSearchResultDto.fromJson(data) as T;
+    }
+    if (t == _iouwl73l.RivalryDto) {
+      return _iouwl73l.RivalryDto.fromJson(data) as T;
     }
     if (t == _im0plaxm.EnumColor) {
       return _im0plaxm.EnumColor.fromJson(data) as T;
@@ -403,6 +417,10 @@ class Protocol extends _isd.DatabaseSerializationManager {
               : null)
           as T;
     }
+    if (t == _isc.getType<_iubkg2x5.FriendActivityDto?>()) {
+      return (data != null ? _iubkg2x5.FriendActivityDto.fromJson(data) : null)
+          as T;
+    }
     if (t == _isc.getType<_iqz9h2tk.FriendChallengeDto?>()) {
       return (data != null ? _iqz9h2tk.FriendChallengeDto.fromJson(data) : null)
           as T;
@@ -431,6 +449,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
               ? _izsp853n.PlayerSearchResultDto.fromJson(data)
               : null)
           as T;
+    }
+    if (t == _isc.getType<_iouwl73l.RivalryDto?>()) {
+      return (data != null ? _iouwl73l.RivalryDto.fromJson(data) : null) as T;
     }
     if (t == _isc.getType<_im0plaxm.EnumColor?>()) {
       return (data != null ? _im0plaxm.EnumColor.fromJson(data) : null) as T;
@@ -550,6 +571,10 @@ class Protocol extends _isd.DatabaseSerializationManager {
               .toList()
           as T;
     }
+    if (t == List<_isc.UuidValue>) {
+      return (data as List).map((e) => deserialize<_isc.UuidValue>(e)).toList()
+          as T;
+    }
     if (t == List<int>) {
       return (data as List).map((e) => deserialize<int>(e)).toList() as T;
     }
@@ -572,6 +597,18 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == List<_ionzpnek.PlayerSearchResultDto>) {
       return (data as List)
               .map((e) => deserialize<_ionzpnek.PlayerSearchResultDto>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_ixxp4699.RivalryDto>) {
+      return (data as List)
+              .map((e) => deserialize<_ixxp4699.RivalryDto>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_ikasuekg.FriendActivityDto>) {
+      return (data as List)
+              .map((e) => deserialize<_ikasuekg.FriendActivityDto>(e))
               .toList()
           as T;
     }
@@ -616,6 +653,7 @@ class Protocol extends _isd.DatabaseSerializationManager {
       _it2shy0i.EnumFriendRelation => 'EnumFriendRelation',
       _if0hp53x.EnumFriendsError => 'EnumFriendsError',
       _iiv2c9gb.EnumFriendshipStatus => 'EnumFriendshipStatus',
+      _iubkg2x5.FriendActivityDto => 'FriendActivityDto',
       _iqz9h2tk.FriendChallengeDto => 'FriendChallengeDto',
       _in6lw5u5.FriendUserDto => 'FriendUserDto',
       _i9j1nep3.FriendsException => 'FriendsException',
@@ -623,6 +661,7 @@ class Protocol extends _isd.DatabaseSerializationManager {
       _ix1l50pg.Friendship => 'Friendship',
       _if8yjfer.FriendshipDto => 'FriendshipDto',
       _izsp853n.PlayerSearchResultDto => 'PlayerSearchResultDto',
+      _iouwl73l.RivalryDto => 'RivalryDto',
       _im0plaxm.EnumColor => 'EnumColor',
       _ilcsv24h.EnumGameEndReason => 'EnumGameEndReason',
       _isw7cqst.EnumGameError => 'EnumGameError',
@@ -679,6 +718,8 @@ class Protocol extends _isd.DatabaseSerializationManager {
         return 'EnumFriendsError';
       case _iiv2c9gb.EnumFriendshipStatus():
         return 'EnumFriendshipStatus';
+      case _iubkg2x5.FriendActivityDto():
+        return 'FriendActivityDto';
       case _iqz9h2tk.FriendChallengeDto():
         return 'FriendChallengeDto';
       case _in6lw5u5.FriendUserDto():
@@ -693,6 +734,8 @@ class Protocol extends _isd.DatabaseSerializationManager {
         return 'FriendshipDto';
       case _izsp853n.PlayerSearchResultDto():
         return 'PlayerSearchResultDto';
+      case _iouwl73l.RivalryDto():
+        return 'RivalryDto';
       case _im0plaxm.EnumColor():
         return 'EnumColor';
       case _ilcsv24h.EnumGameEndReason():
@@ -799,6 +842,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (dataClassName == 'EnumFriendshipStatus') {
       return deserialize<_iiv2c9gb.EnumFriendshipStatus>(data['data']);
     }
+    if (dataClassName == 'FriendActivityDto') {
+      return deserialize<_iubkg2x5.FriendActivityDto>(data['data']);
+    }
     if (dataClassName == 'FriendChallengeDto') {
       return deserialize<_iqz9h2tk.FriendChallengeDto>(data['data']);
     }
@@ -819,6 +865,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (dataClassName == 'PlayerSearchResultDto') {
       return deserialize<_izsp853n.PlayerSearchResultDto>(data['data']);
+    }
+    if (dataClassName == 'RivalryDto') {
+      return deserialize<_iouwl73l.RivalryDto>(data['data']);
     }
     if (dataClassName == 'EnumColor') {
       return deserialize<_im0plaxm.EnumColor>(data['data']);

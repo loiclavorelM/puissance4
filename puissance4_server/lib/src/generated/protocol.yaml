@@ -19,6 +19,8 @@ friends:
   - getOverview:
   - searchPlayers:
   - recentOpponents:
+  - getRivalries:
+  - getFriendsActivity:
   - shakeToAdd:
   - getChallenges:
   - declineChallenge:

@@ -9,6 +9,7 @@ import '../multiplayer/multiplayer_config.dart';
 import '../multiplayer/multiplayer_endpoint.dart';
 import '../profile/profile_photo.dart';
 import 'friend_code.dart';
+import 'friend_stats.dart';
 import 'friends_config.dart';
 
 /// Amis (E15) : demandes d'ami, liste d'amis, recherche de joueurs. Réservé
@@ -24,6 +25,8 @@ class FriendsEndpoint extends Endpoint {
   static const minSearchLength = 3;
   static const searchLimit = 20;
   static const recentOpponentsLimit = 10;
+  static const activityLimit = 20;
+  static const activityPeriod = Duration(days: 7);
 
   /// Tout l'onglet Amis : code ami (attribué au premier appel), amis — en
   /// ligne d'abord, puis en partie, puis par Elo —, demandes reçues et
@@ -142,6 +145,118 @@ class FriendsEndpoint extends Endpoint {
     return _searchResults(session, me, candidates, recentOpponentsLimit);
   }
 
+  /// Bilan tête-à-tête avec chaque ami (US15.7) — parties Multi terminées
+  /// entre les deux —, ceux avec qui on a le plus joué d'abord.
+  Future<List<RivalryDto>> getRivalries(Session session) async {
+    final me = await _requireMember(session);
+    final friends = await _friendsOf(session, me);
+    if (friends.isEmpty) return [];
+
+    final games = await finishedGamesOf(
+      session,
+      {me.id!},
+      types: {EnumType.multi},
+    );
+    final opponentOf = await _userIdsOfPlayers(session, {
+      for (final game in games) game.opponentPlayerId,
+    });
+    final gamesByFriend = <UuidValue, List<PlayedGame>>{};
+    for (final game in games) {
+      final opponent = opponentOf[game.opponentPlayerId];
+      if (opponent != null && friends.containsKey(opponent)) {
+        (gamesByFriend[opponent] ??= []).add(game);
+      }
+    }
+
+    final photoUrls = await ProfilePhoto.urls(
+      session,
+      friends.values.map((u) => u.thumbnailPath),
+    );
+    final rivalries = [
+      for (final friend in friends.values)
+        _rivalry(friend, gamesByFriend[friend.id] ?? const [], photoUrls),
+    ];
+    return rivalries..sort((a, b) {
+      final byCount = b.partieIds.length.compareTo(a.partieIds.length);
+      if (byCount != 0) return byCount;
+      final byDate = (b.lastPlayedAt ?? DateTime(0)).compareTo(
+        a.lastPlayedAt ?? DateTime(0),
+      );
+      return byDate != 0
+          ? byDate
+          : a.friend.username.compareTo(b.friend.username);
+    });
+  }
+
+  /// Fil d'activité (US15.7) : parties Multi et Classé terminées par mes
+  /// amis ces [activityPeriod] derniers jours, plus récentes d'abord.
+  Future<List<FriendActivityDto>> getFriendsActivity(Session session) async {
+    final me = await _requireMember(session);
+    final friends = await _friendsOf(session, me);
+    if (friends.isEmpty) return [];
+
+    final seen = <UuidValue>{};
+    final games = [
+      for (final game in await finishedGamesOf(
+        session,
+        friends.keys.toSet(),
+        types: {EnumType.multi, EnumType.classe},
+        since: DateTime.now().toUtc().subtract(activityPeriod),
+        limit: activityLimit * 2,
+      ))
+        // Deux amis qui jouent ensemble : une seule ligne.
+        if (seen.add(game.partie.id!)) game,
+    ].take(activityLimit).toList();
+    if (games.isEmpty) return [];
+
+    final opponentPlayers = await Player.db.find(
+      session,
+      where: (t) =>
+          t.id.inSet(<UuidValue>{for (final g in games) g.opponentPlayerId}),
+    );
+    final opponentPlayerById = {for (final p in opponentPlayers) p.id!: p};
+    final users = await User.db.find(
+      session,
+      where: (t) =>
+          t.id.inSet(<UuidValue>{for (final p in opponentPlayers) ?p.userId}),
+    );
+    final bots = await Bot.db.find(
+      session,
+      where: (t) =>
+          t.id.inSet(<UuidValue>{for (final p in opponentPlayers) ?p.botId}),
+    );
+    final nameOfUser = {for (final u in users) u.id!: u.username};
+    final nameOfBot = {for (final b in bots) b.id!: b.botName};
+    final elo = await EloHistory.db.find(
+      session,
+      where: (t) =>
+          t.partieId.inSet(<UuidValue>{for (final g in games) g.partie.id!}) &
+          t.userId.inSet(friends.keys.toSet()),
+    );
+    final eloOf = {for (final e in elo) (e.partieId, e.userId): e.eloVariation};
+    final photoUrls = await ProfilePhoto.urls(
+      session,
+      friends.values.map((u) => u.thumbnailPath),
+    );
+
+    return [
+      for (final game in games)
+        FriendActivityDto(
+          partieId: game.partie.id!,
+          friend: _userDto(friends[game.userId]!, photoUrls),
+          typePartie: game.partie.typePartie,
+          result: resultOf(game),
+          opponent: switch (opponentPlayerById[game.opponentPlayerId]) {
+            Player(:final userId?) => nameOfUser[userId] ?? '',
+            Player(:final botId?) => nameOfBot[botId] ?? '',
+            _ => '',
+          },
+          eloVariation: eloOf[(game.partie.id!, game.userId)],
+          at: game.partie.createdAt,
+        ),
+    ];
+  }
+
   /// « Secouer pour s'ajouter » (US15.6) : le joueur courant vient de
   /// secouer son téléphone. Attend au plus `FriendsConfig.shakeWindow` une
   /// autre secousse et renvoie ce joueur avec sa relation, ou `null`.
@@ -203,6 +318,56 @@ class FriendsEndpoint extends Endpoint {
     await session.messages.postMessage(
       MultiplayerEndpoint.roomChannel(room.code),
       GameEvent(type: EnumGameEventType.challengeDeclined, code: room.code),
+    );
+  }
+
+  /// Les amis de [me], par `User.id`.
+  Future<Map<UuidValue, User>> _friendsOf(Session session, User me) async {
+    final rows = await Friendship.db.find(
+      session,
+      where: (t) =>
+          (t.requesterId.equals(me.id) | t.addresseeId.equals(me.id)) &
+          t.status.equals(EnumFriendshipStatus.accepted),
+    );
+    if (rows.isEmpty) return {};
+    final users = await User.db.find(
+      session,
+      where: (t) => t.id.inSet(<UuidValue>{
+        for (final row in rows)
+          row.requesterId == me.id ? row.addresseeId : row.requesterId,
+      }),
+    );
+    return {for (final user in users) user.id!: user};
+  }
+
+  /// `User.id` des joueurs humains parmi [playerIds].
+  Future<Map<UuidValue, UuidValue>> _userIdsOfPlayers(
+    Session session,
+    Set<UuidValue> playerIds,
+  ) async {
+    if (playerIds.isEmpty) return {};
+    final players = await Player.db.find(
+      session,
+      where: (t) => t.id.inSet(playerIds),
+    );
+    return {for (final p in players) ?p.id: ?p.userId};
+  }
+
+  RivalryDto _rivalry(
+    User friend,
+    List<PlayedGame> games,
+    Map<String, String> photoUrls,
+  ) {
+    final results = games.map(resultOf).toList();
+    int count(EnumMatchResult r) => results.where((x) => x == r).length;
+    return RivalryDto(
+      friend: _userDto(friend, photoUrls),
+      wins: count(EnumMatchResult.win),
+      losses: count(EnumMatchResult.loss),
+      draws: count(EnumMatchResult.draw),
+      streak: currentStreak(results),
+      lastPlayedAt: games.firstOrNull?.partie.createdAt,
+      partieIds: [for (final g in games) g.partie.id!],
     );
   }
 

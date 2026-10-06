@@ -89,6 +89,21 @@ final recentOpponentsProvider =
       (ref) => ref.read(friendsRepositoryProvider).recentOpponents(),
     );
 
+/// Sous-onglet Rivalités (US15.7) : bilans tête-à-tête — vide hors compte
+/// email. Relancé quand les amis ou l'historique changent.
+final rivalriesProvider = FutureProvider<List<RivalryDto>>((ref) async {
+  if (ref.watch(friendsAccessProvider) != FriendsAccess.member) return [];
+  return ref.read(friendsRepositoryProvider).rivalries();
+});
+
+/// Fil d'activité des amis (US15.7) : leurs parties de la semaine.
+final friendsActivityProvider = FutureProvider<List<FriendActivityDto>>((
+  ref,
+) async {
+  if (ref.watch(friendsAccessProvider) != FriendsAccess.member) return [];
+  return ref.read(friendsRepositoryProvider).activity();
+});
+
 /// Badge de l'onglet Amis et du sous-onglet Demandes.
 final incomingFriendRequestCountProvider = Provider<int>(
   (ref) => ref.watch(friendsOverviewProvider).valueOrNull?.incoming.length ?? 0,

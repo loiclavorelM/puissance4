@@ -1,0 +1,12 @@
+# Une partie récente d'un ami (E15, US15.7 — fil d'activité), vue de l'ami.
+class: FriendActivityDto
+fields:
+  partieId: UuidValue
+  friend: FriendUserDto
+  typePartie: EnumType
+  result: EnumMatchResult
+  # Pseudo de l'adversaire (Multi) ou nom du bot tel que stocké (Classé,
+  # traduit côté app).
+  opponent: String
+  eloVariation: int?
+  at: DateTime

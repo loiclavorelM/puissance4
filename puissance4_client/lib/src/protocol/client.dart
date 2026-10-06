@@ -14,6 +14,8 @@ import 'dart:async' as _ida;
 import 'dart:typed_data' as _idt;
 import 'package:http/http.dart' as _i85jenna;
 import 'package:puissance4_client/src/protocol/bot/bot.dart' as _ighv8e6n;
+import 'package:puissance4_client/src/protocol/friends/friend_activity_dto.dart'
+    as _ikasuekg;
 import 'package:puissance4_client/src/protocol/friends/friend_challenge_dto.dart'
     as _im2ichtj;
 import 'package:puissance4_client/src/protocol/friends/friends_overview_dto.dart'
@@ -22,6 +24,8 @@ import 'package:puissance4_client/src/protocol/friends/friendship_dto.dart'
     as _izlxexk7;
 import 'package:puissance4_client/src/protocol/friends/player_search_result_dto.dart'
     as _ionzpnek;
+import 'package:puissance4_client/src/protocol/friends/rivalry_dto.dart'
+    as _ixxp4699;
 import 'package:puissance4_client/src/protocol/game/enum_type.dart'
     as _i6ui2hi8;
 import 'package:puissance4_client/src/protocol/game/game_event.dart'
@@ -368,6 +372,24 @@ class EndpointFriends extends _isc.EndpointRef {
       caller.callServerEndpoint<List<_ionzpnek.PlayerSearchResultDto>>(
         'friends',
         'recentOpponents',
+        {},
+      );
+
+  /// Bilan tête-à-tête avec chaque ami (US15.7) — parties Multi terminées
+  /// entre les deux —, ceux avec qui on a le plus joué d'abord.
+  _ida.Future<List<_ixxp4699.RivalryDto>> getRivalries() =>
+      caller.callServerEndpoint<List<_ixxp4699.RivalryDto>>(
+        'friends',
+        'getRivalries',
+        {},
+      );
+
+  /// Fil d'activité (US15.7) : parties Multi et Classé terminées par mes
+  /// amis ces [activityPeriod] derniers jours, plus récentes d'abord.
+  _ida.Future<List<_ikasuekg.FriendActivityDto>> getFriendsActivity() =>
+      caller.callServerEndpoint<List<_ikasuekg.FriendActivityDto>>(
+        'friends',
+        'getFriendsActivity',
         {},
       );
 
