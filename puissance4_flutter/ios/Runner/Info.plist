@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>NSCameraUsageDescription</key>
-	<string>Prendre une photo de profil.</string>
+	<string>Prendre une photo de profil et scanner le code ami d'un joueur.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Choisir une photo de profil.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>

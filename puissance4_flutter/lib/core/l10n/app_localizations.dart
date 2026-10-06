@@ -410,6 +410,12 @@ abstract class AppLocalizations {
   /// **'Impossible de charger les bots.'**
   String get botsLoadError;
 
+  /// No description provided for @cameraUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Caméra indisponible : vérifie l\'autorisation d\'accès.'**
+  String get cameraUnavailable;
+
   /// No description provided for @cancel.
   ///
   /// In fr, this message translates to:
@@ -698,6 +704,12 @@ abstract class AppLocalizations {
   /// **'Refuser'**
   String get friendDecline;
 
+  /// No description provided for @friendQrHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fais-le scanner par ton ami depuis Amis › Ajouter.'**
+  String get friendQrHint;
+
   /// No description provided for @friendRelationFriend.
   ///
   /// In fr, this message translates to:
@@ -770,6 +782,18 @@ abstract class AppLocalizations {
   /// **'ENVOYÉES'**
   String get friendRequestsSent;
 
+  /// No description provided for @friendScanHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vise le QR code de ton ami (Amis › Ajouter).'**
+  String get friendScanHint;
+
+  /// No description provided for @friendScanQr.
+  ///
+  /// In fr, this message translates to:
+  /// **'Scanner un QR'**
+  String get friendScanQr;
+
   /// No description provided for @friendSearchHint.
   ///
   /// In fr, this message translates to:
@@ -787,6 +811,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Tape au moins 3 caractères, ou un code ami.'**
   String get friendSearchTooShort;
+
+  /// No description provided for @friendShakeToAdd.
+  ///
+  /// In fr, this message translates to:
+  /// **'Secouer'**
+  String get friendShakeToAdd;
+
+  /// No description provided for @friendShowQr.
+  ///
+  /// In fr, this message translates to:
+  /// **'Afficher mon QR code'**
+  String get friendShowQr;
 
   /// No description provided for @friendUnavailable.
   ///
@@ -1639,6 +1675,36 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Réglages'**
   String get settings;
+
+  /// No description provided for @shakeToAddFound.
+  ///
+  /// In fr, this message translates to:
+  /// **'Trouvé !'**
+  String get shakeToAddFound;
+
+  /// No description provided for @shakeToAddHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien n\'est envoyé sans ton accord : tu choisis ensuite de l\'ajouter.'**
+  String get shakeToAddHint;
+
+  /// No description provided for @shakeToAddMatching.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recherche…'**
+  String get shakeToAddMatching;
+
+  /// No description provided for @shakeToAddNobody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Personne n\'a secoué en même temps'**
+  String get shakeToAddNobody;
+
+  /// No description provided for @shakeToAddWaiting.
+  ///
+  /// In fr, this message translates to:
+  /// **'Secoue ton téléphone en même temps que ton ami'**
+  String get shakeToAddWaiting;
 
   /// No description provided for @shakeToStop.
   ///

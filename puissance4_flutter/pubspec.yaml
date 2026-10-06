@@ -38,12 +38,14 @@ dependencies:
   image: ^4.10.1
   image_picker: ^1.2.3
   intl: any
+  mobile_scanner: ^7.4.2
   path: ^1.9.1
   path_provider: ^2.1.5
   puissance4_client:
     path: ../puissance4_client
   puissance4_rules:
     path: ../puissance4_rules
+  qr_flutter: ^4.1.0
   sensors_plus: ^7.1.1
   serverpod_auth_idp_flutter: 4.0.3
   serverpod_client: 4.0.3

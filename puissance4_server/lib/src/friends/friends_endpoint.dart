@@ -142,6 +142,27 @@ class FriendsEndpoint extends Endpoint {
     return _searchResults(session, me, candidates, recentOpponentsLimit);
   }
 
+  /// « Secouer pour s'ajouter » (US15.6) : le joueur courant vient de
+  /// secouer son téléphone. Attend au plus `FriendsConfig.shakeWindow` une
+  /// autre secousse et renvoie ce joueur avec sa relation, ou `null`.
+  /// Rien n'est envoyé : chacun choisit ensuite d'ajouter l'autre
+  /// (`sendRequest`, accepté d'office si l'autre l'a fait aussi).
+  Future<PlayerSearchResultDto?> shakeToAdd(Session session) async {
+    final me = await _requireMember(session);
+    final otherAuthUserId = await FriendsConfig.shakes.match(
+      me.authUserId!,
+      FriendsConfig.shakeWindow,
+    );
+    if (otherAuthUserId == null) return null;
+    final other = await User.db.findFirstRow(
+      session,
+      where: (t) => t.authUserId.equals(otherAuthUserId),
+    );
+    if (other == null) return null;
+    final results = await _searchResults(session, me, [other], 1);
+    return results.isEmpty ? null : results.single;
+  }
+
   /// Défis reçus encore ouverts (E15) : des salles privées réservées au
   /// joueur courant, à rejoindre par `MultiplayerEndpoint.joinRoom`.
   Future<List<FriendChallengeDto>> getChallenges(Session session) async {

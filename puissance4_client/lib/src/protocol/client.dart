@@ -371,6 +371,18 @@ class EndpointFriends extends _isc.EndpointRef {
         {},
       );
 
+  /// « Secouer pour s'ajouter » (US15.6) : le joueur courant vient de
+  /// secouer son téléphone. Attend au plus `FriendsConfig.shakeWindow` une
+  /// autre secousse et renvoie ce joueur avec sa relation, ou `null`.
+  /// Rien n'est envoyé : chacun choisit ensuite d'ajouter l'autre
+  /// (`sendRequest`, accepté d'office si l'autre l'a fait aussi).
+  _ida.Future<_ionzpnek.PlayerSearchResultDto?> shakeToAdd() =>
+      caller.callServerEndpoint<_ionzpnek.PlayerSearchResultDto?>(
+        'friends',
+        'shakeToAdd',
+        {},
+      );
+
   /// Défis reçus encore ouverts (E15) : des salles privées réservées au
   /// joueur courant, à rejoindre par `MultiplayerEndpoint.joinRoom`.
   _ida.Future<List<_im2ichtj.FriendChallengeDto>> getChallenges() =>

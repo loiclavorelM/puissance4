@@ -177,6 +177,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get botsLoadError => 'Couldn\'t load the bots.';
 
   @override
+  String get cameraUnavailable => 'Camera unavailable: check the permission.';
+
+  @override
   String get cancel => 'Cancel';
 
   @override
@@ -346,6 +349,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get friendDecline => 'Decline';
 
   @override
+  String get friendQrHint => 'Have your friend scan it from Friends › Add.';
+
+  @override
   String get friendRelationFriend => 'Friend';
 
   @override
@@ -388,6 +394,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get friendRequestsSent => 'SENT';
 
   @override
+  String get friendScanHint => 'Aim at your friend\'s QR code (Friends › Add).';
+
+  @override
+  String get friendScanQr => 'Scan a QR';
+
+  @override
   String get friendSearchHint => 'Username or friend code (P4-…)';
 
   @override
@@ -396,6 +408,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get friendSearchTooShort =>
       'Type at least 3 characters, or a friend code.';
+
+  @override
+  String get friendShakeToAdd => 'Shake';
+
+  @override
+  String get friendShowQr => 'Show my QR code';
 
   @override
   String get friendUnavailable => 'This friend is no longer available to play.';
@@ -864,6 +882,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings => 'Settings';
+
+  @override
+  String get shakeToAddFound => 'Found!';
+
+  @override
+  String get shakeToAddHint =>
+      'Nothing is sent without your OK: you then choose to add them.';
+
+  @override
+  String get shakeToAddMatching => 'Searching…';
+
+  @override
+  String get shakeToAddNobody => 'Nobody shook at the same time';
+
+  @override
+  String get shakeToAddWaiting =>
+      'Shake your phone at the same time as your friend';
 
   @override
   String get shakeToStop => 'Shake the phone to stop the game';

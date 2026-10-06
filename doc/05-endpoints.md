@@ -174,6 +174,10 @@ et n'apparaît jamais dans les recherches. Chaque changement envoie
   Accepte directement si l'autre avait déjà envoyé une demande.
 - `recentOpponents() -> List<PlayerSearchResultDto>`
   10 derniers adversaires Multi (une fois chacun), avec leur relation.
+- `shakeToAdd() -> PlayerSearchResultDto?`
+  « Secouer pour s'ajouter » : attend au plus 2 s une secousse d'un autre
+  joueur (`ShakeMatcher`, en mémoire) et le renvoie avec sa relation, sinon
+  `null`. N'envoie aucune demande.
 - `getChallenges() -> List<FriendChallengeDto>`
   Défis reçus encore ouverts : salles privées réservées au joueur, ouvertes
   par `MultiplayerEndpoint.hostRoom(challengeUserId:)`, à rejoindre par

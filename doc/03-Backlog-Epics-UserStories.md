@@ -470,12 +470,12 @@ Tickets :
 
 ### US15.6 — En tant que joueur à côté d'un autre, je veux l'ajouter sans taper son pseudo, afin d'aller plus vite.
 Critères d'acceptation :
-- QR code de mon code ami + scanner caméra.
-- « Secouer pour s'ajouter » : deux secousses (E10) reçues à moins de 2 s d'écart sont appariées par le serveur (en mémoire), puis confirmées des deux côtés.
+- QR code de mon code ami (`qr_flutter`) ; scanner caméra (`mobile_scanner`, téléphone et navigateur) qui remplit la recherche avec le code lu — le joueur apparaît avec son bouton Ajouter.
+- « Secouer pour s'ajouter » (téléphone seulement) : deux secousses (E10) à moins de 2 s d'écart sont appariées par le serveur (`ShakeMatcher` en mémoire, à remplacer avec Redis), deux appareils d'un même compte ne s'apparient pas. Chacun voit l'autre et choisit de l'ajouter : rien n'est envoyé sans accord, et deux demandes croisées s'acceptent d'office.
 
 Tickets :
-- [ ] T15.6.1 — QR code (affichage + scan) — `owner:A`
-- [ ] T15.6.2 — Appariement des secousses côté serveur + UI — `owner:B`
+- [x] T15.6.1 — QR code (affichage + scan) — `owner:A`
+- [x] T15.6.2 — Appariement des secousses côté serveur (`shakeToAdd`) + UI — `owner:B`
 
 ### US15.7 — En tant que joueur, je veux comparer mes résultats à ceux de mes amis, afin d'entretenir une rivalité.
 Critères d'acceptation :

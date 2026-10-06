@@ -5,25 +5,82 @@ import 'package:puissance4_client/puissance4_client.dart';
 
 import '../../../core/l10n/l10n.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../sensors/viewmodel/motion_sensors_provider.dart';
+import '../viewmodel/add_in_person_viewmodel.dart';
 import '../viewmodel/friends_viewmodel.dart';
+import 'friend_code_qr.dart';
 import 'friend_tile.dart';
+import 'shake_to_add_sheet.dart';
 
-/// Sous-onglet « Ajouter » (US15.1) : mon code ami, puis recherche par
-/// pseudo ou code ami.
-class AddFriendTab extends ConsumerWidget {
+/// Sous-onglet « Ajouter » (US15.1, US15.6) : mon code ami (et son QR),
+/// l'ajout en personne (scanner un QR, secouer ensemble), puis la recherche
+/// par pseudo ou code ami.
+class AddFriendTab extends ConsumerStatefulWidget {
   const AddFriendTab({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AddFriendTab> createState() => _AddFriendTabState();
+}
+
+class _AddFriendTabState extends ConsumerState<AddFriendTab> {
+  final _query = TextEditingController();
+
+  @override
+  void dispose() {
+    _query.dispose();
+    super.dispose();
+  }
+
+  /// Un QR scanné remplit la recherche : son propriétaire apparaît avec
+  /// le bouton Ajouter.
+  Future<void> _scan() async {
+    final code = await scanFriendCode(context);
+    if (code == null || !mounted) return;
+    _query.text = code;
+    ref.read(friendSearchProvider.notifier).setQuery(code);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final search = ref.watch(friendSearchProvider);
     final results = search.results;
+    final canScan = ref.watch(qrScanSupportedProvider);
+    final canShake = ref.watch(motionSensorsProvider);
 
     return CustomScrollView(
       slivers: [
         const SliverToBoxAdapter(child: _MyFriendCode()),
+        if (canScan || canShake)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Row(
+                children: [
+                  if (canScan)
+                    Expanded(
+                      child: _InPersonButton(
+                        icon: Icons.qr_code_scanner,
+                        label: context.l10n.friendScanQr,
+                        onPressed: _scan,
+                      ),
+                    ),
+                  if (canScan && canShake) const SizedBox(width: 12),
+                  if (canShake)
+                    Expanded(
+                      child: _InPersonButton(
+                        icon: Icons.vibration,
+                        label: context.l10n.friendShakeToAdd,
+                        onPressed: () => showShakeToAddSheet(context),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
         const SliverToBoxAdapter(child: SizedBox(height: 20)),
         SliverToBoxAdapter(
           child: TextField(
+            controller: _query,
             onChanged: ref.read(friendSearchProvider.notifier).setQuery,
             style: const TextStyle(color: Colors.white),
             textInputAction: TextInputAction.search,
@@ -77,7 +134,8 @@ class AddFriendTab extends ConsumerWidget {
                 SliverList.separated(
                   itemCount: players.length,
                   separatorBuilder: (_, _) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) => _ResultRow(players[index]),
+                  itemBuilder: (context, index) =>
+                      PlayerResultRow(players[index]),
                 ),
             ],
           ),
@@ -120,9 +178,36 @@ List<Widget> _recentOpponents(BuildContext context, WidgetRef ref) {
       SliverList.separated(
         itemCount: recent.length,
         separatorBuilder: (_, _) => const SizedBox(height: 12),
-        itemBuilder: (context, index) => _ResultRow(recent[index]),
+        itemBuilder: (context, index) => PlayerResultRow(recent[index]),
       ),
   ];
+}
+
+class _InPersonButton extends StatelessWidget {
+  const _InPersonButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: onPressed,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: Colors.white,
+        side: const BorderSide(color: Colors.white24),
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+      icon: Icon(icon, color: AppColors.green),
+      label: Text(label, overflow: TextOverflow.ellipsis),
+    );
+  }
 }
 
 class _MyFriendCode extends ConsumerWidget {
@@ -177,6 +262,13 @@ class _MyFriendCode extends ConsumerWidget {
             ),
           ),
           IconButton(
+            tooltip: context.l10n.friendShowQr,
+            onPressed: code == null
+                ? null
+                : () => showFriendCodeQr(context, display),
+            icon: const Icon(Icons.qr_code_2, color: Colors.white70),
+          ),
+          IconButton(
             tooltip: context.l10n.friendCodeCopy,
             onPressed: code == null
                 ? null
@@ -197,10 +289,15 @@ class _MyFriendCode extends ConsumerWidget {
   }
 }
 
-class _ResultRow extends ConsumerWidget {
-  const _ResultRow(this.result);
+/// Un joueur trouvé (recherche, rencontres récentes, secousse) avec
+/// l'action qui correspond à sa relation : Ajouter, Accepter, ou son état.
+class PlayerResultRow extends ConsumerWidget {
+  const PlayerResultRow(this.result, {super.key, this.onSent});
 
   final PlayerSearchResultDto result;
+
+  /// Après l'envoi de la demande (ex. fermer la feuille de secousse).
+  final VoidCallback? onSent;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -214,6 +311,7 @@ class _ResultRow extends ConsumerWidget {
           .sendRequest(player);
       await ref.read(friendSearchProvider.notifier).refresh();
       if (context.mounted) showFriendsSnackBar(context, message);
+      onSent?.call();
     }
 
     return FriendTile(

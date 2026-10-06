@@ -439,6 +439,16 @@ class Endpoints extends _is.EndpointDispatch {
               ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
                   .recentOpponents(session),
         ),
+        'shakeToAdd': _is.MethodConnector(
+          name: 'shakeToAdd',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .shakeToAdd(session),
+        ),
         'getChallenges': _is.MethodConnector(
           name: 'getChallenges',
           params: {},

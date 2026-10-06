@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:puissance4_server/src/friends/friend_code.dart';
 import 'package:puissance4_server/src/friends/friends_config.dart';
 import 'package:puissance4_server/src/friends/presence_store.dart';
+import 'package:puissance4_server/src/friends/shake_matcher.dart';
 import 'package:puissance4_server/src/game/server_game.dart';
 import 'package:puissance4_server/src/game/server_game_config.dart';
 import 'package:puissance4_server/src/generated/protocol.dart';
@@ -92,6 +93,8 @@ void main() {
       setUp(() {
         MultiplayerConfig.rooms = InMemoryRoomStore();
         FriendsConfig.presence = InMemoryPresenceStore();
+        FriendsConfig.shakes = InMemoryShakeMatcher();
+        FriendsConfig.shakeWindow = const Duration(milliseconds: 300);
         ServerGameConfig.scheduler = LocalTimerScheduler();
       });
 
@@ -243,6 +246,32 @@ void main() {
             EnumGameError.friendUnavailable,
           ),
         );
+      });
+
+      test('two players shaking together find each other', () async {
+        final (alice, _) = await player('alice');
+        final (bob, _) = await player('bob');
+
+        final (aliceSees, bobSees) = await (
+          endpoints.friends.shakeToAdd(alice),
+          endpoints.friends.shakeToAdd(bob),
+        ).wait;
+
+        expect(aliceSees?.player.username, 'bob');
+        expect(aliceSees?.relation, EnumFriendRelation.none);
+        expect(bobSees?.player.username, 'alice');
+      });
+
+      test('a lone shake finds nobody', () async {
+        final (alice, _) = await player('alice');
+
+        expect(await endpoints.friends.shakeToAdd(alice), isNull);
+        // Deux appareils du même compte ne s'apparient pas entre eux.
+        final both = await (
+          endpoints.friends.shakeToAdd(alice),
+          endpoints.friends.shakeToAdd(alice),
+        ).wait;
+        expect(both, (null, null));
       });
 
       test('recent Multi opponents come newest first, once each', () async {

@@ -38,6 +38,10 @@ class FriendsRepository {
 
   Future<void> remove(UuidValue userId) => client.friends.removeFriend(userId);
 
+  /// Le joueur courant vient de secouer : le joueur qui a secoué en même
+  /// temps (US15.6), ou `null` après ~2 s.
+  Future<PlayerSearchResultDto?> shakeToAdd() => client.friends.shakeToAdd();
+
   Future<List<PlayerSearchResultDto>> recentOpponents() =>
       client.friends.recentOpponents();
 

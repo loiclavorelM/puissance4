@@ -177,6 +177,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get botsLoadError => 'Impossible de charger les bots.';
 
   @override
+  String get cameraUnavailable =>
+      'Caméra indisponible : vérifie l\'autorisation d\'accès.';
+
+  @override
   String get cancel => 'Annuler';
 
   @override
@@ -347,6 +351,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get friendDecline => 'Refuser';
 
   @override
+  String get friendQrHint =>
+      'Fais-le scanner par ton ami depuis Amis › Ajouter.';
+
+  @override
   String get friendRelationFriend => 'Ami';
 
   @override
@@ -389,6 +397,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get friendRequestsSent => 'ENVOYÉES';
 
   @override
+  String get friendScanHint => 'Vise le QR code de ton ami (Amis › Ajouter).';
+
+  @override
+  String get friendScanQr => 'Scanner un QR';
+
+  @override
   String get friendSearchHint => 'Pseudo ou code ami (P4-…)';
 
   @override
@@ -397,6 +411,12 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get friendSearchTooShort =>
       'Tape au moins 3 caractères, ou un code ami.';
+
+  @override
+  String get friendShakeToAdd => 'Secouer';
+
+  @override
+  String get friendShowQr => 'Afficher mon QR code';
 
   @override
   String get friendUnavailable => 'Cet ami n\'est plus disponible pour jouer.';
@@ -874,6 +894,23 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings => 'Réglages';
+
+  @override
+  String get shakeToAddFound => 'Trouvé !';
+
+  @override
+  String get shakeToAddHint =>
+      'Rien n\'est envoyé sans ton accord : tu choisis ensuite de l\'ajouter.';
+
+  @override
+  String get shakeToAddMatching => 'Recherche…';
+
+  @override
+  String get shakeToAddNobody => 'Personne n\'a secoué en même temps';
+
+  @override
+  String get shakeToAddWaiting =>
+      'Secoue ton téléphone en même temps que ton ami';
 
   @override
   String get shakeToStop => 'Secoue le téléphone pour arrêter la partie';
