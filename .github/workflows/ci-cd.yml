@@ -1,6 +1,10 @@
-# Pipeline de mise en production, lancée uniquement par un push sur
-# production : lint ∥ tests → build (web + APK prod signé) → déploiement
-# Serverpod Cloud → release GitHub de l'APK.
+# Une pull request vers develop ou production lance lint ∥ tests : son
+# statut (vert/rouge) apparaît sur la PR avant la fusion (US12.1).
+#
+# Un push sur production lance la mise en production complète : lint ∥ tests
+# → build (web + APK prod signé) → déploiement Serverpod Cloud → release
+# GitHub de l'APK. Le build reste hors des PR : c'est l'étape la plus longue,
+# et elle a besoin de la clé de signature.
 #
 # Secrets requis :
 # - SERVERPOD_CLOUD_TOKEN (`scloud auth create-token`) ;
@@ -12,16 +16,19 @@ name: CI/CD
 on:
   push:
     branches: [production]
+  pull_request:
+    branches: [develop, production]
 
-# Les runs se suivent sans s'interrompre : chacun va jusqu'au bout.
+# Mise en production : les runs se suivent sans s'interrompre, chacun va
+# jusqu'au bout. PR : un nouveau push annule la vérification précédente.
 concurrency:
-  group: production
-  cancel-in-progress: false
+  group: ${{ github.event_name == 'push' && 'production' || format('pr-{0}', github.event.pull_request.number) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   # Mêmes versions qu'en local : le code généré et le lockfile en dépendent.
   FLUTTER_VERSION: '3.47.4'
-  SERVERPOD_VERSION: '4.0.0'
+  SERVERPOD_VERSION: '4.0.3'
 
 jobs:
   lint:
@@ -111,6 +118,9 @@ jobs:
   build:
     name: Build (web + APK prod)
     needs: [lint, test]
+    # Mise en production seulement ; deploy et release en dépendent, donc
+    # sont sautés aussi sur une PR.
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

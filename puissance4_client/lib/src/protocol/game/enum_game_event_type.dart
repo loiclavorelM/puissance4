@@ -15,6 +15,7 @@ import 'package:serverpod_client/serverpod_client.dart' as _isc;
 enum EnumGameEventType implements _isc.SerializableModel {
   roomCreated,
   roomClosed,
+  challengeDeclined,
   gameStarted,
   moveApplied,
   opponentDisconnected,
@@ -27,6 +28,8 @@ enum EnumGameEventType implements _isc.SerializableModel {
         return EnumGameEventType.roomCreated;
       case 'roomClosed':
         return EnumGameEventType.roomClosed;
+      case 'challengeDeclined':
+        return EnumGameEventType.challengeDeclined;
       case 'gameStarted':
         return EnumGameEventType.gameStarted;
       case 'moveApplied':

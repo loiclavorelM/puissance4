@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
+import '../../../../core/l10n/l10n.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../model/game_participant.dart';
+import '../participant_name.dart';
 import 'connect4_board_view.dart';
 
 /// Carte d'un camp : couleur, nom, Elo, et un liseré quand c'est son tour.
@@ -43,7 +45,7 @@ class PlayerTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  participant.displayName,
+                  participantName(context.l10n, participant),
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Colors.white,
@@ -51,7 +53,7 @@ class PlayerTile extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  elo == null ? label : '$label · ELO $elo',
+                  elo == null ? label : context.l10n.labelWithElo(label, elo),
                   style: const TextStyle(color: Colors.white54, fontSize: 11),
                 ),
               ],

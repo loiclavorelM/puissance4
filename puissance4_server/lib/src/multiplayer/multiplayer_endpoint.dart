@@ -3,9 +3,13 @@ import 'dart:async';
 import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart';
 
+import '../friends/friend_challenges.dart';
+import '../friends/friends_config.dart';
 import '../game/game_stream.dart';
 import '../game/server_game.dart';
 import '../generated/protocol.dart';
+import '../live/live_notifier.dart';
+import '../profile/profile_photo.dart';
 import 'multiplayer_config.dart';
 import 'room_store.dart';
 
@@ -31,9 +35,25 @@ class MultiplayerEndpoint extends Endpoint {
   /// ferme la salle ; à expiration il émet `roomClosed` et se termine.
   /// Une salle [isPublic] apparaît dans le lobby ([watchLobby]) ; sinon elle
   /// ne se rejoint que par son code.
-  Stream<GameEvent> hostRoom(Session session, bool isPublic) => GameStream(
+  ///
+  /// Avec [challengeUserId] (`User.id` d'un ami, E15), la salle est un défi :
+  /// privée, réservée à cet ami, plus courte
+  /// (`FriendsConfig.challengeLifetime`), et l'ami la voit dans
+  /// `FriendsEndpoint.getChallenges`. S'il refuse, le stream émet
+  /// `challengeDeclined` et se termine. Lève `friendUnavailable` si ce
+  /// n'est pas un ami ou s'il est déjà en partie.
+  Stream<GameEvent> hostRoom(
+    Session session,
+    bool isPublic, {
+    UuidValue? challengeUserId,
+  }) => GameStream(
     session,
-    (stream) => _host(session, stream, isPublic: isPublic),
+    (stream) => _host(
+      session,
+      stream,
+      isPublic: isPublic,
+      challengeUserId: challengeUserId,
+    ),
   ).events;
 
   /// Salles publiques ouvertes (sauf la sienne) : la liste au départ, puis
@@ -86,6 +106,15 @@ class MultiplayerEndpoint extends Endpoint {
     );
   }
 
+  /// Les défis reçus par l'invité de [room] ont changé (ouverture, fermeture
+  /// ou prise de la salle).
+  static Future<void> _challengeChanged(Session session, Room? room) async {
+    final invited = room?.invitedAuthUserId;
+    if (invited != null) {
+      await notifyUser(session, invited, challenges: true);
+    }
+  }
+
   /// Rejoint la salle [code] : crée la partie et émet ses événements, à
   /// commencer par `gameStarted`.
   Stream<GameEvent> joinRoom(Session session, String code) =>
@@ -95,19 +124,30 @@ class MultiplayerEndpoint extends Endpoint {
     Session session,
     GameStream stream, {
     required bool isPublic,
+    UuidValue? challengeUserId,
   }) async {
     final me = await ServerGame.requireUser(session);
     await ServerGame.ensureNotInGame(session, me);
+    final invited = challengeUserId == null
+        ? null
+        : (await requireChallengeable(
+            session,
+            me,
+            challengeUserId,
+          )).authUserId!;
 
     final (:room, :replaced) = await MultiplayerConfig.rooms.create(
       hostAuthUserId: me.authUserId!,
       hostUserId: me.id!,
-      lifetime: MultiplayerConfig.roomLifetime,
-      listedAs: isPublic
+      lifetime: invited == null
+          ? MultiplayerConfig.roomLifetime
+          : FriendsConfig.challengeLifetime,
+      invitedAuthUserId: invited,
+      listedAs: isPublic && invited == null
           ? RoomHost(
               username: me.username,
               elo: me.elo,
-              thumbnailUrl: me.thumbnailPath,
+              thumbnailUrl: await ProfilePhoto.url(session, me.thumbnailPath),
             )
           : null,
     );
@@ -117,6 +157,7 @@ class MultiplayerEndpoint extends Endpoint {
         GameEvent(type: EnumGameEventType.roomClosed, code: replaced.code),
       );
       await _lobbyChanged(session, replaced);
+      await _challengeChanged(session, replaced);
     }
 
     // Écoute branchée avant d'annoncer le code : personne ne peut rejoindre
@@ -138,6 +179,7 @@ class MultiplayerEndpoint extends Endpoint {
     GameEvent? event;
     try {
       await _lobbyChanged(session, room);
+      await _challengeChanged(session, room);
       stream.emit(
         GameEvent(
           type: EnumGameEventType.roomCreated,
@@ -153,10 +195,15 @@ class MultiplayerEndpoint extends Endpoint {
       if (event?.type != EnumGameEventType.gameStarted) {
         await MultiplayerConfig.rooms.remove(room.code, me.authUserId!);
         await _lobbyChanged(session, room);
+        await _challengeChanged(session, room);
       }
     }
 
     if (stream.isCancelled) return;
+    if (event?.type == EnumGameEventType.challengeDeclined) {
+      stream.emit(event!);
+      return;
+    }
     if (event?.type != EnumGameEventType.gameStarted) {
       stream.emit(
         GameEvent(type: EnumGameEventType.roomClosed, code: room.code),
@@ -180,6 +227,7 @@ class MultiplayerEndpoint extends Endpoint {
     }
     // Prise : elle sort du lobby (elle y revient si elle est rendue).
     await _lobbyChanged(session, room);
+    await _challengeChanged(session, room);
 
     final Partie partie;
     try {
@@ -200,6 +248,7 @@ class MultiplayerEndpoint extends Endpoint {
       final guestBusy = error is SeatBusyException && error.user.id == me.id;
       if (guestBusy && await MultiplayerConfig.rooms.restore(room)) {
         await _lobbyChanged(session, room);
+        await _challengeChanged(session, room);
       } else {
         await session.messages.postMessage(
           roomChannel(room.code),

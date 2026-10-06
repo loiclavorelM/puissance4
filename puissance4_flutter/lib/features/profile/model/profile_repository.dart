@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:puissance4_client/puissance4_client.dart';
 
 import '../../../client.dart';
@@ -23,4 +25,11 @@ class ProfileRepository {
   /// Lève [ProfileUpdateException] si le pseudo est invalide ou déjà pris.
   Future<UserProfileDto> updateUsername(String username) =>
       client.profile.updateUsername(username);
+
+  /// Envoie la miniature [photo] (cf. `squareThumbnail`). Lève
+  /// [ProfileUpdateException] si le serveur la refuse.
+  Future<UserProfileDto> uploadPhoto(Uint8List photo) =>
+      client.profile.uploadProfilePhoto(ByteData.sublistView(photo));
+
+  Future<UserProfileDto> removePhoto() => client.profile.removeProfilePhoto();
 }

@@ -5,6 +5,7 @@ import 'package:serverpod_auth_idp_server/providers/anonymous.dart';
 import 'package:serverpod_auth_idp_server/providers/email.dart';
 import 'package:serverpod_cloud_storage/serverpod_cloud_storage.dart';
 
+import 'src/auth/guest_upgrade.dart';
 import 'src/bot/bot_seed.dart';
 import 'src/cache_busting.dart';
 import 'src/generated/serverpod.dart';
@@ -45,6 +46,11 @@ void run(List<String> args) async {
     // created, for every provider — see US1.2 (`T1.2.1`/`T1.2.2`).
     authUsersConfig: AuthUsersConfig(
       onAfterAuthUserCreated: createUserForAuthUser,
+    ),
+    // A guest who creates an email account keeps their progress: the new
+    // account is merged into the anonymous one (US0.2, `guest_upgrade.dart`).
+    accountMergeConfig: AccountMergeConfig(
+      applicationMergeHandler: mergeGameUsers,
     ),
   );
 

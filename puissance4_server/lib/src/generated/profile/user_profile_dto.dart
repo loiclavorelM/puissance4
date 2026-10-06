@@ -21,7 +21,8 @@ abstract class UserProfileDto
     required this.elo,
     required this.nbParties,
     required this.nbVictoires,
-  });
+    bool? isGuest,
+  }) : isGuest = isGuest ?? false;
 
   factory UserProfileDto({
     required _is.UuidValue id,
@@ -30,6 +31,7 @@ abstract class UserProfileDto
     required int elo,
     required int nbParties,
     required int nbVictoires,
+    bool? isGuest,
   }) = _UserProfileDtoImpl;
 
   factory UserProfileDto.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -40,6 +42,9 @@ abstract class UserProfileDto
       elo: jsonSerialization['elo'] as int,
       nbParties: jsonSerialization['nbParties'] as int,
       nbVictoires: jsonSerialization['nbVictoires'] as int,
+      isGuest: jsonSerialization['isGuest'] == null
+          ? null
+          : _is.BoolJsonExtension.fromJson(jsonSerialization['isGuest']),
     );
   }
 
@@ -55,6 +60,8 @@ abstract class UserProfileDto
 
   int nbVictoires;
 
+  bool isGuest;
+
   /// Returns a shallow copy of this [UserProfileDto]
   /// with some or all fields replaced by the given arguments.
   @_is.useResult
@@ -65,6 +72,7 @@ abstract class UserProfileDto
     int? elo,
     int? nbParties,
     int? nbVictoires,
+    bool? isGuest,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -76,6 +84,7 @@ abstract class UserProfileDto
       'elo': elo,
       'nbParties': nbParties,
       'nbVictoires': nbVictoires,
+      'isGuest': isGuest,
     };
   }
 
@@ -89,6 +98,7 @@ abstract class UserProfileDto
       'elo': elo,
       'nbParties': nbParties,
       'nbVictoires': nbVictoires,
+      'isGuest': isGuest,
     };
   }
 
@@ -108,6 +118,7 @@ class _UserProfileDtoImpl extends UserProfileDto {
     required int elo,
     required int nbParties,
     required int nbVictoires,
+    bool? isGuest,
   }) : super._(
          id: id,
          username: username,
@@ -115,6 +126,7 @@ class _UserProfileDtoImpl extends UserProfileDto {
          elo: elo,
          nbParties: nbParties,
          nbVictoires: nbVictoires,
+         isGuest: isGuest,
        );
 
   /// Returns a shallow copy of this [UserProfileDto]
@@ -128,6 +140,7 @@ class _UserProfileDtoImpl extends UserProfileDto {
     int? elo,
     int? nbParties,
     int? nbVictoires,
+    bool? isGuest,
   }) {
     return UserProfileDto(
       id: id ?? this.id,
@@ -136,6 +149,7 @@ class _UserProfileDtoImpl extends UserProfileDto {
       elo: elo ?? this.elo,
       nbParties: nbParties ?? this.nbParties,
       nbVictoires: nbVictoires ?? this.nbVictoires,
+      isGuest: isGuest ?? this.isGuest,
     );
   }
 }

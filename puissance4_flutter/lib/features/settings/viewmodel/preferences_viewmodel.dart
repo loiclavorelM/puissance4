@@ -12,8 +12,8 @@ final preferencesViewModelProvider =
       PreferencesViewModel.new,
     );
 
-/// Préférences affichées dans Réglages. Seulement mémorisées pour l'instant :
-/// `MyApp` lira plus tard ce provider pour `locale:` (E11) et `themeMode:`.
+/// Préférences affichées dans Réglages. La langue est appliquée à toute
+/// l'app (`localeProvider`, E11) ; le thème est seulement mémorisé.
 class PreferencesViewModel extends AsyncNotifier<AppPreferences> {
   PreferencesRepository get _repository =>
       ref.read(preferencesRepositoryProvider);

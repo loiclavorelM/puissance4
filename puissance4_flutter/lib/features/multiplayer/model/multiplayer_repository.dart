@@ -7,9 +7,12 @@ import '../../../client.dart';
 /// avant ferme la salle. La partie elle-même passe par
 /// `ServerGameRepository` (`GameEndpoint`).
 class MultiplayerRepository {
-  /// Une salle [isPublic] apparaît dans le lobby des autres joueurs.
-  Stream<GameEvent> hostRoom({bool isPublic = false}) =>
-      client.multiplayer.hostRoom(isPublic);
+  /// Une salle [isPublic] apparaît dans le lobby des autres joueurs. Avec
+  /// [challengeUserId], c'est un défi réservé à cet ami (E15).
+  Stream<GameEvent> hostRoom({
+    bool isPublic = false,
+    UuidValue? challengeUserId,
+  }) => client.multiplayer.hostRoom(isPublic, challengeUserId: challengeUserId);
 
   Stream<GameEvent> joinRoom(String code) => client.multiplayer.joinRoom(code);
 

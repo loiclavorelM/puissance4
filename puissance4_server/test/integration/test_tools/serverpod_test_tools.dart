@@ -13,7 +13,20 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _ida;
 import 'dart:io' as _idi;
+import 'dart:typed_data' as _idt;
 import 'package:puissance4_server/src/generated/bot/bot.dart' as _iyz5ninx;
+import 'package:puissance4_server/src/generated/friends/friend_activity_dto.dart'
+    as _io800lu2;
+import 'package:puissance4_server/src/generated/friends/friend_challenge_dto.dart'
+    as _ifqc6g4v;
+import 'package:puissance4_server/src/generated/friends/friends_overview_dto.dart'
+    as _ichi9ll7;
+import 'package:puissance4_server/src/generated/friends/friendship_dto.dart'
+    as _i3g0h0jv;
+import 'package:puissance4_server/src/generated/friends/player_search_result_dto.dart'
+    as _i259h1cp;
+import 'package:puissance4_server/src/generated/friends/rivalry_dto.dart'
+    as _ixwte3qx;
 import 'package:puissance4_server/src/generated/game/enum_type.dart'
     as _ijl03sjm;
 import 'package:puissance4_server/src/generated/game/game_event.dart'
@@ -58,6 +71,9 @@ export 'package:serverpod_test/serverpod_test_public_exports.dart';
 /// [applyMigrations] Whether pending migrations should be applied when starting Serverpod. Defaults to `true`
 ///
 /// [enableSessionLogging] Whether session logging should be enabled. Defaults to `false`
+///
+/// [ephemeralDatabase] Whether this group gets its own empty database, created when the group starts and dropped when it finishes. Defaults to `true`.
+/// Set this to `false` to use the database configured for [runMode], including a previously seeded database. [configOverride] can still replace that database. The configured database is not created or dropped, so groups that share it cannot run in parallel. [rollbackDatabase] still controls whether writes inside the group are rolled back.
 ///
 /// [rollbackDatabase] Options for when to rollback the database during the test lifecycle.
 /// By default `withServerpod` does all database operations inside a transaction that is rolled back after each `test` case.
@@ -128,6 +144,7 @@ void withServerpod(
   _is.ServerpodConfig Function(_is.ServerpodConfig)? configOverride,
   _is.DatabaseInterceptor? databaseInterceptor,
   bool? enableSessionLogging,
+  bool? ephemeralDatabase,
   _is.ExperimentalFeatures? experimentalFeatures,
   _ist.RollbackDatabase? rollbackDatabase,
   String? runMode,
@@ -146,6 +163,7 @@ void withServerpod(
       serializationManager: Protocol(),
       runMode: runMode,
       applyMigrations: applyMigrations,
+      ephemeralDatabase: ephemeralDatabase,
       isDatabaseEnabled: true,
       serverpodLoggingMode: serverpodLoggingMode,
       testServerOutputMode: testServerOutputMode,
@@ -173,6 +191,8 @@ class TestEndpoints {
   late final _BotEndpoint bot;
 
   late final _ConnectionEndpoint connection;
+
+  late final _FriendsEndpoint friends;
 
   late final _GameEndpoint game;
 
@@ -217,6 +237,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     connection = _ConnectionEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    friends = _FriendsEndpoint(
       endpoints,
       serializationManager,
     );
@@ -310,6 +334,41 @@ class _EmailIdpEndpoint {
   final _is.EndpointDispatch _endpointDispatch;
 
   final _is.SerializationManager _serializationManager;
+
+  _ida.Future<_iacs.AuthSuccess> finishRegistration(
+    _ist.TestSessionBuilder sessionBuilder, {
+    required String registrationToken,
+    required String password,
+  }) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'emailIdp',
+            method: 'finishRegistration',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'emailIdp',
+          methodName: 'finishRegistration',
+          parameters: _ist.testObjectToJson({
+            'registrationToken': registrationToken,
+            'password': password,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_iacs.AuthSuccess>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
 
   _ida.Future<_iacs.AuthSuccess> login(
     _ist.TestSessionBuilder sessionBuilder, {
@@ -405,41 +464,6 @@ class _EmailIdpEndpoint {
                   _localCallContext.arguments,
                 )
                 as _ida.Future<String>);
-        return _localReturnValue;
-      } finally {
-        await _localUniqueSession.close();
-      }
-    });
-  }
-
-  _ida.Future<_iacs.AuthSuccess> finishRegistration(
-    _ist.TestSessionBuilder sessionBuilder, {
-    required String registrationToken,
-    required String password,
-  }) async {
-    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
-      var _localUniqueSession =
-          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
-            endpoint: 'emailIdp',
-            method: 'finishRegistration',
-          );
-      try {
-        var _localCallContext = await _endpointDispatch.getMethodCallContext(
-          createSessionCallback: (_) => _localUniqueSession,
-          endpointPath: 'emailIdp',
-          methodName: 'finishRegistration',
-          parameters: _ist.testObjectToJson({
-            'registrationToken': registrationToken,
-            'password': password,
-          }),
-          serializationManager: _serializationManager,
-        );
-        var _localReturnValue =
-            await (_localCallContext.method.call(
-                  _localUniqueSession,
-                  _localCallContext.arguments,
-                )
-                as _ida.Future<_iacs.AuthSuccess>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -683,6 +707,414 @@ class _ConnectionEndpoint {
           endpointPath: 'connection',
           methodName: 'ping',
           parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<void>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _FriendsEndpoint {
+  _FriendsEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<_ichi9ll7.FriendsOverviewDto> getOverview(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'friends',
+            method: 'getOverview',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'friends',
+          methodName: 'getOverview',
+          parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_ichi9ll7.FriendsOverviewDto>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<List<_i259h1cp.PlayerSearchResultDto>> searchPlayers(
+    _ist.TestSessionBuilder sessionBuilder,
+    String query,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'friends',
+            method: 'searchPlayers',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'friends',
+          methodName: 'searchPlayers',
+          parameters: _ist.testObjectToJson({'query': query}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_i259h1cp.PlayerSearchResultDto>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<List<_i259h1cp.PlayerSearchResultDto>> recentOpponents(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'friends',
+            method: 'recentOpponents',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'friends',
+          methodName: 'recentOpponents',
+          parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_i259h1cp.PlayerSearchResultDto>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<List<_ixwte3qx.RivalryDto>> getRivalries(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'friends',
+            method: 'getRivalries',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'friends',
+          methodName: 'getRivalries',
+          parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_ixwte3qx.RivalryDto>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<List<_io800lu2.FriendActivityDto>> getFriendsActivity(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'friends',
+            method: 'getFriendsActivity',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'friends',
+          methodName: 'getFriendsActivity',
+          parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_io800lu2.FriendActivityDto>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<_i259h1cp.PlayerSearchResultDto?> shakeToAdd(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'friends',
+            method: 'shakeToAdd',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'friends',
+          methodName: 'shakeToAdd',
+          parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_i259h1cp.PlayerSearchResultDto?>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<List<_ifqc6g4v.FriendChallengeDto>> getChallenges(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'friends',
+            method: 'getChallenges',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'friends',
+          methodName: 'getChallenges',
+          parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_ifqc6g4v.FriendChallengeDto>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<void> declineChallenge(
+    _ist.TestSessionBuilder sessionBuilder,
+    String code,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'friends',
+            method: 'declineChallenge',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'friends',
+          methodName: 'declineChallenge',
+          parameters: _ist.testObjectToJson({'code': code}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<void>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<_i3g0h0jv.FriendshipDto> sendRequest(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue userId,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'friends',
+            method: 'sendRequest',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'friends',
+          methodName: 'sendRequest',
+          parameters: _ist.testObjectToJson({'userId': userId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_i3g0h0jv.FriendshipDto>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<_i3g0h0jv.FriendshipDto> acceptRequest(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue friendshipId,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'friends',
+            method: 'acceptRequest',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'friends',
+          methodName: 'acceptRequest',
+          parameters: _ist.testObjectToJson({'friendshipId': friendshipId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_i3g0h0jv.FriendshipDto>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<void> declineRequest(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue friendshipId,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'friends',
+            method: 'declineRequest',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'friends',
+          methodName: 'declineRequest',
+          parameters: _ist.testObjectToJson({'friendshipId': friendshipId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<void>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<void> cancelRequest(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue friendshipId,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'friends',
+            method: 'cancelRequest',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'friends',
+          methodName: 'cancelRequest',
+          parameters: _ist.testObjectToJson({'friendshipId': friendshipId}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<void>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<void> removeFriend(
+    _ist.TestSessionBuilder sessionBuilder,
+    _is.UuidValue userId,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'friends',
+            method: 'removeFriend',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'friends',
+          methodName: 'removeFriend',
+          parameters: _ist.testObjectToJson({'userId': userId}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =
@@ -1120,8 +1552,9 @@ class _MultiplayerEndpoint {
 
   _ida.Stream<_iylml733.GameEvent> hostRoom(
     _ist.TestSessionBuilder sessionBuilder,
-    bool isPublic,
-  ) {
+    bool isPublic, {
+    _is.UuidValue? challengeUserId,
+  }) {
     var _localTestStreamManager = _ist.TestStreamManager<_iylml733.GameEvent>();
     _ist.callStreamFunctionAndHandleExceptions(
       () async {
@@ -1135,7 +1568,10 @@ class _MultiplayerEndpoint {
               createSessionCallback: (_) => _localUniqueSession,
               endpointPath: 'multiplayer',
               methodName: 'hostRoom',
-              arguments: {'isPublic': isPublic},
+              arguments: {
+                'isPublic': isPublic,
+                'challengeUserId': challengeUserId,
+              },
               requestedInputStreams: [],
               serializationManager: _serializationManager,
             );
@@ -1271,6 +1707,67 @@ class _ProfileEndpoint {
           endpointPath: 'profile',
           methodName: 'updateUsername',
           parameters: _ist.testObjectToJson({'username': username}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_is7wjsnn.UserProfileDto>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<_is7wjsnn.UserProfileDto> uploadProfilePhoto(
+    _ist.TestSessionBuilder sessionBuilder,
+    _idt.ByteData photo,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'profile',
+            method: 'uploadProfilePhoto',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'profile',
+          methodName: 'uploadProfilePhoto',
+          parameters: _ist.testObjectToJson({'photo': photo}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<_is7wjsnn.UserProfileDto>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<_is7wjsnn.UserProfileDto> removeProfilePhoto(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'profile',
+            method: 'removeProfilePhoto',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'profile',
+          methodName: 'removeProfilePhoto',
+          parameters: _ist.testObjectToJson({}),
           serializationManager: _serializationManager,
         );
         var _localReturnValue =

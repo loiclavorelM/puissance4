@@ -7,6 +7,8 @@ import '../../game/model/game_launch.dart';
 import '../../game/view/game_screen.dart';
 import '../../game/viewmodel/game_home_viewmodel.dart';
 import '../viewmodel/ranked_viewmodel.dart';
+import '../../../core/l10n/l10n.dart';
+import '../../bot/view/bot_labels.dart';
 
 /// Classé : une partie contre un bot joué par le serveur, qui compte pour
 /// l'Elo. Le bot dépend de l'Elo du joueur (annoncé avant de jouer).
@@ -26,7 +28,7 @@ class RankedScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: AppColors.background,
         foregroundColor: Colors.white,
-        title: const Text('Classé'),
+        title: Text(context.l10n.modeRanked),
       ),
       body: SafeArea(
         child: Padding(
@@ -36,8 +38,8 @@ class RankedScreen extends ConsumerWidget {
             children: [
               if (resumable != null) ...[
                 ActionBanner(
-                  text: 'Tu as une partie en cours.',
-                  actionLabel: 'Reprendre',
+                  text: context.l10n.gameInProgressBanner,
+                  actionLabel: context.l10n.resume,
                   onAction: () => _open(context, viewModel.resume(resumable)),
                 ),
                 const SizedBox(height: 20),
@@ -53,8 +55,8 @@ class RankedScreen extends ConsumerWidget {
                 ),
                 child: Column(
                   children: [
-                    const Text(
-                      'TON ELO',
+                    Text(
+                      context.l10n.yourElo,
                       style: TextStyle(
                         color: Colors.white54,
                         fontSize: 12,
@@ -74,9 +76,11 @@ class RankedScreen extends ConsumerWidget {
                     const SizedBox(height: 12),
                     Text(
                       opponent == null
-                          ? 'Adversaire choisi selon ton Elo'
-                          : 'Adversaire : Bot ${opponent.botName} '
-                                '(ELO ${opponent.elo})',
+                          ? context.l10n.rankedOpponentByElo
+                          : context.l10n.rankedOpponent(
+                              localizedBotName(context.l10n, opponent.botName),
+                              opponent.elo,
+                            ),
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Colors.white),
                     ),
@@ -84,10 +88,8 @@ class RankedScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Chaque coup est validé par le serveur. Victoire, défaite ou '
-                'nul font varier ton Elo ; quitter la partie compte comme une '
-                'défaite (sauf si tu n\'as joué aucun coup). 60 s par coup.',
+              Text(
+                context.l10n.rankedRules,
                 style: TextStyle(color: Colors.white54, fontSize: 13),
               ),
               const Spacer(),
@@ -115,7 +117,9 @@ class RankedScreen extends ConsumerWidget {
                         }
                       },
                 child: Text(
-                  state.isStarting ? 'Lancement…' : 'Lancer une partie classée',
+                  state.isStarting
+                      ? context.l10n.starting
+                      : context.l10n.startRanked,
                 ),
               ),
             ],

@@ -1,10 +1,15 @@
-/// Langues proposées dans Réglages — pas encore appliquées à l'UI (la lib
-/// l10n arrive avec E11), seulement mémorisées.
+import 'dart:ui';
+
+/// Langues de l'app (E11), choisies dans Réglages.
 enum AppLanguage {
   fr('Français'),
   en('English');
 
   const AppLanguage(this.label);
+
+  /// Langue de l'appareil si l'app la parle, sinon l'anglais.
+  static AppLanguage ofDevice() =>
+      PlatformDispatcher.instance.locale.languageCode == 'fr' ? fr : en;
 
   /// Nom de la langue dans sa propre langue (comme dans la maquette).
   final String label;
@@ -15,11 +20,10 @@ enum AppLanguage {
 class AppPreferences {
   const AppPreferences({required this.language, required this.darkTheme});
 
-  /// L'app est aujourd'hui entièrement sombre, d'où `darkTheme: true`.
-  static const defaults = AppPreferences(
-    language: AppLanguage.fr,
-    darkTheme: true,
-  );
+  /// Langue de l'appareil tant qu'aucune n'a été choisie. L'app est
+  /// aujourd'hui entièrement sombre, d'où `darkTheme: true`.
+  static AppPreferences get defaults =>
+      AppPreferences(language: AppLanguage.ofDevice(), darkTheme: true);
 
   final AppLanguage language;
 

@@ -1,0 +1,24 @@
+# Lien d'amitié entre deux User (E15) : une demande (`pending`) envoyée par
+# `requester` à `addressee`, puis acceptée. Refuser, annuler ou retirer un ami
+# supprime la ligne — on peut redemander plus tard.
+class: Friendship
+table: friendship
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  requesterId: UuidValue, relation(parent=user, onDelete=Cascade)
+  addresseeId: UuidValue, relation(parent=user, onDelete=Cascade)
+  # Les deux ids triés (`friendPairKey`) : une seule ligne par paire, même
+  # si les deux joueurs s'envoient une demande au même instant.
+  pairKey: String
+  status: EnumFriendshipStatus
+  createdAt: DateTime, default=now
+  respondedAt: DateTime?
+
+indexes:
+  friendship_pair_key_unique_idx:
+    fields: pairKey
+    unique: true
+  friendship_requester_idx:
+    fields: requesterId
+  friendship_addressee_idx:
+    fields: addresseeId

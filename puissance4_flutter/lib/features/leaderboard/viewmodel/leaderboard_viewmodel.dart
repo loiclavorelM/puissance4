@@ -4,7 +4,9 @@ import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import '../../../client.dart';
 import '../../auth/viewmodel/auth_viewmodel.dart';
+import '../../friends/viewmodel/friends_viewmodel.dart';
 import '../../offline/viewmodel/local_cache_provider.dart';
+import '../model/friends_ranking.dart';
 import '../model/leaderboard_repository.dart';
 
 final leaderboardRepositoryProvider = Provider<LeaderboardRepository>(
@@ -39,4 +41,44 @@ final leaderboardProvider = StreamProvider<LeaderboardState?>((ref) {
           myRank: snapshot.myRank,
         ),
       );
+});
+
+/// Filtre Global / Amis en haut du Classement.
+enum LeaderboardFilter { global, friends }
+
+final leaderboardFilterProvider =
+    NotifierProvider<LeaderboardFilterViewModel, LeaderboardFilter>(
+      LeaderboardFilterViewModel.new,
+    );
+
+class LeaderboardFilterViewModel extends Notifier<LeaderboardFilter> {
+  @override
+  LeaderboardFilter build() => LeaderboardFilter.global;
+
+  void select(LeaderboardFilter filter) => state = filter;
+}
+
+/// Classement entre amis (E15, filtre « Amis ») : mes amis — déjà chargés
+/// pour l'onglet Amis — et moi, triés par Elo. Pas d'appel serveur dédié :
+/// au plus 201 lignes. `null` hors compte email ; se met à jour avec
+/// `friendsChanged` et `leaderboardChanged`.
+final friendsLeaderboardProvider = Provider<AsyncValue<LeaderboardState?>>((
+  ref,
+) {
+  final global = ref.watch(leaderboardProvider);
+  final overview = ref.watch(friendsOverviewProvider);
+  for (final source in [global, overview]) {
+    if (source.hasError && !source.hasValue) {
+      return AsyncError(source.error!, source.stackTrace!);
+    }
+    if (source.isLoading && !source.hasValue) return const AsyncLoading();
+  }
+  final me = global.valueOrNull?.myRank;
+  final friends = overview.valueOrNull?.friends;
+  if (me == null || friends == null) return const AsyncData(null);
+
+  final ranking = rankWithFriends(me, friends.map((f) => f.other));
+  return AsyncData(
+    LeaderboardState(entries: ranking.entries, myRank: ranking.me),
+  );
 });

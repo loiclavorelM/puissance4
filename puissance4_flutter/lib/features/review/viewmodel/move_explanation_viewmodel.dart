@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
-import '../../settings/viewmodel/preferences_viewmodel.dart';
+import '../../settings/viewmodel/locale_provider.dart';
 import '../model/review_repository.dart';
 
 final reviewRepositoryProvider = Provider<ReviewRepository>(
@@ -51,34 +51,24 @@ class MoveExplanationViewModel
     if (state case ExplanationLoading() || ExplanationReady()) return;
     state = const ExplanationLoading();
     final moves = [for (final c in arg.split(',')) int.parse(c)];
-    final language =
-        ref.read(preferencesViewModelProvider).valueOrNull?.language.name ??
-        'fr';
+    final language = ref.read(localeProvider).languageCode;
+    final l10n = ref.read(l10nProvider);
     try {
       final text = await ref
           .read(reviewRepositoryProvider)
           .explainMove(moves, moves.length - 1, language: language);
       state = ExplanationReady(text);
     } on ReviewException catch (e) {
-      state = ExplanationFailed(_messageFor(e.reason));
+      state = ExplanationFailed(switch (e.reason) {
+        EnumReviewError.invalidMove => l10n.explainInvalid,
+        EnumReviewError.notConfigured => l10n.explainNotConfigured,
+        EnumReviewError.unavailable => l10n.explainUnavailable,
+        EnumReviewError.rateLimited => l10n.explainRateLimited,
+      });
     } on ServerpodClientUnauthorized {
-      state = const ExplanationFailed(
-        'Connecte-toi pour obtenir une explication.',
-      );
+      state = ExplanationFailed(l10n.explainSignIn);
     } catch (_) {
-      state = const ExplanationFailed(
-        'Impossible de joindre le serveur. Réessaie plus tard.',
-      );
+      state = ExplanationFailed(l10n.serverUnreachableLater);
     }
   }
-
-  static String _messageFor(EnumReviewError reason) => switch (reason) {
-    EnumReviewError.invalidMove => 'Ce coup ne peut pas être expliqué.',
-    EnumReviewError.notConfigured =>
-      "L'explication par IA n'est pas activée sur ce serveur.",
-    EnumReviewError.unavailable =>
-      "Le service d'explication ne répond pas. Réessaie plus tard.",
-    EnumReviewError.rateLimited =>
-      "Trop d'explications demandées cette heure-ci. Réessaie plus tard.",
-  };
 }

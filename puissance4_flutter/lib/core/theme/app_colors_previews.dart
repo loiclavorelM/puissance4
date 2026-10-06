@@ -21,6 +21,7 @@ class _AppColorsSwatches extends StatelessWidget {
     ('primary', AppColors.primary),
     ('yellow', AppColors.yellow),
     ('green', AppColors.green),
+    ('blue', AppColors.blue),
   ];
 
   @override

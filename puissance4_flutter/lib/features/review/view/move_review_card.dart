@@ -7,6 +7,8 @@ import '../../../core/theme/app_colors.dart';
 import '../../game/model/color_mapping.dart';
 import '../../game/model/game_snapshot.dart';
 import '../viewmodel/move_explanation_viewmodel.dart';
+import '../../../core/l10n/l10n.dart';
+import '../../game/view/participant_name.dart';
 
 /// Revue du dernier coup affiché d'un replay (E14) : le coup joué, celui
 /// que l'Expert aurait joué, et à la demande une explication par IA.
@@ -24,9 +26,7 @@ class MoveReviewCard extends StatelessWidget {
     final analysis = replay.analysis;
     final index = replay.cursor - 1;
     final color = MoveAnalysis.playerOf(index).color;
-    final who = color == snapshot.myColor
-        ? 'Tu as'
-        : '${snapshot.participant(color).displayName} a';
+    final l10n = context.l10n;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
@@ -42,7 +42,12 @@ class MoveReviewCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '$who joué la colonne ${analysis.played + 1}',
+                  color == snapshot.myColor
+                      ? l10n.youPlayedColumn(analysis.played + 1)
+                      : l10n.playerPlayedColumn(
+                          participantName(l10n, snapshot.participant(color)),
+                          analysis.played + 1,
+                        ),
                   style: const TextStyle(color: Colors.white, fontSize: 15),
                 ),
                 const SizedBox(height: 4),
@@ -63,7 +68,7 @@ class _Analysing extends StatelessWidget {
   const _Analysing();
 
   @override
-  Widget build(BuildContext context) => const Padding(
+  Widget build(BuildContext context) => Padding(
     padding: EdgeInsets.only(bottom: 4),
     child: Row(
       children: [
@@ -74,7 +79,7 @@ class _Analysing extends StatelessWidget {
         SizedBox(width: 10),
         Expanded(
           child: Text(
-            "L'Expert analyse ce coup…",
+            context.l10n.expertAnalysing,
             style: TextStyle(color: Colors.white54),
           ),
         ),
@@ -90,20 +95,13 @@ class _Verdict extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final column = analysis.recommended + 1;
     final (icon, text, color) = analysis.isBest
-        ? (Icons.check_circle, "Meilleur coup selon l'Expert", AppColors.green)
+        ? (Icons.check_circle, l10n.bestMove, AppColors.green)
         : analysis.playedVerdict == MoveVerdict.forcedLoss
-        ? (
-            Icons.error,
-            "Coup perdant — l'Expert jouait la colonne "
-                '${analysis.recommended + 1}',
-            AppColors.primary,
-          )
-        : (
-            Icons.lightbulb,
-            "L'Expert jouait la colonne ${analysis.recommended + 1}",
-            AppColors.yellow,
-          );
+        ? (Icons.error, l10n.losingMove(column), AppColors.primary)
+        : (Icons.lightbulb, l10n.expertWouldPlay(column), AppColors.yellow);
     return Row(
       children: [
         Icon(icon, color: color, size: 18),
@@ -138,7 +136,7 @@ class _Explanation extends ConsumerWidget {
           ),
           onPressed: explain,
           icon: const Icon(Icons.auto_awesome, size: 18),
-          label: const Text('Expliquer ce coup'),
+          label: Text(context.l10n.explainMove),
         ),
       ),
       ExplanationLoading() => const Padding(
@@ -163,7 +161,7 @@ class _Explanation extends ConsumerWidget {
               style: const TextStyle(color: Colors.white54, fontSize: 13),
             ),
           ),
-          TextButton(onPressed: explain, child: const Text('Réessayer')),
+          TextButton(onPressed: explain, child: Text(context.l10n.retry)),
         ],
       ),
     };
