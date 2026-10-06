@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
+import '../theme/app_palette.dart';
 import '../l10n/l10n.dart';
 
 /// SnackBar générique pour une action pas encore construite — partagé pour
@@ -23,15 +23,15 @@ class ComingSoonTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: AppColors.background,
+      color: context.colors.background,
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               title,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: context.colors.text,
                 fontWeight: FontWeight.bold,
                 fontSize: 22,
               ),
@@ -39,7 +39,7 @@ class ComingSoonTab extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               context.l10n.notImplemented,
-              style: TextStyle(color: Colors.white38, fontSize: 14),
+              style: TextStyle(color: context.colors.textFaint, fontSize: 14),
             ),
           ],
         ),

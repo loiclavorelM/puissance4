@@ -4,7 +4,7 @@ import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import '../../../client.dart';
 import '../../../core/l10n/l10n.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../offline/view/server_connection_indicator.dart';
 import '../../offline/viewmodel/server_connection_provider.dart';
 import '../viewmodel/auth_viewmodel.dart';
@@ -23,9 +23,9 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.colors.background,
         elevation: 0,
         automaticallyImplyLeading: false,
         actions: const [ServerConnectionIndicator()],
@@ -45,15 +45,15 @@ class LoginScreen extends StatelessWidget {
                     TextSpan(
                       style: Theme.of(context).textTheme.headlineMedium
                           ?.copyWith(
-                            color: Colors.white,
+                            color: context.colors.text,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 1,
                           ),
                       children: [
                         TextSpan(text: context.l10n.loginWordmark),
-                        const TextSpan(
+                        TextSpan(
                           text: '4',
-                          style: TextStyle(color: AppColors.primary),
+                          style: TextStyle(color: context.colors.primary),
                         ),
                       ],
                     ),
@@ -61,14 +61,17 @@ class LoginScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     context.l10n.loginTagline,
-                    style: const TextStyle(color: Colors.white70, fontSize: 15),
+                    style: TextStyle(
+                      color: context.colors.textSecondary,
+                      fontSize: 15,
+                    ),
                   ),
                   const SizedBox(height: 32),
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: AppColors.card,
+                      color: context.colors.card,
                       borderRadius: BorderRadius.circular(28),
                     ),
                     child: _ThemedSignIn(onAuthenticated: onAuthenticated),
@@ -76,7 +79,10 @@ class LoginScreen extends StatelessWidget {
                   const SizedBox(height: 32),
                   Text(
                     context.l10n.poweredByServerpod,
-                    style: const TextStyle(color: Colors.white38, fontSize: 12),
+                    style: TextStyle(
+                      color: context.colors.textFaint,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
@@ -102,12 +108,12 @@ class _Logo extends StatelessWidget {
           Positioned(
             left: 0,
             top: 0,
-            child: _dot(AppColors.yellow, 52),
+            child: _dot(context.colors.yellow, 52),
           ),
           Positioned(
             right: 0,
             bottom: 0,
-            child: _dot(AppColors.primary, 52),
+            child: _dot(context.colors.primary, 52),
           ),
         ],
       ),
@@ -175,9 +181,9 @@ class _ThemedSignIn extends ConsumerWidget {
                 disableAnonymousSignInWidget: true,
                 // Shared look for every provider button (pill, coral) —
                 // matches the maquette's single-accent-color aesthetic.
-                buttonStyle: const SignInButtonStyle(
+                buttonStyle: SignInButtonStyle(
                   shape: SignInButtonShape.pill,
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: context.colors.primary,
                   foregroundColor: Colors.white,
                 ),
               ),
@@ -188,7 +194,7 @@ class _ThemedSignIn extends ConsumerWidget {
               padding: const EdgeInsets.only(top: 8),
               child: Text(
                 l10n.authOfflineUnavailable,
-                style: const TextStyle(color: Colors.white38, fontSize: 12),
+                style: TextStyle(color: context.colors.textFaint, fontSize: 12),
                 textAlign: TextAlign.center,
               ),
             ),

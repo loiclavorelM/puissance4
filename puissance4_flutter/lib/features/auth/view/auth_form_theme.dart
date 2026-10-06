@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import '../../../core/l10n/l10n.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 
-/// Applies the maquette's dark/coral palette to the native auth widgets
+/// Applies the app's palette (light or dark) to the native auth widgets
 /// (input fields, buttons, links all read from the ambient [Theme] /
 /// [ColorScheme]) and translates their texts. Shared by the login screen and
 /// the guest's "create an account" screen.
@@ -15,24 +15,20 @@ class AuthFormTheme extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final baseTheme = ThemeData(
-      brightness: Brightness.dark,
-      colorScheme: const ColorScheme.dark(
-        primary: AppColors.primary,
-        onPrimary: Colors.white,
-        surface: AppColors.card,
-        onSurface: Colors.white,
-      ),
+    final colors = context.colors;
+    // Thème de l'app (clair ou sombre, couleurs déjà réglées) ; seuls les
+    // champs de saisie ont un style propre à la maquette.
+    final baseTheme = Theme.of(context).copyWith(
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.fieldFill,
-        labelStyle: const TextStyle(
-          color: Colors.white60,
+        fillColor: colors.fieldFill,
+        labelStyle: TextStyle(
+          color: colors.textSecondary,
           fontWeight: FontWeight.bold,
           fontSize: 12,
           letterSpacing: 0.8,
         ),
-        hintStyle: const TextStyle(color: Colors.white38),
+        hintStyle: TextStyle(color: colors.textFaint),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
@@ -43,8 +39,8 @@ class AuthFormTheme extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(
-            color: AppColors.primary,
+          borderSide: BorderSide(
+            color: colors.primary,
             width: 1.5,
           ),
         ),
