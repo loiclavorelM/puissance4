@@ -43,6 +43,9 @@ void main() {
     createdAt: DateTime.now(),
   );
 
+  var recentLoads = 0;
+  setUp(() => recentLoads = 0);
+
   Future<void> pump(
     WidgetTester tester, {
     FriendsAccess access = FriendsAccess.member,
@@ -59,7 +62,10 @@ void main() {
           ...l10nOverrides,
           friendsAccessProvider.overrideWithValue(access),
           friendsOverviewProvider.overrideWith((ref) => Stream.value(overview)),
-          recentOpponentsProvider.overrideWith((ref) async => recent),
+          recentOpponentsProvider.overrideWith((ref) async {
+            recentLoads++;
+            return recent;
+          }),
           if (repository != null)
             friendsRepositoryProvider.overrideWithValue(repository),
         ],
@@ -262,5 +268,29 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('opening the Add tab reloads recent opponents', (tester) async {
+    await pump(
+      tester,
+      overview: FriendsOverviewDto(
+        friendCode: '7KQ2X9',
+        friends: [friendship('bob')],
+        incoming: [],
+        outgoing: [],
+      ),
+    );
+
+    await tester.tap(find.text('Ajouter').first);
+    await tester.pumpAndSettle();
+    final first = recentLoads;
+    expect(first, greaterThan(0));
+
+    await tester.tap(find.text('Mes amis'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Ajouter').first);
+    await tester.pumpAndSettle();
+
+    expect(recentLoads, greaterThan(first));
   });
 }

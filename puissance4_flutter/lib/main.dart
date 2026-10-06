@@ -147,6 +147,7 @@ class _MainShellState extends ConsumerState<_MainShell> {
     }
     if (index == _friendsTabIndex) {
       ref.invalidate(friendsOverviewProvider);
+      ref.invalidate(recentOpponentsProvider);
     }
   }
 

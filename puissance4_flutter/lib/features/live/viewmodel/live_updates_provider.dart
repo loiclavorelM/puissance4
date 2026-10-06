@@ -43,6 +43,7 @@ final liveUpdatesProvider = Provider<void>((ref) {
     ref.invalidate(leaderboardProvider);
     ref.invalidate(friendsOverviewProvider);
     ref.invalidate(friendChallengesProvider);
+    ref.invalidate(recentOpponentsProvider);
   }
 
   void onEvent(LiveEvent event) {
@@ -53,6 +54,8 @@ final liveUpdatesProvider = Provider<void>((ref) {
         ref.invalidate(myProfileProvider);
       case EnumLiveEventType.historyChanged:
         ref.invalidate(serverHistoryProvider);
+        // Une partie Multi finie ajoute peut-être un adversaire récent.
+        ref.invalidate(recentOpponentsProvider);
       case EnumLiveEventType.leaderboardChanged:
         ref.invalidate(leaderboardProvider);
       case EnumLiveEventType.friendsChanged:

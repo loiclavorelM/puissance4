@@ -79,6 +79,21 @@ class _FriendsTabsState extends ConsumerState<_FriendsTabs>
     initialIndex: _takeRequest() ?? 0,
   );
 
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_onTabChanged);
+  }
+
+  /// Ouvrir « Ajouter » recharge « Rencontrés récemment » : une partie a pu
+  /// se finir depuis (le temps réel le fait aussi, s'il n'est pas coupé).
+  void _onTabChanged() {
+    if (!_controller.indexIsChanging &&
+        _controller.index == FriendsScreen.addTabIndex) {
+      ref.invalidate(recentOpponentsProvider);
+    }
+  }
+
   int? _takeRequest() {
     final request = ref.read(friendsTabRequestProvider);
     if (request != null) {
@@ -89,7 +104,9 @@ class _FriendsTabsState extends ConsumerState<_FriendsTabs>
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller
+      ..removeListener(_onTabChanged)
+      ..dispose();
     super.dispose();
   }
 
