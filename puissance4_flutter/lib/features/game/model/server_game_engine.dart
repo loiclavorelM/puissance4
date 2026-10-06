@@ -159,7 +159,9 @@ class ServerGameEngine extends GameEngineBase {
         emit(current.copyWith(opponentConnected: false));
       case EnumGameEventType.opponentReconnected:
         emit(current.copyWith(opponentConnected: true));
-      case EnumGameEventType.roomCreated || EnumGameEventType.roomClosed:
+      case EnumGameEventType.roomCreated ||
+          EnumGameEventType.roomClosed ||
+          EnumGameEventType.challengeDeclined:
         // Propres aux salles d'attente, jamais relayés en partie.
         break;
     }

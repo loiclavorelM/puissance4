@@ -22,7 +22,8 @@ enum EnumGameError implements _is.SerializableModel {
   gameOver,
   notYourTurn,
   invalidMove,
-  noBotAvailable;
+  noBotAvailable,
+  friendUnavailable;
 
   static EnumGameError fromJson(String name) {
     switch (name) {
@@ -46,6 +47,8 @@ enum EnumGameError implements _is.SerializableModel {
         return EnumGameError.invalidMove;
       case 'noBotAvailable':
         return EnumGameError.noBotAvailable;
+      case 'friendUnavailable':
+        return EnumGameError.friendUnavailable;
       default:
         throw ArgumentError(
           'Value "$name" cannot be converted to "EnumGameError"',

@@ -7,6 +7,50 @@
   "accountCreated": "Compte créé : ta progression est conservée.",
   "accountSection": "COMPTE",
   "actionImpossible": "Action impossible.",
+  "activityDraw": "{friend} a fait match nul en {mode} contre {opponent}",
+  "@activityDraw": {
+    "placeholders": {
+      "friend": {
+        "type": "String"
+      },
+      "mode": {
+        "type": "String"
+      },
+      "opponent": {
+        "type": "String"
+      }
+    }
+  },
+  "activityEmpty": "Pas de partie chez tes amis cette semaine.",
+  "activityLost": "{friend} a perdu en {mode} contre {opponent}",
+  "@activityLost": {
+    "placeholders": {
+      "friend": {
+        "type": "String"
+      },
+      "mode": {
+        "type": "String"
+      },
+      "opponent": {
+        "type": "String"
+      }
+    }
+  },
+  "activityWon": "{friend} a gagné en {mode} contre {opponent}",
+  "@activityWon": {
+    "placeholders": {
+      "friend": {
+        "type": "String"
+      },
+      "mode": {
+        "type": "String"
+      },
+      "opponent": {
+        "type": "String"
+      }
+    }
+  },
+  "activityYou": "toi",
   "alreadyInGame": "Tu as déjà une partie en cours.",
   "appTitle": "Puissance 4",
   "authAnd": " et la ",
@@ -73,7 +117,41 @@
     }
   },
   "botsLoadError": "Impossible de charger les bots.",
+  "cameraUnavailable": "Caméra indisponible : vérifie l'autorisation d'accès.",
   "cancel": "Annuler",
+  "challengeDeclined": "{name} a refusé ton défi.",
+  "@challengeDeclined": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "challengeExpired": "{name} n'a pas répondu à ton défi.",
+  "@challengeExpired": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "challengeGone": "Ce défi n'existe plus.",
+  "challengeReceived": "{name} te défie !",
+  "@challengeReceived": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "challengeWaiting": "En attente de {name}…",
+  "@challengeWaiting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "chooseMode": "CHOISIS TON MODE",
   "chooseOpponent": "CHOISIS TON ADVERSAIRE",
   "codeCopied": "Code copié",
@@ -143,6 +221,87 @@
   "explainSignIn": "Connecte-toi pour obtenir une explication.",
   "explainUnavailable": "Le service d'explication ne répond pas. Réessaie plus tard.",
   "filterAll": "Tous",
+  "friendAccept": "Accepter",
+  "friendAccepted": "Vous êtes maintenant amis avec {name} !",
+  "@friendAccepted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendAdd": "Ajouter",
+  "friendChallenge": "Défier",
+  "friendCodeCopied": "Code ami copié.",
+  "friendCodeCopy": "Copier le code",
+  "friendCodeHint": "Donne-le à un ami pour qu'il t'ajoute.",
+  "friendDecline": "Refuser",
+  "friendQrHint": "Fais-le scanner par ton ami depuis Amis › Ajouter.",
+  "friendRelationFriend": "Ami",
+  "friendRelationSent": "Demande envoyée",
+  "friendRemove": "Retirer",
+  "friendRemoveMessage": "Tu disparaîtras aussi de sa liste.",
+  "friendRemoveTitle": "Retirer {name} de tes amis ?",
+  "@friendRemoveTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendRequestDaysAgo": "Il y a {days} jours",
+  "@friendRequestDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "friendRequestSent": "Demande envoyée à {name}.",
+  "@friendRequestSent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendRequestToday": "Aujourd'hui",
+  "friendRequestYesterday": "Hier",
+  "friendRequestsEmpty": "Aucune demande en attente.",
+  "friendRequestsReceived": "REÇUES",
+  "friendRequestsSent": "ENVOYÉES",
+  "friendScanHint": "Vise le QR code de ton ami (Amis › Ajouter).",
+  "friendScanQr": "Scanner un QR",
+  "friendSearchHint": "Pseudo ou code ami (P4-…)",
+  "friendSearchNoResult": "Aucun joueur trouvé.",
+  "friendSearchTooShort": "Tape au moins 3 caractères, ou un code ami.",
+  "friendShakeToAdd": "Secouer",
+  "friendShowQr": "Afficher mon QR code",
+  "friendUnavailable": "Cet ami n'est plus disponible pour jouer.",
+  "friendsEmpty": "Pas encore d'amis. Ajoute les joueurs que tu croises !",
+  "friendsEmptyAction": "Ajouter des amis",
+  "friendsErrorAlreadyFriends": "Vous êtes déjà amis.",
+  "friendsErrorAlreadySent": "Demande déjà envoyée.",
+  "friendsErrorNotFriends": "Vous n'êtes plus amis.",
+  "friendsErrorRequestNotFound": "Cette demande n'existe plus.",
+  "friendsErrorSelf": "Tu ne peux pas t'ajouter toi-même.",
+  "friendsErrorTooMany": "Limite de 200 amis atteinte.",
+  "friendsErrorUserNotFound": "Joueur introuvable.",
+  "friendsGuestMessage": "Crée un compte pour ajouter des amis : tu gardes ta progression.",
+  "friendsLoadError": "Impossible de charger tes amis.",
+  "friendsLocalGuestMessage": "Connecte-toi au serveur pour ajouter des amis.",
+  "friendsSince": "Amis depuis le {date}",
+  "@friendsSince": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsTabAdd": "Ajouter",
+  "friendsTabList": "Mes amis",
+  "friendsTabRequests": "Demandes",
+  "friendsTabRivalries": "Rivalités",
   "gameCancelled": "Partie annulée",
   "gameConnecting": "Connexion à la partie…",
   "gameDraw": "Match nul",
@@ -183,6 +342,7 @@
   "leaderboardFriends": "Amis",
   "leaderboardGlobal": "Global",
   "leaderboardLoadError": "Impossible de charger le classement.",
+  "leaderboardNoFriends": "Ajoute des amis pour te comparer à eux.",
   "leaderboardSignIn": "Connecte-toi pour voir le classement.",
   "lightThemeSoon": "Le thème clair arrive bientôt — ton choix est déjà mémorisé.",
   "loginTagline": "Défie l'IA. Grimpe le classement.",
@@ -204,6 +364,7 @@
   "modeNormalSubtitle": "Choisis la difficulté du bot",
   "modeRanked": "Classé",
   "modeRankedSubtitle": "Affronte le bot du serveur, fais monter ton Elo",
+  "myFriendCode": "MON CODE AMI",
   "needsServer": "Ce mode nécessite une connexion au serveur.",
   "newGame": "Nouvelle partie",
   "newGameFailed": "Impossible de créer la partie.",
@@ -258,6 +419,40 @@
   },
   "poweredByServerpod": "Propulsé par Serverpod",
   "preferencesSection": "PRÉFÉRENCES",
+  "presenceOnline": "En ligne",
+  "presencePlaying": "En partie · {mode}",
+  "@presencePlaying": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "presenceSeenDays": "Vu il y a {count} j",
+  "@presenceSeenDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "presenceSeenHours": "Vu il y a {count} h",
+  "@presenceSeenHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "presenceSeenJustNow": "Vu à l'instant",
+  "presenceSeenMinutes": "Vu il y a {count} min",
+  "@presenceSeenMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "publicRoom": "Salle publique",
   "publicRoomOff": "Seuls ceux qui ont le code peuvent rejoindre",
   "publicRoomOn": "Visible par tous dans les salles ouvertes",
@@ -274,6 +469,8 @@
   },
   "rankedOpponentByElo": "Adversaire choisi selon ton Elo",
   "rankedRules": "Chaque coup est validé par le serveur. Victoire, défaite ou nul font varier ton Elo ; quitter la partie compte comme une défaite (sauf si tu n'as joué aucun coup). 60 s par coup.",
+  "recentOpponents": "RENCONTRÉS RÉCEMMENT",
+  "recentOpponentsEmpty": "Tes adversaires en Multi apparaîtront ici, pour les ajouter en un tap.",
   "replayFirst": "Début",
   "replayLast": "Fin",
   "replayMove": "Coup {cursor} / {total}",
@@ -299,6 +496,35 @@
   "resultWin": "Victoire",
   "resume": "Reprendre",
   "retry": "Réessayer",
+  "rivalriesActivity": "ACTIVITÉ DE TES AMIS",
+  "rivalriesEmpty": "Ajoute des amis pour suivre vos rivalités.",
+  "rivalriesHeadToHead": "TÊTE-À-TÊTE",
+  "rivalryChallengeOffline": "Défier (quand il sera en ligne)",
+  "rivalryDraws": "{count} nul(s)",
+  "@rivalryDraws": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rivalryGames": "VOS PARTIES",
+  "rivalryGamesEmpty": "Défie-le pour commencer votre rivalité !",
+  "rivalryNoGames": "Pas encore joué ensemble",
+  "rivalryRecord": "{wins} V · {losses} D · {draws} N",
+  "@rivalryRecord": {
+    "placeholders": {
+      "wins": {
+        "type": "int"
+      },
+      "losses": {
+        "type": "int"
+      },
+      "draws": {
+        "type": "int"
+      }
+    }
+  },
   "roomClosedNobody": "Salle fermée : personne ne l'a rejointe à temps.",
   "roomClosesIn": "La salle se ferme dans {remaining}",
   "@roomClosesIn": {
@@ -335,6 +561,11 @@
   "serverUnreachableRetry": "Impossible de joindre le serveur. Réessaie.",
   "serversUnreachable": "Vous êtes connecté à internet, mais nos serveurs sont injoignables pour le moment.",
   "settings": "Réglages",
+  "shakeToAddFound": "Trouvé !",
+  "shakeToAddHint": "Rien n'est envoyé sans ton accord : tu choisis ensuite de l'ajouter.",
+  "shakeToAddMatching": "Recherche…",
+  "shakeToAddNobody": "Personne n'a secoué en même temps",
+  "shakeToAddWaiting": "Secoue ton téléphone en même temps que ton ami",
   "shakeToStop": "Secoue le téléphone pour arrêter la partie",
   "shareCode": "PARTAGE CE CODE",
   "signOut": "Se déconnecter",
@@ -354,6 +585,7 @@
   "stopCountsAsLoss": "Tu as déjà joué : elle comptera comme une défaite.",
   "stopGameTitle": "Arrêter la partie ?",
   "stopLoserIsPlayerToMove": "Le joueur dont c'est le tour perdra la partie.",
+  "tabFriends": "Amis",
   "tabHistory": "Historique",
   "tabLeaderboard": "Classement",
   "tabPlay": "Jouer",

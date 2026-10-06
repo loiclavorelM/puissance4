@@ -31,6 +31,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get actionImpossible => 'Can\'t do that.';
 
   @override
+  String activityDraw(String friend, String mode, String opponent) {
+    return '$friend drew in $mode against $opponent';
+  }
+
+  @override
+  String get activityEmpty => 'No games from your friends this week.';
+
+  @override
+  String activityLost(String friend, String mode, String opponent) {
+    return '$friend lost in $mode against $opponent';
+  }
+
+  @override
+  String activityWon(String friend, String mode, String opponent) {
+    return '$friend won in $mode against $opponent';
+  }
+
+  @override
+  String get activityYou => 'you';
+
+  @override
   String get alreadyInGame => 'You already have a game in progress.';
 
   @override
@@ -177,7 +198,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get botsLoadError => 'Couldn\'t load the bots.';
 
   @override
+  String get cameraUnavailable => 'Camera unavailable: check the permission.';
+
+  @override
   String get cancel => 'Cancel';
+
+  @override
+  String challengeDeclined(String name) {
+    return '$name declined your challenge.';
+  }
+
+  @override
+  String challengeExpired(String name) {
+    return '$name didn\'t answer your challenge.';
+  }
+
+  @override
+  String get challengeGone => 'This challenge no longer exists.';
+
+  @override
+  String challengeReceived(String name) {
+    return '$name challenges you!';
+  }
+
+  @override
+  String challengeWaiting(String name) {
+    return 'Waiting for $name…';
+  }
 
   @override
   String get chooseMode => 'CHOOSE YOUR MODE';
@@ -297,6 +344,157 @@ class AppLocalizationsEn extends AppLocalizations {
   String get filterAll => 'All';
 
   @override
+  String get friendAccept => 'Accept';
+
+  @override
+  String friendAccepted(String name) {
+    return 'You\'re now friends with $name!';
+  }
+
+  @override
+  String get friendAdd => 'Add';
+
+  @override
+  String get friendChallenge => 'Challenge';
+
+  @override
+  String get friendCodeCopied => 'Friend code copied.';
+
+  @override
+  String get friendCodeCopy => 'Copy code';
+
+  @override
+  String get friendCodeHint => 'Give it to a friend so they can add you.';
+
+  @override
+  String get friendDecline => 'Decline';
+
+  @override
+  String get friendQrHint => 'Have your friend scan it from Friends › Add.';
+
+  @override
+  String get friendRelationFriend => 'Friend';
+
+  @override
+  String get friendRelationSent => 'Request sent';
+
+  @override
+  String get friendRemove => 'Remove';
+
+  @override
+  String get friendRemoveMessage => 'You\'ll disappear from their list too.';
+
+  @override
+  String friendRemoveTitle(String name) {
+    return 'Remove $name from your friends?';
+  }
+
+  @override
+  String friendRequestDaysAgo(int days) {
+    return '$days days ago';
+  }
+
+  @override
+  String friendRequestSent(String name) {
+    return 'Request sent to $name.';
+  }
+
+  @override
+  String get friendRequestToday => 'Today';
+
+  @override
+  String get friendRequestYesterday => 'Yesterday';
+
+  @override
+  String get friendRequestsEmpty => 'No pending requests.';
+
+  @override
+  String get friendRequestsReceived => 'RECEIVED';
+
+  @override
+  String get friendRequestsSent => 'SENT';
+
+  @override
+  String get friendScanHint => 'Aim at your friend\'s QR code (Friends › Add).';
+
+  @override
+  String get friendScanQr => 'Scan a QR';
+
+  @override
+  String get friendSearchHint => 'Username or friend code (P4-…)';
+
+  @override
+  String get friendSearchNoResult => 'No player found.';
+
+  @override
+  String get friendSearchTooShort =>
+      'Type at least 3 characters, or a friend code.';
+
+  @override
+  String get friendShakeToAdd => 'Shake';
+
+  @override
+  String get friendShowQr => 'Show my QR code';
+
+  @override
+  String get friendUnavailable => 'This friend is no longer available to play.';
+
+  @override
+  String get friendsEmpty => 'No friends yet. Add the players you meet!';
+
+  @override
+  String get friendsEmptyAction => 'Add friends';
+
+  @override
+  String get friendsErrorAlreadyFriends => 'You\'re already friends.';
+
+  @override
+  String get friendsErrorAlreadySent => 'Request already sent.';
+
+  @override
+  String get friendsErrorNotFriends => 'You\'re no longer friends.';
+
+  @override
+  String get friendsErrorRequestNotFound => 'This request no longer exists.';
+
+  @override
+  String get friendsErrorSelf => 'You can\'t add yourself.';
+
+  @override
+  String get friendsErrorTooMany => '200-friend limit reached.';
+
+  @override
+  String get friendsErrorUserNotFound => 'Player not found.';
+
+  @override
+  String get friendsGuestMessage =>
+      'Create an account to add friends: you keep your progress.';
+
+  @override
+  String get friendsLoadError => 'Couldn\'t load your friends.';
+
+  @override
+  String get friendsLocalGuestMessage =>
+      'Connect to the server to add friends.';
+
+  @override
+  String friendsSince(String date) {
+    return 'Friends since $date';
+  }
+
+  @override
+  String get friendsTabAdd => 'Add';
+
+  @override
+  String get friendsTabList => 'My friends';
+
+  @override
+  String get friendsTabRequests => 'Requests';
+
+  @override
+  String get friendsTabRivalries => 'Rivalries';
+
+  @override
   String get gameCancelled => 'Game cancelled';
 
   @override
@@ -391,6 +589,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get leaderboardLoadError => 'Couldn\'t load the leaderboard.';
 
   @override
+  String get leaderboardNoFriends =>
+      'Add friends to compare yourself with them.';
+
+  @override
   String get leaderboardSignIn => 'Sign in to see the leaderboard.';
 
   @override
@@ -435,6 +637,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get modeRankedSubtitle => 'Play the server\'s bot, raise your Elo';
+
+  @override
+  String get myFriendCode => 'MY FRIEND CODE';
 
   @override
   String get needsServer => 'This mode needs a connection to the server.';
@@ -555,6 +760,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get preferencesSection => 'PREFERENCES';
 
   @override
+  String get presenceOnline => 'Online';
+
+  @override
+  String presencePlaying(String mode) {
+    return 'Playing · $mode';
+  }
+
+  @override
+  String presenceSeenDays(int count) {
+    return 'Seen $count d ago';
+  }
+
+  @override
+  String presenceSeenHours(int count) {
+    return 'Seen $count h ago';
+  }
+
+  @override
+  String get presenceSeenJustNow => 'Seen just now';
+
+  @override
+  String presenceSeenMinutes(int count) {
+    return 'Seen $count min ago';
+  }
+
+  @override
   String get publicRoom => 'Public room';
 
   @override
@@ -574,6 +805,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get rankedRules =>
       'Every move is checked by the server. Wins, losses and draws change your Elo; leaving counts as a loss (unless you haven\'t played a move). 60 s per move.';
+
+  @override
+  String get recentOpponents => 'RECENTLY PLAYED';
+
+  @override
+  String get recentOpponentsEmpty =>
+      'Your Multiplayer opponents will show up here, to add them in one tap.';
 
   @override
   String get replayFirst => 'Start';
@@ -623,6 +861,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get retry => 'Retry';
 
   @override
+  String get rivalriesActivity => 'YOUR FRIENDS\' ACTIVITY';
+
+  @override
+  String get rivalriesEmpty => 'Add friends to follow your rivalries.';
+
+  @override
+  String get rivalriesHeadToHead => 'HEAD TO HEAD';
+
+  @override
+  String get rivalryChallengeOffline => 'Challenge (once they\'re online)';
+
+  @override
+  String rivalryDraws(int count) {
+    return '$count draw(s)';
+  }
+
+  @override
+  String get rivalryGames => 'YOUR GAMES';
+
+  @override
+  String get rivalryGamesEmpty => 'Challenge them to start your rivalry!';
+
+  @override
+  String get rivalryNoGames => 'Not played together yet';
+
+  @override
+  String rivalryRecord(int wins, int losses, int draws) {
+    return '$wins W · $losses L · $draws D';
+  }
+
+  @override
   String get roomClosedNobody => 'Room closed: nobody joined in time.';
 
   @override
@@ -665,6 +934,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings => 'Settings';
+
+  @override
+  String get shakeToAddFound => 'Found!';
+
+  @override
+  String get shakeToAddHint =>
+      'Nothing is sent without your OK: you then choose to add them.';
+
+  @override
+  String get shakeToAddMatching => 'Searching…';
+
+  @override
+  String get shakeToAddNobody => 'Nobody shook at the same time';
+
+  @override
+  String get shakeToAddWaiting =>
+      'Shake your phone at the same time as your friend';
 
   @override
   String get shakeToStop => 'Shake the phone to stop the game';
@@ -726,6 +1012,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get stopLoserIsPlayerToMove =>
       'The player whose turn it is will lose the game.';
+
+  @override
+  String get tabFriends => 'Friends';
 
   @override
   String get tabHistory => 'History';

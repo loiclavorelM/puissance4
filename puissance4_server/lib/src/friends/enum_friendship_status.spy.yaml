@@ -1,0 +1,4 @@
+enum: EnumFriendshipStatus
+values:
+  - pending
+  - accepted

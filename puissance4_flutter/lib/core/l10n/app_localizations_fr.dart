@@ -31,6 +31,27 @@ class AppLocalizationsFr extends AppLocalizations {
   String get actionImpossible => 'Action impossible.';
 
   @override
+  String activityDraw(String friend, String mode, String opponent) {
+    return '$friend a fait match nul en $mode contre $opponent';
+  }
+
+  @override
+  String get activityEmpty => 'Pas de partie chez tes amis cette semaine.';
+
+  @override
+  String activityLost(String friend, String mode, String opponent) {
+    return '$friend a perdu en $mode contre $opponent';
+  }
+
+  @override
+  String activityWon(String friend, String mode, String opponent) {
+    return '$friend a gagné en $mode contre $opponent';
+  }
+
+  @override
+  String get activityYou => 'toi';
+
+  @override
   String get alreadyInGame => 'Tu as déjà une partie en cours.';
 
   @override
@@ -177,7 +198,34 @@ class AppLocalizationsFr extends AppLocalizations {
   String get botsLoadError => 'Impossible de charger les bots.';
 
   @override
+  String get cameraUnavailable =>
+      'Caméra indisponible : vérifie l\'autorisation d\'accès.';
+
+  @override
   String get cancel => 'Annuler';
+
+  @override
+  String challengeDeclined(String name) {
+    return '$name a refusé ton défi.';
+  }
+
+  @override
+  String challengeExpired(String name) {
+    return '$name n\'a pas répondu à ton défi.';
+  }
+
+  @override
+  String get challengeGone => 'Ce défi n\'existe plus.';
+
+  @override
+  String challengeReceived(String name) {
+    return '$name te défie !';
+  }
+
+  @override
+  String challengeWaiting(String name) {
+    return 'En attente de $name…';
+  }
 
   @override
   String get chooseMode => 'CHOISIS TON MODE';
@@ -298,6 +346,159 @@ class AppLocalizationsFr extends AppLocalizations {
   String get filterAll => 'Tous';
 
   @override
+  String get friendAccept => 'Accepter';
+
+  @override
+  String friendAccepted(String name) {
+    return 'Vous êtes maintenant amis avec $name !';
+  }
+
+  @override
+  String get friendAdd => 'Ajouter';
+
+  @override
+  String get friendChallenge => 'Défier';
+
+  @override
+  String get friendCodeCopied => 'Code ami copié.';
+
+  @override
+  String get friendCodeCopy => 'Copier le code';
+
+  @override
+  String get friendCodeHint => 'Donne-le à un ami pour qu\'il t\'ajoute.';
+
+  @override
+  String get friendDecline => 'Refuser';
+
+  @override
+  String get friendQrHint =>
+      'Fais-le scanner par ton ami depuis Amis › Ajouter.';
+
+  @override
+  String get friendRelationFriend => 'Ami';
+
+  @override
+  String get friendRelationSent => 'Demande envoyée';
+
+  @override
+  String get friendRemove => 'Retirer';
+
+  @override
+  String get friendRemoveMessage => 'Tu disparaîtras aussi de sa liste.';
+
+  @override
+  String friendRemoveTitle(String name) {
+    return 'Retirer $name de tes amis ?';
+  }
+
+  @override
+  String friendRequestDaysAgo(int days) {
+    return 'Il y a $days jours';
+  }
+
+  @override
+  String friendRequestSent(String name) {
+    return 'Demande envoyée à $name.';
+  }
+
+  @override
+  String get friendRequestToday => 'Aujourd\'hui';
+
+  @override
+  String get friendRequestYesterday => 'Hier';
+
+  @override
+  String get friendRequestsEmpty => 'Aucune demande en attente.';
+
+  @override
+  String get friendRequestsReceived => 'REÇUES';
+
+  @override
+  String get friendRequestsSent => 'ENVOYÉES';
+
+  @override
+  String get friendScanHint => 'Vise le QR code de ton ami (Amis › Ajouter).';
+
+  @override
+  String get friendScanQr => 'Scanner un QR';
+
+  @override
+  String get friendSearchHint => 'Pseudo ou code ami (P4-…)';
+
+  @override
+  String get friendSearchNoResult => 'Aucun joueur trouvé.';
+
+  @override
+  String get friendSearchTooShort =>
+      'Tape au moins 3 caractères, ou un code ami.';
+
+  @override
+  String get friendShakeToAdd => 'Secouer';
+
+  @override
+  String get friendShowQr => 'Afficher mon QR code';
+
+  @override
+  String get friendUnavailable => 'Cet ami n\'est plus disponible pour jouer.';
+
+  @override
+  String get friendsEmpty =>
+      'Pas encore d\'amis. Ajoute les joueurs que tu croises !';
+
+  @override
+  String get friendsEmptyAction => 'Ajouter des amis';
+
+  @override
+  String get friendsErrorAlreadyFriends => 'Vous êtes déjà amis.';
+
+  @override
+  String get friendsErrorAlreadySent => 'Demande déjà envoyée.';
+
+  @override
+  String get friendsErrorNotFriends => 'Vous n\'êtes plus amis.';
+
+  @override
+  String get friendsErrorRequestNotFound => 'Cette demande n\'existe plus.';
+
+  @override
+  String get friendsErrorSelf => 'Tu ne peux pas t\'ajouter toi-même.';
+
+  @override
+  String get friendsErrorTooMany => 'Limite de 200 amis atteinte.';
+
+  @override
+  String get friendsErrorUserNotFound => 'Joueur introuvable.';
+
+  @override
+  String get friendsGuestMessage =>
+      'Crée un compte pour ajouter des amis : tu gardes ta progression.';
+
+  @override
+  String get friendsLoadError => 'Impossible de charger tes amis.';
+
+  @override
+  String get friendsLocalGuestMessage =>
+      'Connecte-toi au serveur pour ajouter des amis.';
+
+  @override
+  String friendsSince(String date) {
+    return 'Amis depuis le $date';
+  }
+
+  @override
+  String get friendsTabAdd => 'Ajouter';
+
+  @override
+  String get friendsTabList => 'Mes amis';
+
+  @override
+  String get friendsTabRequests => 'Demandes';
+
+  @override
+  String get friendsTabRivalries => 'Rivalités';
+
+  @override
   String get gameCancelled => 'Partie annulée';
 
   @override
@@ -392,6 +593,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get leaderboardLoadError => 'Impossible de charger le classement.';
 
   @override
+  String get leaderboardNoFriends => 'Ajoute des amis pour te comparer à eux.';
+
+  @override
   String get leaderboardSignIn => 'Connecte-toi pour voir le classement.';
 
   @override
@@ -437,6 +641,9 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get modeRankedSubtitle =>
       'Affronte le bot du serveur, fais monter ton Elo';
+
+  @override
+  String get myFriendCode => 'MON CODE AMI';
 
   @override
   String get needsServer => 'Ce mode nécessite une connexion au serveur.';
@@ -561,6 +768,32 @@ class AppLocalizationsFr extends AppLocalizations {
   String get preferencesSection => 'PRÉFÉRENCES';
 
   @override
+  String get presenceOnline => 'En ligne';
+
+  @override
+  String presencePlaying(String mode) {
+    return 'En partie · $mode';
+  }
+
+  @override
+  String presenceSeenDays(int count) {
+    return 'Vu il y a $count j';
+  }
+
+  @override
+  String presenceSeenHours(int count) {
+    return 'Vu il y a $count h';
+  }
+
+  @override
+  String get presenceSeenJustNow => 'Vu à l\'instant';
+
+  @override
+  String presenceSeenMinutes(int count) {
+    return 'Vu il y a $count min';
+  }
+
+  @override
   String get publicRoom => 'Salle publique';
 
   @override
@@ -580,6 +813,13 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get rankedRules =>
       'Chaque coup est validé par le serveur. Victoire, défaite ou nul font varier ton Elo ; quitter la partie compte comme une défaite (sauf si tu n\'as joué aucun coup). 60 s par coup.';
+
+  @override
+  String get recentOpponents => 'RENCONTRÉS RÉCEMMENT';
+
+  @override
+  String get recentOpponentsEmpty =>
+      'Tes adversaires en Multi apparaîtront ici, pour les ajouter en un tap.';
 
   @override
   String get replayFirst => 'Début';
@@ -631,6 +871,37 @@ class AppLocalizationsFr extends AppLocalizations {
   String get retry => 'Réessayer';
 
   @override
+  String get rivalriesActivity => 'ACTIVITÉ DE TES AMIS';
+
+  @override
+  String get rivalriesEmpty => 'Ajoute des amis pour suivre vos rivalités.';
+
+  @override
+  String get rivalriesHeadToHead => 'TÊTE-À-TÊTE';
+
+  @override
+  String get rivalryChallengeOffline => 'Défier (quand il sera en ligne)';
+
+  @override
+  String rivalryDraws(int count) {
+    return '$count nul(s)';
+  }
+
+  @override
+  String get rivalryGames => 'VOS PARTIES';
+
+  @override
+  String get rivalryGamesEmpty => 'Défie-le pour commencer votre rivalité !';
+
+  @override
+  String get rivalryNoGames => 'Pas encore joué ensemble';
+
+  @override
+  String rivalryRecord(int wins, int losses, int draws) {
+    return '$wins V · $losses D · $draws N';
+  }
+
+  @override
   String get roomClosedNobody =>
       'Salle fermée : personne ne l\'a rejointe à temps.';
 
@@ -675,6 +946,23 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings => 'Réglages';
+
+  @override
+  String get shakeToAddFound => 'Trouvé !';
+
+  @override
+  String get shakeToAddHint =>
+      'Rien n\'est envoyé sans ton accord : tu choisis ensuite de l\'ajouter.';
+
+  @override
+  String get shakeToAddMatching => 'Recherche…';
+
+  @override
+  String get shakeToAddNobody => 'Personne n\'a secoué en même temps';
+
+  @override
+  String get shakeToAddWaiting =>
+      'Secoue ton téléphone en même temps que ton ami';
 
   @override
   String get shakeToStop => 'Secoue le téléphone pour arrêter la partie';
@@ -736,6 +1024,9 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get stopLoserIsPlayerToMove =>
       'Le joueur dont c\'est le tour perdra la partie.';
+
+  @override
+  String get tabFriends => 'Amis';
 
   @override
   String get tabHistory => 'Historique';

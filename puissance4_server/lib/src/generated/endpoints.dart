@@ -25,6 +25,7 @@ import '../auth/email_idp_endpoint.dart' as _iuc1hd5t;
 import '../auth/jwt_refresh_endpoint.dart' as _inwq3ztq;
 import '../bot/bot_endpoint.dart' as _i8l8pxdo;
 import '../connection/connection_endpoint.dart' as _in8dx5ef;
+import '../friends/friends_endpoint.dart' as _ikhcdsyv;
 import '../game/game_endpoint.dart' as _im5t12sm;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
 import '../history/history_endpoint.dart' as _iqb2o93i;
@@ -67,6 +68,12 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'connection',
+          null,
+        ),
+      'friends': _ikhcdsyv.FriendsEndpoint()
+        ..initialize(
+          server,
+          'friends',
           null,
         ),
       'game': _im5t12sm.GameEndpoint()
@@ -389,6 +396,205 @@ class Endpoints extends _is.EndpointDispatch {
         ),
       },
     );
+    connectors['friends'] = _is.EndpointConnector(
+      name: 'friends',
+      endpoint: endpoints['friends']!,
+      methodConnectors: {
+        'getOverview': _is.MethodConnector(
+          name: 'getOverview',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .getOverview(session),
+        ),
+        'searchPlayers': _is.MethodConnector(
+          name: 'searchPlayers',
+          params: {
+            'query': _is.ParameterDescription(
+              name: 'query',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .searchPlayers(
+                    session,
+                    params['query'],
+                  ),
+        ),
+        'recentOpponents': _is.MethodConnector(
+          name: 'recentOpponents',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .recentOpponents(session),
+        ),
+        'getRivalries': _is.MethodConnector(
+          name: 'getRivalries',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .getRivalries(session),
+        ),
+        'getFriendsActivity': _is.MethodConnector(
+          name: 'getFriendsActivity',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .getFriendsActivity(session),
+        ),
+        'shakeToAdd': _is.MethodConnector(
+          name: 'shakeToAdd',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .shakeToAdd(session),
+        ),
+        'getChallenges': _is.MethodConnector(
+          name: 'getChallenges',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .getChallenges(session),
+        ),
+        'declineChallenge': _is.MethodConnector(
+          name: 'declineChallenge',
+          params: {
+            'code': _is.ParameterDescription(
+              name: 'code',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .declineChallenge(
+                    session,
+                    params['code'],
+                  ),
+        ),
+        'sendRequest': _is.MethodConnector(
+          name: 'sendRequest',
+          params: {
+            'userId': _is.ParameterDescription(
+              name: 'userId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .sendRequest(
+                    session,
+                    params['userId'],
+                  ),
+        ),
+        'acceptRequest': _is.MethodConnector(
+          name: 'acceptRequest',
+          params: {
+            'friendshipId': _is.ParameterDescription(
+              name: 'friendshipId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .acceptRequest(
+                    session,
+                    params['friendshipId'],
+                  ),
+        ),
+        'declineRequest': _is.MethodConnector(
+          name: 'declineRequest',
+          params: {
+            'friendshipId': _is.ParameterDescription(
+              name: 'friendshipId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .declineRequest(
+                    session,
+                    params['friendshipId'],
+                  ),
+        ),
+        'cancelRequest': _is.MethodConnector(
+          name: 'cancelRequest',
+          params: {
+            'friendshipId': _is.ParameterDescription(
+              name: 'friendshipId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .cancelRequest(
+                    session,
+                    params['friendshipId'],
+                  ),
+        ),
+        'removeFriend': _is.MethodConnector(
+          name: 'removeFriend',
+          params: {
+            'userId': _is.ParameterDescription(
+              name: 'userId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .removeFriend(
+                    session,
+                    params['userId'],
+                  ),
+        ),
+      },
+    );
     connectors['game'] = _is.EndpointConnector(
       name: 'game',
       endpoint: endpoints['game']!,
@@ -643,6 +849,11 @@ class Endpoints extends _is.EndpointDispatch {
               type: _is.getType<bool>(),
               nullable: false,
             ),
+            'challengeUserId': _is.ParameterDescription(
+              name: 'challengeUserId',
+              type: _is.getType<_is.UuidValue?>(),
+              nullable: true,
+            ),
           },
           streamParams: {},
           returnType: _is.MethodStreamReturnType.streamType,
@@ -655,6 +866,7 @@ class Endpoints extends _is.EndpointDispatch {
                   .hostRoom(
                     session,
                     params['isPublic'],
+                    challengeUserId: params['challengeUserId'],
                   ),
         ),
         'watchLobby': _is.MethodStreamConnector(

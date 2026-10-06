@@ -157,13 +157,15 @@ class _HistoryList extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 20),
       itemCount: items.length,
       separatorBuilder: (context, index) => const SizedBox(height: 12),
-      itemBuilder: (context, index) => _HistoryTile(item: items[index]),
+      itemBuilder: (context, index) => HistoryTile(item: items[index]),
     );
   }
 }
 
-class _HistoryTile extends ConsumerWidget {
-  const _HistoryTile({required this.item});
+/// Une partie terminée : résultat, adversaire, mode, date — un tap la
+/// rejoue. Aussi utilisée par le tête-à-tête des Amis (E15).
+class HistoryTile extends ConsumerWidget {
+  const HistoryTile({super.key, required this.item});
 
   final HistoryItem item;
 
@@ -225,7 +227,7 @@ class _HistoryTile extends ConsumerWidget {
                     const SizedBox(height: 2),
                     Text(
                       '${_modeLabel(context, item.mode)} · '
-                      '${_formatRelativeDate(context, item.date)}',
+                      '${formatRelativeDate(context, item.date)}',
                       style: const TextStyle(
                         color: Colors.white54,
                         fontSize: 12,
@@ -312,7 +314,7 @@ String _modeLabel(BuildContext context, EnumType mode) => switch (mode) {
 
 /// « Aujourd'hui, 14:05 », « Hier, … », jour de la semaine sous 7 jours,
 /// sinon la date — mois et jours dans la langue de l'app.
-String _formatRelativeDate(BuildContext context, DateTime date) {
+String formatRelativeDate(BuildContext context, DateTime date) {
   final l10n = context.l10n;
   final locale = Localizations.localeOf(context).toLanguageTag();
   final local = date.toLocal();

@@ -3,23 +3,30 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../../core/widgets/coming_soon_tab.dart';
+import '../../friends/viewmodel/friends_viewmodel.dart';
 import '../../profile/view/profile_avatar.dart';
 import '../viewmodel/leaderboard_viewmodel.dart';
 import '../../../core/l10n/l10n.dart';
 
-/// Onglet context.l10n.tabLeaderboard (E8) — reprend `maquette-5.png` : toggle
-/// Global/Amis, podium top 3, liste des rangs 4+, et la ligne du joueur
-/// courant épinglée séparément quand son rang est hors de la page chargée
-/// (voir `leaderboard_viewmodel.dart` et le plan Classement). context.l10n.leaderboardFriends n'a
-/// aucune base dans le backlog : visible mais non fonctionnel, comme les
-/// modes de `GameHomeScreen`.
+/// Onglet Classement (E8) — reprend `maquette-5.png` : toggle Global/Amis,
+/// podium top 3, liste des rangs 4+, et la ligne du joueur courant épinglée
+/// séparément quand son rang est hors de la page chargée (voir
+/// `leaderboard_viewmodel.dart` et le plan Classement). « Amis » classe le
+/// joueur parmi ses amis (E15, `friendsLeaderboardProvider`).
 class LeaderboardScreen extends ConsumerWidget {
-  const LeaderboardScreen({super.key});
+  const LeaderboardScreen({super.key, this.onAddFriends});
+
+  /// Ouvre Amis › Ajouter (classement entre amis vide).
+  final VoidCallback? onAddFriends;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final asyncState = ref.watch(leaderboardProvider);
+    final filter = ref.watch(leaderboardFilterProvider);
+    final asyncState = switch (filter) {
+      LeaderboardFilter.global => ref.watch(leaderboardProvider),
+      LeaderboardFilter.friends => ref.watch(friendsLeaderboardProvider),
+    };
+    final access = ref.watch(friendsAccessProvider);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -39,9 +46,28 @@ class LeaderboardScreen extends ConsumerWidget {
           const SizedBox(height: 20),
           Expanded(
             child: asyncState.when(
-              data: (state) => state == null
-                  ? const _EmptyLeaderboard()
-                  : _LeaderboardBody(state: state),
+              data: (state) => switch ((filter, access, state)) {
+                (LeaderboardFilter.friends, FriendsAccess.loading, _) =>
+                  const Center(child: CircularProgressIndicator()),
+                (LeaderboardFilter.friends, FriendsAccess.localGuest, _) =>
+                  _CenteredMessage(context.l10n.friendsLocalGuestMessage),
+                (LeaderboardFilter.friends, FriendsAccess.guest, _) =>
+                  _CenteredMessage(context.l10n.friendsGuestMessage),
+                (_, _, null) => _CenteredMessage(
+                  context.l10n.leaderboardSignIn,
+                ),
+                // Seul dans son classement entre amis.
+                (LeaderboardFilter.friends, _, final LeaderboardState state)
+                    when state.entries.length <= 1 =>
+                  _CenteredMessage(
+                    context.l10n.leaderboardNoFriends,
+                    actionLabel: context.l10n.friendsEmptyAction,
+                    onAction: onAddFriends,
+                  ),
+                (_, _, final LeaderboardState state) => _LeaderboardBody(
+                  state: state,
+                ),
+              },
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stackTrace) => Center(
                 child: Padding(
@@ -64,23 +90,25 @@ class LeaderboardScreen extends ConsumerWidget {
   }
 }
 
-class _FilterRow extends StatelessWidget {
+class _FilterRow extends ConsumerWidget {
   const _FilterRow();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final filter = ref.watch(leaderboardFilterProvider);
+    final viewModel = ref.read(leaderboardFilterProvider.notifier);
     return Row(
       children: [
         _FilterChip(
           label: context.l10n.leaderboardGlobal,
-          selected: true,
-          onTap: () {},
+          selected: filter == LeaderboardFilter.global,
+          onTap: () => viewModel.select(LeaderboardFilter.global),
         ),
         const SizedBox(width: 10),
         _FilterChip(
           label: context.l10n.leaderboardFriends,
-          selected: false,
-          onTap: () => showComingSoonSnackBar(context),
+          selected: filter == LeaderboardFilter.friends,
+          onTap: () => viewModel.select(LeaderboardFilter.friends),
         ),
       ],
     );
@@ -127,15 +155,38 @@ class _FilterChip extends StatelessWidget {
   }
 }
 
-class _EmptyLeaderboard extends StatelessWidget {
-  const _EmptyLeaderboard();
+class _CenteredMessage extends StatelessWidget {
+  const _CenteredMessage(this.text, {this.actionLabel, this.onAction});
+
+  final String text;
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Text(
-        context.l10n.leaderboardSignIn,
-        style: TextStyle(color: Colors.white54, fontSize: 13),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              text,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white54, fontSize: 13),
+            ),
+            if (actionLabel != null && onAction != null) ...[
+              const SizedBox(height: 12),
+              FilledButton(
+                onPressed: onAction,
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                ),
+                child: Text(actionLabel!),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

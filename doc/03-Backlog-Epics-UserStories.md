@@ -403,8 +403,106 @@ Tickets :
 
 ---
 
+## E15 — Amis `[hors cahier des charges]`
+`area:backend` `area:frontend` `priority:optional`
+
+Ajoutée après coup : le cahier des charges ne prévoit rien de social en
+dehors du code de salle Multi. Nouvel onglet « Amis » dans la barre de
+navigation (badge = demandes reçues), découpé en sous-onglets **Mes amis**,
+**Demandes**, **Ajouter** et **Rivalités**. Réservé aux comptes email : un
+invité (anonyme ou local) voit une invitation à créer un compte (US0.2). Livré
+en lots : P1 = US15.1-15.3, P2 = US15.4-15.5, P3 = US15.6, P4 = US15.7 (US15.8 abandonnée).
+
+### US15.1 — En tant que joueur, je veux envoyer une demande d'ami par pseudo ou par code ami, afin de retrouver les gens avec qui je joue.
+Critères d'acceptation :
+- Onglet **Ajouter** : mon code ami (`P4-XXXXXX`, attribué au premier affichage, copiable) et un champ de recherche « pseudo ou code ami ».
+- Recherche par début de pseudo à partir de 3 caractères, 20 résultats au plus ; ni moi, ni les invités n'y apparaissent. Un code ami exact remonte en tête.
+- Chaque résultat indique la relation (ami, demande envoyée, demande reçue, aucune) et propose l'action correspondante.
+- Si l'autre m'avait déjà envoyé une demande, la mienne l'accepte directement.
+- 200 amis au plus ; erreurs renvoyées par code (`FriendsException`), traduites côté app.
+
+Tickets :
+- [x] T15.1.1 — Modèles `Friendship` (table, paire unique `pairKey`), `User.friendCode`, DTO et `FriendsException` — `owner:B` `area:backend`
+- [x] T15.1.2 — `FriendsEndpoint` : `getMyFriendCode`, `searchPlayers`, `sendRequest` — `owner:B` `area:backend`
+- [x] T15.1.3 — UI onglet « Ajouter » (code ami, recherche, actions par résultat) — `owner:A`
+
+### US15.2 — En tant que joueur, je veux voir et traiter les demandes que j'ai reçues ou envoyées, afin de choisir mes amis.
+Critères d'acceptation :
+- Onglet **Demandes** : sections « Reçues » (Accepter / Refuser) et « Envoyées » (Annuler), avec l'ancienneté de chaque demande.
+- Badge sur l'onglet « Amis » de la barre de navigation et sur le sous-onglet = nombre de demandes reçues.
+- Mise à jour en temps réel chez les deux joueurs (`LiveEvent` `friendsChanged`).
+
+Tickets :
+- [x] T15.2.1 — `FriendsEndpoint` : `getOverview`, `acceptRequest`, `declineRequest`, `cancelRequest` + notification `friendsChanged` des deux côtés — `owner:B` `area:backend`
+- [x] T15.2.2 — UI onglet « Demandes » + badges — `owner:A`
+
+### US15.3 — En tant que joueur, je veux voir la liste de mes amis et pouvoir en retirer, afin de garder une liste à jour.
+Critères d'acceptation :
+- Onglet **Mes amis** : avatar, pseudo, Elo, ami depuis ; triés par Elo ; état vide qui renvoie vers « Ajouter ».
+- Retirer un ami demande confirmation et le retire aussi chez l'autre.
+- Liste en cache d'abord puis réseau (comme le Classement).
+
+Tickets :
+- [x] T15.3.1 — `FriendsEndpoint.removeFriend` — `owner:B` `area:backend`
+- [x] T15.3.2 — UI onglet « Mes amis » + écran « Amis » invité — `owner:A`
+- [x] T15.3.3 — Tests d'intégration `FriendsEndpoint` — `owner:B` `area:backend`
+
+### US15.4 — En tant que joueur, je veux voir si mes amis sont en ligne ou en partie, afin de savoir qui défier.
+Critères d'acceptation :
+- Pastille en ligne / en partie (Multi ou Classé) / vu il y a… ; amis en ligne en tête, puis en partie.
+- « En ligne » = stream `LiveEndpoint.watchUpdates` ouvert, compté en mémoire (`PresenceStore`, à remplacer par une version partagée avec Redis, comme `RoomStore`) ; « en partie » lu en base (partie serveur `inProgress`) ; « vu il y a » = `User.lastSeenAt`, écrit à la dernière déconnexion.
+- Les amis sont prévenus (`friendsChanged`) quand on passe en ligne / hors ligne, et quand une partie serveur commence ou finit.
+
+Tickets :
+- [x] T15.4.1 — `PresenceStore` + diffusion aux amis — `owner:B` `area:backend`
+- [x] T15.4.2 — Pastilles et tri dans « Mes amis » — `owner:A`
+
+### US15.5 — En tant que joueur, je veux défier un ami en un tap, afin de lancer une partie Multi sans échanger de code.
+Critères d'acceptation :
+- « Défier » (ami en ligne seulement) ouvre `hostRoom(challengeUserId:)` : salle privée réservée à l'ami (personne d'autre ne peut la rejoindre), 2 min (`FriendsConfig.challengeLifetime`). L'ami reçoit `challengesChanged` et voit une bannière « X te défie ! » (Accepter / Refuser, compte à rebours) depuis tous les onglets.
+- Accepter = `joinRoom(code)` ; Refuser = `declineChallenge(code)`, qui ferme la salle — le défieur voit « X a refusé ton défi ». Aucune `Partie` avant l'acceptation (pas de partie fantôme).
+- Section « Rencontrés récemment » (10 derniers adversaires Multi, une fois chacun) dans « Ajouter », sous la recherche vide.
+
+Tickets :
+- [x] T15.5.1 — Défi sur `RoomStore` (salle réservée, `listInvitations`, `decline`) + `getChallenges` / `declineChallenge` + événements live — `owner:B` `area:backend`
+- [x] T15.5.2 — Bannière de défi globale + bouton « Défier » — `owner:A`
+- [x] T15.5.3 — « Rencontrés récemment » (`recentOpponents`) — `owner:A`/`owner:B`
+
+### US15.6 — En tant que joueur à côté d'un autre, je veux l'ajouter sans taper son pseudo, afin d'aller plus vite.
+Critères d'acceptation :
+- QR code de mon code ami (`qr_flutter`) ; scanner caméra (`mobile_scanner`, téléphone et navigateur) qui remplit la recherche avec le code lu — le joueur apparaît avec son bouton Ajouter.
+- « Secouer pour s'ajouter » (téléphone seulement) : deux secousses (E10) à moins de 2 s d'écart sont appariées par le serveur (`ShakeMatcher` en mémoire, à remplacer avec Redis), deux appareils d'un même compte ne s'apparient pas. Chacun voit l'autre et choisit de l'ajouter : rien n'est envoyé sans accord, et deux demandes croisées s'acceptent d'office.
+
+Tickets :
+- [x] T15.6.1 — QR code (affichage + scan) — `owner:A`
+- [x] T15.6.2 — Appariement des secousses côté serveur (`shakeToAdd`) + UI — `owner:B`
+
+### US15.7 — En tant que joueur, je veux comparer mes résultats à ceux de mes amis, afin d'entretenir une rivalité.
+Critères d'acceptation :
+- Onglet **Rivalités** : bilan tête-à-tête par ami (victoires, défaites, nuls en Multi, série en cours 🔥/❄️), ceux avec qui on a le plus joué d'abord ; écran détail avec le score, « Défier » (ami en ligne) et les parties communes, rejouables comme dans l'Historique. Le classement entre amis est le filtre « Amis » du Classement.
+- Fil d'activité des amis tiré de `EloHistory`/`Partie` (pas de nouvelle table) : leurs parties Multi et Classé des 7 derniers jours, variation d'Elo comprise.
+
+Tickets :
+- [x] T15.7.1 — `getRivalries` (tête-à-tête) et `getFriendsActivity` ; le classement entre amis est calculé côté app (T15.7.2a) — `owner:B` `area:backend`
+- [x] T15.7.2a — Filtre « Amis » du Classement : moi et mes amis triés par Elo, calculé côté app depuis `getOverview` (au plus 201 lignes, pas d'endpoint dédié) ; invité → invitation à créer un compte ; aucun ami → bouton vers Amis › Ajouter — `owner:A`
+- [x] T15.7.2b — UI sous-onglet « Rivalités » + écran tête-à-tête — `owner:A`
+
+### US15.8 — En tant que joueur, je veux envoyer une position de replay à un ami comme puzzle, afin de lui lancer un défi tactique. *(abandonnée)*
+
+**Abandonnée** : prototypée (position gagnante en un coup envoyée depuis un
+replay, une tentative jugée par le serveur) puis retirée — jugée sans
+intérêt pour les joueurs face au défi direct (US15.5) et aux rivalités
+(US15.7). Rien n'en reste dans le code ni en base.
+
+Tickets :
+- [ ] ~~T15.8.1 — Modèle et endpoint des puzzles~~ — **abandonné** — `owner:B` `area:backend`
+- [ ] ~~T15.8.2 — Envoi depuis le replay + écran de résolution~~ — **abandonné** — `owner:A`
+
+---
+
 ## Récapitulatif
-15 epics, 28 user stories (dont US7.3 abandonnée), 79 tickets. Tout le
+16 epics, 36 user stories (dont US7.3 et US15.8 abandonnées), 99 tickets. E15 (amis)
+a été ajoutée hors cahier des charges. Tout le
 système d'Elo est porté par E6 (mode Classé contre un bot joué par le
 serveur) ; le Multijoueur (E7) ne modifie pas l'Elo. E0 (mode invité local),
 E7 (multijoueur en ligne) et E14 (revue de partie post-match avec IA) sont

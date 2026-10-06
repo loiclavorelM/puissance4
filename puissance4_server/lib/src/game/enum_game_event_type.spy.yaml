@@ -5,6 +5,9 @@ values:
   # Salle Multi fermée sans adversaire (expirée, ou remplacée par une
   # nouvelle salle du même hôte) — dernier événement du stream.
   - roomClosed
+  # Défi d'un ami (E15) refusé : la salle est fermée — dernier événement du
+  # stream de l'hôte.
+  - challengeDeclined
   # Photo complète de la partie : envoyé au démarrage et à chaque
   # (re)connexion d'un stream à la partie.
   - gameStarted
