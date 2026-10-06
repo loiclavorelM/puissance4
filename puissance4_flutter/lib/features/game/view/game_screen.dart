@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
 import '../../../core/l10n/l10n.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../sensors/viewmodel/motion_sensors_provider.dart';
 import '../../sensors/viewmodel/shake_provider.dart';
 import '../../review/view/move_review_card.dart';
@@ -156,10 +156,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: context.colors.background,
         appBar: AppBar(
-          backgroundColor: AppColors.background,
-          foregroundColor: Colors.white,
+          backgroundColor: context.colors.background,
+          foregroundColor: context.colors.text,
           title: Text(widget.launch.title(context.l10n)),
         ),
         body: SafeArea(
@@ -249,7 +249,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         if (_viewModel.canRestart) ...[
           FilledButton.icon(
             style: FilledButton.styleFrom(
-              backgroundColor: AppColors.primary,
+              backgroundColor: context.colors.primary,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
@@ -262,8 +262,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         if (replayLaunch != null && snapshot.moves.isNotEmpty)
           OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.white,
-              side: const BorderSide(color: Colors.white24),
+              foregroundColor: context.colors.text,
+              side: BorderSide(color: context.colors.outline),
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
             onPressed: () => Navigator.of(context).pushReplacement(
@@ -277,8 +277,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         const SizedBox(height: 12),
         FilledButton(
           style: FilledButton.styleFrom(
-            backgroundColor: AppColors.green,
-            foregroundColor: AppColors.background,
+            backgroundColor: context.colors.green,
+            foregroundColor: context.colors.background,
             padding: const EdgeInsets.symmetric(vertical: 16),
           ),
           onPressed: () => Navigator.of(context).pop(),
@@ -293,12 +293,12 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.vibration, color: Colors.white38, size: 16),
+            Icon(Icons.vibration, color: context.colors.textFaint, size: 16),
             const SizedBox(width: 6),
             Flexible(
               child: Text(
                 context.l10n.shakeToStop,
-                style: const TextStyle(color: Colors.white38, fontSize: 12),
+                style: TextStyle(color: context.colors.textFaint, fontSize: 12),
               ),
             ),
           ],
@@ -309,7 +309,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         },
         child: Text(
           context.l10n.abandon,
-          style: const TextStyle(color: Colors.white54),
+          style: TextStyle(color: context.colors.textMuted),
         ),
       ),
     ];

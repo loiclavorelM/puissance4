@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../../core/widgets/action_banner.dart';
 import '../../game/model/game_launch.dart';
 import '../../game/view/game_screen.dart';
@@ -24,10 +24,10 @@ class RankedScreen extends ConsumerWidget {
     final resumable = state.resumablePartieId;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
-        foregroundColor: Colors.white,
+        backgroundColor: context.colors.background,
+        foregroundColor: context.colors.text,
         title: Text(context.l10n.modeRanked),
       ),
       body: SafeArea(
@@ -47,10 +47,10 @@ class RankedScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: AppColors.card,
+                  color: context.colors.card,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: AppColors.yellow.withValues(alpha: 0.4),
+                    color: context.colors.yellow.withValues(alpha: 0.4),
                   ),
                 ),
                 child: Column(
@@ -58,7 +58,7 @@ class RankedScreen extends ConsumerWidget {
                     Text(
                       context.l10n.yourElo,
                       style: TextStyle(
-                        color: Colors.white54,
+                        color: context.colors.textMuted,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1.2,
@@ -67,8 +67,8 @@ class RankedScreen extends ConsumerWidget {
                     const SizedBox(height: 4),
                     Text(
                       '$elo',
-                      style: const TextStyle(
-                        color: AppColors.yellow,
+                      style: TextStyle(
+                        color: context.colors.yellow,
                         fontSize: 40,
                         fontWeight: FontWeight.bold,
                       ),
@@ -82,7 +82,7 @@ class RankedScreen extends ConsumerWidget {
                               opponent.elo,
                             ),
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(color: context.colors.text),
                     ),
                   ],
                 ),
@@ -90,7 +90,7 @@ class RankedScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               Text(
                 context.l10n.rankedRules,
-                style: TextStyle(color: Colors.white54, fontSize: 13),
+                style: TextStyle(color: context.colors.textMuted, fontSize: 13),
               ),
               const Spacer(),
               if (state.errorMessage != null)
@@ -99,13 +99,13 @@ class RankedScreen extends ConsumerWidget {
                   child: Text(
                     state.errorMessage!,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: AppColors.yellow),
+                    style: TextStyle(color: context.colors.yellow),
                   ),
                 ),
               FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.yellow,
-                  foregroundColor: AppColors.background,
+                  backgroundColor: context.colors.yellow,
+                  foregroundColor: context.colors.background,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 onPressed: state.isStarting

@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../../core/widgets/action_banner.dart';
 import '../../game/view/game_screen.dart';
 import '../../game/view/widgets/countdown.dart';
@@ -74,10 +74,10 @@ class _MultiplayerScreenState extends ConsumerState<MultiplayerScreen> {
     final state = ref.watch(multiplayerViewModelProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
-        foregroundColor: Colors.white,
+        backgroundColor: context.colors.background,
+        foregroundColor: context.colors.text,
         title: Text(context.l10n.modeMultiplayer),
       ),
       body: SafeArea(
@@ -96,8 +96,8 @@ class _MultiplayerScreenState extends ConsumerState<MultiplayerScreen> {
   }
 }
 
-const _sectionTitleStyle = TextStyle(
-  color: Colors.white54,
+TextStyle _sectionTitleStyle(BuildContext context) => TextStyle(
+  color: context.colors.textMuted,
   fontSize: 12,
   fontWeight: FontWeight.bold,
   letterSpacing: 1.2,
@@ -140,18 +140,21 @@ class _LobbyState extends ConsumerState<_Lobby> {
           ),
           const SizedBox(height: 20),
         ],
-        Text(context.l10n.createRoomSection, style: _sectionTitleStyle),
+        Text(
+          context.l10n.createRoomSection,
+          style: _sectionTitleStyle(context),
+        ),
         const SizedBox(height: 4),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
-          activeThumbColor: AppColors.green,
+          activeThumbColor: context.colors.green,
           title: Text(
             context.l10n.publicRoom,
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: context.colors.text),
           ),
           subtitle: Text(
             _isPublic ? context.l10n.publicRoomOn : context.l10n.publicRoomOff,
-            style: const TextStyle(color: Colors.white54, fontSize: 13),
+            style: TextStyle(color: context.colors.textMuted, fontSize: 13),
           ),
           value: _isPublic,
           onChanged: (value) => setState(() => _isPublic = value),
@@ -159,8 +162,8 @@ class _LobbyState extends ConsumerState<_Lobby> {
         const SizedBox(height: 8),
         FilledButton.icon(
           style: FilledButton.styleFrom(
-            backgroundColor: AppColors.green,
-            foregroundColor: AppColors.background,
+            backgroundColor: context.colors.green,
+            foregroundColor: context.colors.background,
             padding: const EdgeInsets.symmetric(vertical: 16),
           ),
           onPressed: () => viewModel.host(isPublic: _isPublic),
@@ -168,18 +171,21 @@ class _LobbyState extends ConsumerState<_Lobby> {
           label: Text(context.l10n.createRoom),
         ),
         const SizedBox(height: 32),
-        Text(context.l10n.openRoomsSection, style: _sectionTitleStyle),
+        Text(context.l10n.openRoomsSection, style: _sectionTitleStyle(context)),
         const SizedBox(height: 12),
         const _OpenRooms(),
         const SizedBox(height: 32),
-        Text(context.l10n.joinFriendSection, style: _sectionTitleStyle),
+        Text(
+          context.l10n.joinFriendSection,
+          style: _sectionTitleStyle(context),
+        ),
         const SizedBox(height: 12),
         TextField(
           controller: _codeController,
           textCapitalization: TextCapitalization.characters,
           maxLength: 6,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: context.colors.text,
             fontSize: 22,
             letterSpacing: 6,
             fontWeight: FontWeight.bold,
@@ -187,10 +193,10 @@ class _LobbyState extends ConsumerState<_Lobby> {
           textAlign: TextAlign.center,
           decoration: InputDecoration(
             hintText: context.l10n.codeHint,
-            hintStyle: const TextStyle(color: Colors.white24),
+            hintStyle: TextStyle(color: context.colors.outline),
             counterText: '',
             filled: true,
-            fillColor: AppColors.fieldFill,
+            fillColor: context.colors.fieldFill,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(14),
               borderSide: BorderSide.none,
@@ -201,8 +207,8 @@ class _LobbyState extends ConsumerState<_Lobby> {
         const SizedBox(height: 12),
         OutlinedButton(
           style: OutlinedButton.styleFrom(
-            foregroundColor: Colors.white,
-            side: const BorderSide(color: Colors.white24),
+            foregroundColor: context.colors.text,
+            side: BorderSide(color: context.colors.outline),
             padding: const EdgeInsets.symmetric(vertical: 16),
           ),
           onPressed: () => viewModel.join(_codeController.text),
@@ -213,7 +219,7 @@ class _LobbyState extends ConsumerState<_Lobby> {
           Text(
             state.errorMessage!,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: AppColors.yellow),
+            style: TextStyle(color: context.colors.yellow),
           ),
         ],
       ],
@@ -258,9 +264,9 @@ class _OpenRoomTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) => Container(
     padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
     decoration: BoxDecoration(
-      color: AppColors.card,
+      color: context.colors.card,
       borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: Colors.white10),
+      border: Border.all(color: context.colors.divider),
     ),
     child: Row(
       children: [
@@ -277,8 +283,8 @@ class _OpenRoomTile extends ConsumerWidget {
               Text(
                 room.hostUsername,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: context.colors.text,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -289,14 +295,17 @@ class _OpenRoomTile extends ConsumerWidget {
                     room.hostElo,
                     formatDuration(remaining),
                   ),
-                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  style: TextStyle(
+                    color: context.colors.textMuted,
+                    fontSize: 12,
+                  ),
                 ),
               ),
             ],
           ),
         ),
         TextButton(
-          style: TextButton.styleFrom(foregroundColor: AppColors.green),
+          style: TextButton.styleFrom(foregroundColor: context.colors.green),
           onPressed: () => ref
               .read(multiplayerViewModelProvider.notifier)
               .join(room.code, fromLobby: true),
@@ -318,7 +327,7 @@ class _Hint extends StatelessWidget {
     child: Text(
       text,
       textAlign: TextAlign.center,
-      style: const TextStyle(color: Colors.white38),
+      style: TextStyle(color: context.colors.textFaint),
     ),
   );
 }
@@ -340,21 +349,23 @@ class _WaitingRoom extends ConsumerWidget {
         Text(
           context.l10n.shareCode,
           textAlign: TextAlign.center,
-          style: _sectionTitleStyle,
+          style: _sectionTitleStyle(context),
         ),
         const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.symmetric(vertical: 24),
           decoration: BoxDecoration(
-            color: AppColors.card,
+            color: context.colors.card,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.green.withValues(alpha: 0.4)),
+            border: Border.all(
+              color: context.colors.green.withValues(alpha: 0.4),
+            ),
           ),
           child: SelectableText(
             code,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: context.colors.text,
               fontSize: 40,
               fontWeight: FontWeight.bold,
               letterSpacing: 10,
@@ -371,19 +382,19 @@ class _WaitingRoom extends ConsumerWidget {
               ).showSnackBar(SnackBar(content: Text(context.l10n.codeCopied)));
             }
           },
-          icon: const Icon(Icons.copy, color: AppColors.green),
+          icon: Icon(Icons.copy, color: context.colors.green),
           label: Text(
             context.l10n.copy,
-            style: TextStyle(color: AppColors.green),
+            style: TextStyle(color: context.colors.green),
           ),
         ),
         const SizedBox(height: 32),
-        const Center(child: CircularProgressIndicator(color: AppColors.green)),
+        Center(child: CircularProgressIndicator(color: context.colors.green)),
         const SizedBox(height: 16),
         Text(
           context.l10n.waitingOpponent,
           textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: context.colors.textSecondary),
         ),
         if (state.roomExpiresAt != null) ...[
           const SizedBox(height: 4),
@@ -392,15 +403,15 @@ class _WaitingRoom extends ConsumerWidget {
             builder: (remaining) => Text(
               context.l10n.roomClosesIn(formatDuration(remaining)),
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white38, fontSize: 12),
+              style: TextStyle(color: context.colors.textFaint, fontSize: 12),
             ),
           ),
         ],
         const SizedBox(height: 32),
         OutlinedButton(
           style: OutlinedButton.styleFrom(
-            foregroundColor: Colors.white,
-            side: const BorderSide(color: Colors.white24),
+            foregroundColor: context.colors.text,
+            side: BorderSide(color: context.colors.outline),
           ),
           onPressed: ref.read(multiplayerViewModelProvider.notifier).leaveRoom,
           child: Text(context.l10n.cancel),
@@ -427,9 +438,9 @@ class _ChallengeWaiting extends ConsumerWidget {
         Center(
           child: Container(
             padding: const EdgeInsets.all(4),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.green,
+              color: context.colors.green,
             ),
             child: ProfileAvatar(
               username: friend.username,
@@ -442,8 +453,8 @@ class _ChallengeWaiting extends ConsumerWidget {
         Text(
           context.l10n.challengeWaiting(friend.username),
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: context.colors.text,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -455,17 +466,17 @@ class _ChallengeWaiting extends ConsumerWidget {
             builder: (remaining) => Text(
               context.l10n.roomClosesIn(formatDuration(remaining)),
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white38, fontSize: 12),
+              style: TextStyle(color: context.colors.textFaint, fontSize: 12),
             ),
           ),
         ],
         const SizedBox(height: 32),
-        const Center(child: CircularProgressIndicator(color: AppColors.green)),
+        Center(child: CircularProgressIndicator(color: context.colors.green)),
         const SizedBox(height: 32),
         OutlinedButton(
           style: OutlinedButton.styleFrom(
-            foregroundColor: Colors.white,
-            side: const BorderSide(color: Colors.white24),
+            foregroundColor: context.colors.text,
+            side: BorderSide(color: context.colors.outline),
           ),
           onPressed: ref.read(multiplayerViewModelProvider.notifier).leaveRoom,
           child: Text(context.l10n.cancel),
