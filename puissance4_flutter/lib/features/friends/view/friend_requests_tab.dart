@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
 import '../../../core/l10n/l10n.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../viewmodel/friends_viewmodel.dart';
 import 'friend_tile.dart';
 
@@ -20,7 +20,7 @@ class FriendRequestsTab extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, _) => FriendsMessage(
         text: context.l10n.friendsLoadError,
-        color: AppColors.yellow,
+        color: context.colors.yellow,
       ),
       data: (overview) {
         final incoming = overview?.incoming ?? const <FriendshipDto>[];
@@ -64,8 +64,8 @@ class _SectionTitle extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 10),
       child: Text(
         text,
-        style: const TextStyle(
-          color: Colors.white38,
+        style: TextStyle(
+          color: context.colors.textFaint,
           fontWeight: FontWeight.bold,
           fontSize: 12,
           letterSpacing: 1,
@@ -107,7 +107,7 @@ class _RequestRow extends ConsumerWidget {
                   onPressed: busy
                       ? null
                       : () => run(() => actions.decline(request)),
-                  icon: const Icon(Icons.close, color: Colors.white54),
+                  icon: Icon(Icons.close, color: context.colors.textMuted),
                 ),
                 IconButton.filled(
                   tooltip: context.l10n.friendAccept,
@@ -115,9 +115,9 @@ class _RequestRow extends ConsumerWidget {
                       ? null
                       : () => run(() => actions.accept(request)),
                   style: IconButton.styleFrom(
-                    backgroundColor: AppColors.green,
+                    backgroundColor: context.colors.green,
                   ),
-                  icon: const Icon(Icons.check, color: AppColors.background),
+                  icon: Icon(Icons.check, color: context.colors.background),
                 ),
               ],
             )
@@ -125,7 +125,9 @@ class _RequestRow extends ConsumerWidget {
               onPressed: busy
                   ? null
                   : () => run(() => actions.cancel(request.id)),
-              style: TextButton.styleFrom(foregroundColor: Colors.white70),
+              style: TextButton.styleFrom(
+                foregroundColor: context.colors.textSecondary,
+              ),
               child: Text(context.l10n.cancel),
             ),
     );
