@@ -13,8 +13,7 @@ import '../viewmodel/preferences_viewmodel.dart';
 import '../../../core/l10n/l10n.dart';
 
 /// context.l10n.settings (E2/E11) — maquette p.7 : COMPTE (pseudo modifiable),
-/// PRÉFÉRENCES (langue, thème sombre — mémorisés mais pas encore appliqués),
-/// déconnexion. Pas d'onglet dédié : poussé en route depuis l'icône
+/// PRÉFÉRENCES (langue, thème système/clair/sombre), déconnexion. Pas d'onglet dédié : poussé en route depuis l'icône
 /// engrenage de l'écran Jouer (`_MainShell._openSettings`), d'où le bouton
 /// retour explicite ci-dessous — pas de nav bar ici pour en sortir.
 class SettingsScreen extends ConsumerWidget {
@@ -57,13 +56,6 @@ class SettingsScreen extends ConsumerWidget {
                   const _AccountCard(),
                   _SectionTitle(context.l10n.preferencesSection),
                   const _PreferencesCard(),
-                  Padding(
-                    padding: EdgeInsets.only(top: 8, left: 4),
-                    child: Text(
-                      context.l10n.lightThemeSoon,
-                      style: TextStyle(color: Colors.white38, fontSize: 12),
-                    ),
-                  ),
                   const SizedBox(height: 32),
                   OutlinedButton(
                     onPressed: () async {
@@ -255,27 +247,30 @@ class _AccountCard extends ConsumerWidget {
 class _PreferencesCard extends ConsumerWidget {
   const _PreferencesCard();
 
-  Future<void> _pickLanguage(
-    BuildContext context,
-    WidgetRef ref,
-    AppLanguage current,
-  ) async {
-    final picked = await showModalBottomSheet<AppLanguage>(
+  /// Feuille du bas à choix unique (langue, thème) ; `null` si fermée sans
+  /// choisir.
+  Future<T?> _pick<T>(
+    BuildContext context, {
+    required T current,
+    required List<T> values,
+    required String Function(T value) label,
+  }) {
+    return showModalBottomSheet<T>(
       context: context,
       backgroundColor: AppColors.card,
       builder: (context) => SafeArea(
-        child: RadioGroup<AppLanguage>(
+        child: RadioGroup<T>(
           groupValue: current,
-          onChanged: (language) => Navigator.of(context).pop(language),
+          onChanged: (value) => Navigator.of(context).pop(value),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              for (final language in AppLanguage.values)
-                RadioListTile<AppLanguage>(
-                  value: language,
+              for (final value in values)
+                RadioListTile<T>(
+                  value: value,
                   activeColor: AppColors.primary,
                   title: Text(
-                    language.label,
+                    label(value),
                     style: const TextStyle(color: Colors.white),
                   ),
                 ),
@@ -284,10 +279,48 @@ class _PreferencesCard extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _pickLanguage(
+    BuildContext context,
+    WidgetRef ref,
+    AppLanguage current,
+  ) async {
+    final picked = await _pick(
+      context,
+      current: current,
+      values: AppLanguage.values,
+      label: (language) => language.label,
+    );
     if (picked != null) {
       await ref.read(preferencesViewModelProvider.notifier).setLanguage(picked);
     }
   }
+
+  Future<void> _pickThemeMode(
+    BuildContext context,
+    WidgetRef ref,
+    ThemeMode current,
+  ) async {
+    final picked = await _pick(
+      context,
+      current: current,
+      values: const [ThemeMode.system, ThemeMode.light, ThemeMode.dark],
+      label: (mode) => _themeModeLabel(context, mode),
+    );
+    if (picked != null) {
+      await ref
+          .read(preferencesViewModelProvider.notifier)
+          .setThemeMode(picked);
+    }
+  }
+
+  static String _themeModeLabel(BuildContext context, ThemeMode mode) =>
+      switch (mode) {
+        ThemeMode.system => context.l10n.themeSystem,
+        ThemeMode.light => context.l10n.themeLight,
+        ThemeMode.dark => context.l10n.themeDark,
+      };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -297,31 +330,46 @@ class _PreferencesCard extends ConsumerWidget {
 
     return _Card(
       children: [
-        ListTile(
-          title: Text(context.l10n.language, style: _rowTitleStyle),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                prefs.language.label,
-                style: const TextStyle(color: Colors.white60),
-              ),
-              const Icon(Icons.chevron_right, color: Colors.white38),
-            ],
-          ),
+        _ChoiceTile(
+          title: context.l10n.language,
+          value: prefs.language.label,
           onTap: () => _pickLanguage(context, ref, prefs.language),
         ),
         const Divider(height: 1, color: AppColors.fieldFill),
-        SwitchListTile(
-          title: Text(context.l10n.darkTheme, style: _rowTitleStyle),
-          value: prefs.darkTheme,
-          activeThumbColor: Colors.white,
-          activeTrackColor: AppColors.primary,
-          onChanged: (value) => ref
-              .read(preferencesViewModelProvider.notifier)
-              .setDarkTheme(value),
+        _ChoiceTile(
+          title: context.l10n.theme,
+          value: _themeModeLabel(context, prefs.themeMode),
+          onTap: () => _pickThemeMode(context, ref, prefs.themeMode),
         ),
       ],
+    );
+  }
+}
+
+/// Ligne de préférence : titre, valeur actuelle et chevron vers le choix.
+class _ChoiceTile extends StatelessWidget {
+  const _ChoiceTile({
+    required this.title,
+    required this.value,
+    required this.onTap,
+  });
+
+  final String title;
+  final String value;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(title, style: _rowTitleStyle),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(value, style: const TextStyle(color: Colors.white60)),
+          const Icon(Icons.chevron_right, color: Colors.white38),
+        ],
+      ),
+      onTap: onTap,
     );
   }
 }

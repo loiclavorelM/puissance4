@@ -273,9 +273,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get createRoomSection => 'CRÉER UNE SALLE';
 
   @override
-  String get darkTheme => 'Thème sombre';
-
-  @override
   String dateToday(String time) {
     return 'Aujourd\'hui, $time';
   }
@@ -597,10 +594,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get leaderboardSignIn => 'Connecte-toi pour voir le classement.';
-
-  @override
-  String get lightThemeSoon =>
-      'Le thème clair arrive bientôt — ton choix est déjà mémorisé.';
 
   @override
   String get loginTagline => 'Défie l\'IA. Grimpe le classement.';
@@ -1036,6 +1029,18 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tabPlay => 'Jouer';
+
+  @override
+  String get theme => 'Thème';
+
+  @override
+  String get themeDark => 'Sombre';
+
+  @override
+  String get themeLight => 'Clair';
+
+  @override
+  String get themeSystem => 'Système';
 
   @override
   String turnOf(String name) {

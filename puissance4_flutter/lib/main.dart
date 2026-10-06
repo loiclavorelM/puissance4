@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'client.dart';
 import 'core/l10n/l10n.dart';
 import 'core/theme/app_colors.dart';
+import 'core/theme/app_palette.dart';
+import 'core/theme/app_theme.dart';
 import 'features/auth/view/login_screen.dart';
 import 'features/auth/viewmodel/auth_viewmodel.dart';
 import 'features/friends/view/challenge_banner.dart';
@@ -21,6 +23,7 @@ import 'features/offline/model/server_connection_tracker.dart';
 import 'features/offline/viewmodel/offline_sync_provider.dart';
 import 'features/settings/view/settings_screen.dart';
 import 'features/settings/viewmodel/locale_provider.dart';
+import 'features/settings/viewmodel/theme_mode_provider.dart';
 
 late final ServerConnectionPinger serverConnectionPinger;
 
@@ -49,16 +52,6 @@ void main() async {
   runApp(const ProviderScope(child: MyApp()));
 }
 
-/// Builds a theme for the given [brightness].
-ThemeData _buildTheme(Brightness brightness) {
-  return ThemeData(
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: Colors.blue,
-      brightness: brightness,
-    ),
-  );
-}
-
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
@@ -76,9 +69,10 @@ class MyApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      theme: _buildTheme(Brightness.light),
-      darkTheme: _buildTheme(Brightness.dark),
-      themeMode: ThemeMode.system,
+      theme: buildAppTheme(AppPalette.light),
+      darkTheme: buildAppTheme(AppPalette.dark),
+      // Thème choisi dans Réglages, sombre par défaut.
+      themeMode: ref.watch(themeModeProvider),
       home: const MyHomePage(),
     );
   }

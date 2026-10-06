@@ -566,12 +566,6 @@ abstract class AppLocalizations {
   /// **'CRÉER UNE SALLE'**
   String get createRoomSection;
 
-  /// No description provided for @darkTheme.
-  ///
-  /// In fr, this message translates to:
-  /// **'Thème sombre'**
-  String get darkTheme;
-
   /// No description provided for @dateToday.
   ///
   /// In fr, this message translates to:
@@ -1153,12 +1147,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Connecte-toi pour voir le classement.'**
   String get leaderboardSignIn;
-
-  /// No description provided for @lightThemeSoon.
-  ///
-  /// In fr, this message translates to:
-  /// **'Le thème clair arrive bientôt — ton choix est déjà mémorisé.'**
-  String get lightThemeSoon;
 
   /// No description provided for @loginTagline.
   ///
@@ -1927,6 +1915,30 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Jouer'**
   String get tabPlay;
+
+  /// No description provided for @theme.
+  ///
+  /// In fr, this message translates to:
+  /// **'Thème'**
+  String get theme;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sombre'**
+  String get themeDark;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clair'**
+  String get themeLight;
+
+  /// No description provided for @themeSystem.
+  ///
+  /// In fr, this message translates to:
+  /// **'Système'**
+  String get themeSystem;
 
   /// No description provided for @turnOf.
   ///
