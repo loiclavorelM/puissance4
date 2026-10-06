@@ -12,8 +12,10 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:puissance4_server/src/generated/protocol.dart' as _irho11n9;
 import 'package:serverpod/serverpod.dart' as _is;
+import '../friends/enum_friend_presence.dart' as _iyn06qfo;
 import '../friends/enum_friendship_status.dart' as _ipfdbv44;
 import '../friends/friend_user_dto.dart' as _ifdcjd4x;
+import '../game/enum_type.dart' as _iu5mz6ho;
 
 abstract class FriendshipDto
     implements _is.SerializableModel, _is.ProtocolSerialization {
@@ -24,6 +26,9 @@ abstract class FriendshipDto
     required this.incoming,
     required this.createdAt,
     this.respondedAt,
+    this.presence,
+    this.playing,
+    this.lastSeenAt,
   });
 
   factory FriendshipDto({
@@ -33,6 +38,9 @@ abstract class FriendshipDto
     required bool incoming,
     required DateTime createdAt,
     DateTime? respondedAt,
+    _iyn06qfo.EnumFriendPresence? presence,
+    _iu5mz6ho.EnumType? playing,
+    DateTime? lastSeenAt,
   }) = _FriendshipDtoImpl;
 
   factory FriendshipDto.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -53,6 +61,19 @@ abstract class FriendshipDto
           : _is.DateTimeJsonExtension.fromJson(
               jsonSerialization['respondedAt'],
             ),
+      presence: jsonSerialization['presence'] == null
+          ? null
+          : _iyn06qfo.EnumFriendPresence.fromJson(
+              (jsonSerialization['presence'] as String),
+            ),
+      playing: jsonSerialization['playing'] == null
+          ? null
+          : _iu5mz6ho.EnumType.fromJson(
+              (jsonSerialization['playing'] as String),
+            ),
+      lastSeenAt: jsonSerialization['lastSeenAt'] == null
+          ? null
+          : _is.DateTimeJsonExtension.fromJson(jsonSerialization['lastSeenAt']),
     );
   }
 
@@ -68,6 +89,12 @@ abstract class FriendshipDto
 
   DateTime? respondedAt;
 
+  _iyn06qfo.EnumFriendPresence? presence;
+
+  _iu5mz6ho.EnumType? playing;
+
+  DateTime? lastSeenAt;
+
   /// Returns a shallow copy of this [FriendshipDto]
   /// with some or all fields replaced by the given arguments.
   @_is.useResult
@@ -78,6 +105,9 @@ abstract class FriendshipDto
     bool? incoming,
     DateTime? createdAt,
     DateTime? respondedAt,
+    _iyn06qfo.EnumFriendPresence? presence,
+    _iu5mz6ho.EnumType? playing,
+    DateTime? lastSeenAt,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -89,6 +119,9 @@ abstract class FriendshipDto
       'incoming': incoming,
       'createdAt': createdAt.toJson(),
       if (respondedAt != null) 'respondedAt': respondedAt?.toJson(),
+      if (presence != null) 'presence': presence?.toJson(),
+      if (playing != null) 'playing': playing?.toJson(),
+      if (lastSeenAt != null) 'lastSeenAt': lastSeenAt?.toJson(),
     };
   }
 
@@ -102,6 +135,9 @@ abstract class FriendshipDto
       'incoming': incoming,
       'createdAt': createdAt.toJson(),
       if (respondedAt != null) 'respondedAt': respondedAt?.toJson(),
+      if (presence != null) 'presence': presence?.toJson(),
+      if (playing != null) 'playing': playing?.toJson(),
+      if (lastSeenAt != null) 'lastSeenAt': lastSeenAt?.toJson(),
     };
   }
 
@@ -121,6 +157,9 @@ class _FriendshipDtoImpl extends FriendshipDto {
     required bool incoming,
     required DateTime createdAt,
     DateTime? respondedAt,
+    _iyn06qfo.EnumFriendPresence? presence,
+    _iu5mz6ho.EnumType? playing,
+    DateTime? lastSeenAt,
   }) : super._(
          id: id,
          other: other,
@@ -128,6 +167,9 @@ class _FriendshipDtoImpl extends FriendshipDto {
          incoming: incoming,
          createdAt: createdAt,
          respondedAt: respondedAt,
+         presence: presence,
+         playing: playing,
+         lastSeenAt: lastSeenAt,
        );
 
   /// Returns a shallow copy of this [FriendshipDto]
@@ -141,6 +183,9 @@ class _FriendshipDtoImpl extends FriendshipDto {
     bool? incoming,
     DateTime? createdAt,
     Object? respondedAt = _Undefined,
+    Object? presence = _Undefined,
+    Object? playing = _Undefined,
+    Object? lastSeenAt = _Undefined,
   }) {
     return FriendshipDto(
       id: id ?? this.id,
@@ -149,6 +194,11 @@ class _FriendshipDtoImpl extends FriendshipDto {
       incoming: incoming ?? this.incoming,
       createdAt: createdAt ?? this.createdAt,
       respondedAt: respondedAt is DateTime? ? respondedAt : this.respondedAt,
+      presence: presence is _iyn06qfo.EnumFriendPresence?
+          ? presence
+          : this.presence,
+      playing: playing is _iu5mz6ho.EnumType? ? playing : this.playing,
+      lastSeenAt: lastSeenAt is DateTime? ? lastSeenAt : this.lastSeenAt,
     );
   }
 }

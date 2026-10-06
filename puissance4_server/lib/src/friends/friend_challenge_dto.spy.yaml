@@ -1,0 +1,7 @@
+# Défi reçu d'un ami (E15) : sa salle privée [code], réservée au joueur
+# courant, qu'il rejoint par `MultiplayerEndpoint.joinRoom`.
+class: FriendChallengeDto
+fields:
+  code: String
+  from: FriendUserDto
+  expiresAt: DateTime

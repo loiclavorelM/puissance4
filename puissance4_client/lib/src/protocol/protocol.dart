@@ -12,6 +12,8 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:puissance4_client/src/protocol/bot/bot.dart' as _ighv8e6n;
+import 'package:puissance4_client/src/protocol/friends/friend_challenge_dto.dart'
+    as _im2ichtj;
 import 'package:puissance4_client/src/protocol/friends/player_search_result_dto.dart'
     as _ionzpnek;
 import 'package:puissance4_client/src/protocol/history/history_dto.dart'
@@ -28,9 +30,11 @@ import 'package:serverpod_offline_sync_client/serverpod_offline_sync_client.dart
     as _ipulbpi2;
 import 'bot/bot.dart' as _iij7x2jd;
 import 'bot/enum_bot_level.dart' as _i65o1ott;
+import 'friends/enum_friend_presence.dart' as _ifm42sdi;
 import 'friends/enum_friend_relation.dart' as _it2shy0i;
 import 'friends/enum_friends_error.dart' as _if0hp53x;
 import 'friends/enum_friendship_status.dart' as _iiv2c9gb;
+import 'friends/friend_challenge_dto.dart' as _iqz9h2tk;
 import 'friends/friend_user_dto.dart' as _in6lw5u5;
 import 'friends/friends_exception.dart' as _i9j1nep3;
 import 'friends/friends_overview_dto.dart' as _ibsg885b;
@@ -69,9 +73,11 @@ import 'review/move_explanation.dart' as _i0n08bga;
 import 'review/review_exception.dart' as _i7k2kt7u;
 export 'bot/bot.dart';
 export 'bot/enum_bot_level.dart';
+export 'friends/enum_friend_presence.dart';
 export 'friends/enum_friend_relation.dart';
 export 'friends/enum_friends_error.dart';
 export 'friends/enum_friendship_status.dart';
+export 'friends/friend_challenge_dto.dart';
 export 'friends/friend_user_dto.dart';
 export 'friends/friends_exception.dart';
 export 'friends/friends_overview_dto.dart';
@@ -250,6 +256,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _i65o1ott.EnumBotLevel) {
       return _i65o1ott.EnumBotLevel.fromJson(data) as T;
     }
+    if (t == _ifm42sdi.EnumFriendPresence) {
+      return _ifm42sdi.EnumFriendPresence.fromJson(data) as T;
+    }
     if (t == _it2shy0i.EnumFriendRelation) {
       return _it2shy0i.EnumFriendRelation.fromJson(data) as T;
     }
@@ -258,6 +267,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (t == _iiv2c9gb.EnumFriendshipStatus) {
       return _iiv2c9gb.EnumFriendshipStatus.fromJson(data) as T;
+    }
+    if (t == _iqz9h2tk.FriendChallengeDto) {
+      return _iqz9h2tk.FriendChallengeDto.fromJson(data) as T;
     }
     if (t == _in6lw5u5.FriendUserDto) {
       return _in6lw5u5.FriendUserDto.fromJson(data) as T;
@@ -373,6 +385,10 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _isc.getType<_i65o1ott.EnumBotLevel?>()) {
       return (data != null ? _i65o1ott.EnumBotLevel.fromJson(data) : null) as T;
     }
+    if (t == _isc.getType<_ifm42sdi.EnumFriendPresence?>()) {
+      return (data != null ? _ifm42sdi.EnumFriendPresence.fromJson(data) : null)
+          as T;
+    }
     if (t == _isc.getType<_it2shy0i.EnumFriendRelation?>()) {
       return (data != null ? _it2shy0i.EnumFriendRelation.fromJson(data) : null)
           as T;
@@ -385,6 +401,10 @@ class Protocol extends _isd.DatabaseSerializationManager {
       return (data != null
               ? _iiv2c9gb.EnumFriendshipStatus.fromJson(data)
               : null)
+          as T;
+    }
+    if (t == _isc.getType<_iqz9h2tk.FriendChallengeDto?>()) {
+      return (data != null ? _iqz9h2tk.FriendChallengeDto.fromJson(data) : null)
           as T;
     }
     if (t == _isc.getType<_in6lw5u5.FriendUserDto?>()) {
@@ -555,6 +575,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
               .toList()
           as T;
     }
+    if (t == List<_im2ichtj.FriendChallengeDto>) {
+      return (data as List)
+              .map((e) => deserialize<_im2ichtj.FriendChallengeDto>(e))
+              .toList()
+          as T;
+    }
     if (t == List<_igkkg43x.HistoryDto>) {
       return (data as List)
               .map((e) => deserialize<_igkkg43x.HistoryDto>(e))
@@ -586,9 +612,11 @@ class Protocol extends _isd.DatabaseSerializationManager {
     return switch (type) {
       _iij7x2jd.Bot => 'Bot',
       _i65o1ott.EnumBotLevel => 'EnumBotLevel',
+      _ifm42sdi.EnumFriendPresence => 'EnumFriendPresence',
       _it2shy0i.EnumFriendRelation => 'EnumFriendRelation',
       _if0hp53x.EnumFriendsError => 'EnumFriendsError',
       _iiv2c9gb.EnumFriendshipStatus => 'EnumFriendshipStatus',
+      _iqz9h2tk.FriendChallengeDto => 'FriendChallengeDto',
       _in6lw5u5.FriendUserDto => 'FriendUserDto',
       _i9j1nep3.FriendsException => 'FriendsException',
       _ibsg885b.FriendsOverviewDto => 'FriendsOverviewDto',
@@ -643,12 +671,16 @@ class Protocol extends _isd.DatabaseSerializationManager {
         return 'Bot';
       case _i65o1ott.EnumBotLevel():
         return 'EnumBotLevel';
+      case _ifm42sdi.EnumFriendPresence():
+        return 'EnumFriendPresence';
       case _it2shy0i.EnumFriendRelation():
         return 'EnumFriendRelation';
       case _if0hp53x.EnumFriendsError():
         return 'EnumFriendsError';
       case _iiv2c9gb.EnumFriendshipStatus():
         return 'EnumFriendshipStatus';
+      case _iqz9h2tk.FriendChallengeDto():
+        return 'FriendChallengeDto';
       case _in6lw5u5.FriendUserDto():
         return 'FriendUserDto';
       case _i9j1nep3.FriendsException():
@@ -755,6 +787,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (dataClassName == 'EnumBotLevel') {
       return deserialize<_i65o1ott.EnumBotLevel>(data['data']);
     }
+    if (dataClassName == 'EnumFriendPresence') {
+      return deserialize<_ifm42sdi.EnumFriendPresence>(data['data']);
+    }
     if (dataClassName == 'EnumFriendRelation') {
       return deserialize<_it2shy0i.EnumFriendRelation>(data['data']);
     }
@@ -763,6 +798,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (dataClassName == 'EnumFriendshipStatus') {
       return deserialize<_iiv2c9gb.EnumFriendshipStatus>(data['data']);
+    }
+    if (dataClassName == 'FriendChallengeDto') {
+      return deserialize<_iqz9h2tk.FriendChallengeDto>(data['data']);
     }
     if (dataClassName == 'FriendUserDto') {
       return deserialize<_in6lw5u5.FriendUserDto>(data['data']);

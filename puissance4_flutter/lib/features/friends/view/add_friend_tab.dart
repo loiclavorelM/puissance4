@@ -42,14 +42,15 @@ class AddFriendTab extends ConsumerWidget {
           ),
         ),
         const SliverToBoxAdapter(child: SizedBox(height: 16)),
-        if (results == null)
+        if (results == null) ...[
           SliverToBoxAdapter(
             child: Text(
               context.l10n.friendSearchTooShort,
               style: const TextStyle(color: Colors.white38, fontSize: 13),
             ),
-          )
-        else
+          ),
+          ..._recentOpponents(context, ref),
+        ] else
           ...results.when(
             loading: () => [
               const SliverToBoxAdapter(
@@ -84,6 +85,44 @@ class AddFriendTab extends ConsumerWidget {
       ],
     );
   }
+}
+
+/// « Rencontrés récemment » (US15.5) sous la recherche vide : derniers
+/// adversaires Multi, à ajouter en un tap. Toujours affichée une fois
+/// chargée — vide, elle explique ce qui y apparaîtra.
+List<Widget> _recentOpponents(BuildContext context, WidgetRef ref) {
+  final recent = ref.watch(recentOpponentsProvider).valueOrNull;
+  if (recent == null) return const [];
+  return [
+    const SliverToBoxAdapter(child: SizedBox(height: 24)),
+    SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Text(
+          context.l10n.recentOpponents,
+          style: const TextStyle(
+            color: Colors.white38,
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+            letterSpacing: 1,
+          ),
+        ),
+      ),
+    ),
+    if (recent.isEmpty)
+      SliverToBoxAdapter(
+        child: Text(
+          context.l10n.recentOpponentsEmpty,
+          style: const TextStyle(color: Colors.white38, fontSize: 13),
+        ),
+      )
+    else
+      SliverList.separated(
+        itemCount: recent.length,
+        separatorBuilder: (_, _) => const SizedBox(height: 12),
+        itemBuilder: (context, index) => _ResultRow(recent[index]),
+      ),
+  ];
 }
 
 class _MyFriendCode extends ConsumerWidget {

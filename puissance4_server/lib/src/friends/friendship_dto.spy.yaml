@@ -8,3 +8,8 @@ fields:
   incoming: bool
   createdAt: DateTime
   respondedAt: DateTime?
+  # Amis seulement (null pour une demande) : en ligne, en partie ou absent.
+  presence: EnumFriendPresence?
+  # En partie : Multi ou Classé.
+  playing: EnumType?
+  lastSeenAt: DateTime?

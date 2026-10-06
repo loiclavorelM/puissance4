@@ -449,23 +449,24 @@ Tickets :
 
 ### US15.4 — En tant que joueur, je veux voir si mes amis sont en ligne ou en partie, afin de savoir qui défier.
 Critères d'acceptation :
-- Pastille en ligne / en partie / vu il y a… ; amis en ligne en tête.
-- Présence en mémoire (`PresenceStore`), alimentée par `LiveEndpoint.watchUpdates` et `GameStream` — à remplacer par une version partagée avec Redis, comme `RoomStore`.
+- Pastille en ligne / en partie (Multi ou Classé) / vu il y a… ; amis en ligne en tête, puis en partie.
+- « En ligne » = stream `LiveEndpoint.watchUpdates` ouvert, compté en mémoire (`PresenceStore`, à remplacer par une version partagée avec Redis, comme `RoomStore`) ; « en partie » lu en base (partie serveur `inProgress`) ; « vu il y a » = `User.lastSeenAt`, écrit à la dernière déconnexion.
+- Les amis sont prévenus (`friendsChanged`) quand on passe en ligne / hors ligne, et quand une partie serveur commence ou finit.
 
 Tickets :
-- [ ] T15.4.1 — `PresenceStore` + diffusion aux amis — `owner:B` `area:backend`
-- [ ] T15.4.2 — Pastilles et tri dans « Mes amis » — `owner:A`
+- [x] T15.4.1 — `PresenceStore` + diffusion aux amis — `owner:B` `area:backend`
+- [x] T15.4.2 — Pastilles et tri dans « Mes amis » — `owner:A`
 
 ### US15.5 — En tant que joueur, je veux défier un ami en un tap, afin de lancer une partie Multi sans échanger de code.
 Critères d'acceptation :
-- « Défier » ouvre une salle privée (`RoomStore`) et pousse un `challengeReceived` à l'ami : bannière « X te défie ! » (Accepter / Refuser, 30 s) partout dans l'app.
-- Accepter = `joinRoom(code)` ; aucune `Partie` avant l'acceptation (pas de partie fantôme).
-- Section « Rencontrés récemment » (adversaires Multi de l'historique) dans « Ajouter ».
+- « Défier » (ami en ligne seulement) ouvre `hostRoom(challengeUserId:)` : salle privée réservée à l'ami (personne d'autre ne peut la rejoindre), 2 min (`FriendsConfig.challengeLifetime`). L'ami reçoit `challengesChanged` et voit une bannière « X te défie ! » (Accepter / Refuser, compte à rebours) depuis tous les onglets.
+- Accepter = `joinRoom(code)` ; Refuser = `declineChallenge(code)`, qui ferme la salle — le défieur voit « X a refusé ton défi ». Aucune `Partie` avant l'acceptation (pas de partie fantôme).
+- Section « Rencontrés récemment » (10 derniers adversaires Multi, une fois chacun) dans « Ajouter », sous la recherche vide.
 
 Tickets :
-- [ ] T15.5.1 — `challenge` / `answerChallenge` sur `RoomStore` + événements live — `owner:B` `area:backend`
-- [ ] T15.5.2 — Bannière de défi globale + bouton « Défier » — `owner:A`
-- [ ] T15.5.3 — « Rencontrés récemment » — `owner:A`/`owner:B`
+- [x] T15.5.1 — Défi sur `RoomStore` (salle réservée, `listInvitations`, `decline`) + `getChallenges` / `declineChallenge` + événements live — `owner:B` `area:backend`
+- [x] T15.5.2 — Bannière de défi globale + bouton « Défier » — `owner:A`
+- [x] T15.5.3 — « Rencontrés récemment » (`recentOpponents`) — `owner:A`/`owner:B`
 
 ### US15.6 — En tant que joueur à côté d'un autre, je veux l'ajouter sans taper son pseudo, afin d'aller plus vite.
 Critères d'acceptation :

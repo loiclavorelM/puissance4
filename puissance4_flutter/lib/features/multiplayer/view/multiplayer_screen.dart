@@ -17,8 +17,14 @@ import '../../../core/l10n/l10n.dart';
 /// code, rejoindre celle d'un ami par son code, ou une salle publique du
 /// lobby (US7.4). Dès que la partie commence, l'écran de partie commun
 /// (`GameScreen`) prend le relais. Quitter la salle d'attente la ferme.
+///
+/// Depuis les Amis (E15) : [challenge] ouvre aussitôt un défi à cet ami,
+/// [joinCode] rejoint aussitôt la salle d'un défi reçu.
 class MultiplayerScreen extends ConsumerStatefulWidget {
-  const MultiplayerScreen({super.key});
+  const MultiplayerScreen({super.key, this.challenge, this.joinCode});
+
+  final FriendUserDto? challenge;
+  final String? joinCode;
 
   @override
   ConsumerState<MultiplayerScreen> createState() => _MultiplayerScreenState();
@@ -40,6 +46,21 @@ class _MultiplayerScreenState extends ConsumerState<MultiplayerScreen> {
         );
       },
     );
+    final challenge = widget.challenge;
+    final joinCode = widget.joinCode;
+    if (challenge != null || joinCode != null) {
+      // Pas pendant `initState` : Riverpod refuse qu'on modifie un provider
+      // pendant la construction des widgets.
+      Future.microtask(() {
+        if (!mounted) return;
+        final viewModel = ref.read(multiplayerViewModelProvider.notifier);
+        if (challenge != null) {
+          viewModel.challenge(challenge);
+        } else {
+          viewModel.join(joinCode!);
+        }
+      });
+    }
   }
 
   @override
@@ -309,6 +330,8 @@ class _WaitingRoom extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final challenged = state.challenged;
+    if (challenged != null) return _ChallengeWaiting(state, challenged);
     final code = state.code ?? '';
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -373,6 +396,71 @@ class _WaitingRoom extends ConsumerWidget {
             ),
           ),
         ],
+        const SizedBox(height: 32),
+        OutlinedButton(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: Colors.white,
+            side: const BorderSide(color: Colors.white24),
+          ),
+          onPressed: ref.read(multiplayerViewModelProvider.notifier).leaveRoom,
+          child: Text(context.l10n.cancel),
+        ),
+      ],
+    );
+  }
+}
+
+/// Salle d'attente d'un défi (E15) : pas de code à partager, l'ami a été
+/// prévenu.
+class _ChallengeWaiting extends ConsumerWidget {
+  const _ChallengeWaiting(this.state, this.friend);
+
+  final LobbyState state;
+  final FriendUserDto friend;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Center(
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.green,
+            ),
+            child: ProfileAvatar(
+              username: friend.username,
+              thumbnailUrl: friend.thumbnailUrl,
+              radius: 44,
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        Text(
+          context.l10n.challengeWaiting(friend.username),
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        if (state.roomExpiresAt != null) ...[
+          const SizedBox(height: 8),
+          Countdown(
+            deadline: state.roomExpiresAt!,
+            builder: (remaining) => Text(
+              context.l10n.roomClosesIn(formatDuration(remaining)),
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white38, fontSize: 12),
+            ),
+          ),
+        ],
+        const SizedBox(height: 32),
+        const Center(child: CircularProgressIndicator(color: AppColors.green)),
         const SizedBox(height: 32),
         OutlinedButton(
           style: OutlinedButton.styleFrom(

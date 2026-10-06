@@ -18,6 +18,9 @@ connection:
 friends:
   - getOverview:
   - searchPlayers:
+  - recentOpponents:
+  - getChallenges:
+  - declineChallenge:
   - sendRequest:
   - acceptRequest:
   - declineRequest:

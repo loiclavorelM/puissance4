@@ -37,4 +37,14 @@ class FriendsRepository {
       client.friends.cancelRequest(friendshipId);
 
   Future<void> remove(UuidValue userId) => client.friends.removeFriend(userId);
+
+  Future<List<PlayerSearchResultDto>> recentOpponents() =>
+      client.friends.recentOpponents();
+
+  /// Défis reçus encore ouverts (salles réservées au joueur).
+  Future<List<FriendChallengeDto>> challenges() =>
+      client.friends.getChallenges();
+
+  Future<void> declineChallenge(String code) =>
+      client.friends.declineChallenge(code);
 }

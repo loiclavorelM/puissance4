@@ -5,6 +5,7 @@ import 'package:puissance4_client/puissance4_client.dart';
 
 import '../../../core/l10n/l10n.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../multiplayer/view/multiplayer_screen.dart';
 import '../viewmodel/friends_viewmodel.dart';
 import 'friend_tile.dart';
 import 'friends_screen.dart';
@@ -53,30 +54,80 @@ class _FriendRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final friend = friendship.other;
-    final locale = Localizations.localeOf(context).toLanguageTag();
-    final since = friendship.respondedAt ?? friendship.createdAt;
     final busy = ref.watch(friendActionsProvider).contains(friend.userId);
+    final presence = friendship.presence ?? EnumFriendPresence.offline;
 
     return FriendTile(
       player: friend,
-      subtitle: context.l10n.friendsSince(
-        DateFormat.yMMMd(locale).format(since.toLocal()),
-      ),
-      trailing: PopupMenuButton<void>(
-        enabled: !busy,
-        iconColor: Colors.white54,
-        color: AppColors.card,
-        itemBuilder: (context) => [
-          PopupMenuItem(
-            onTap: () => _confirmRemove(context, ref, friend),
-            child: Text(
-              context.l10n.friendRemove,
-              style: const TextStyle(color: Colors.white),
-            ),
+      presence: presence,
+      subtitle: _presenceText(context, friendship),
+      subtitleColor: presence == EnumFriendPresence.offline
+          ? Colors.white54
+          : presenceColor(presence),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            tooltip: context.l10n.friendChallenge,
+            // Seul un ami en ligne (et pas déjà en partie) voit le défi.
+            onPressed: presence == EnumFriendPresence.online && !busy
+                ? () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => MultiplayerScreen(challenge: friend),
+                    ),
+                  )
+                : null,
+            color: AppColors.green,
+            disabledColor: Colors.white24,
+            icon: const Icon(Icons.sports_esports),
+          ),
+          PopupMenuButton<void>(
+            enabled: !busy,
+            iconColor: Colors.white54,
+            color: AppColors.card,
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                onTap: () => _confirmRemove(context, ref, friend),
+                child: Text(
+                  context.l10n.friendRemove,
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
+  }
+
+  /// « En ligne », « En partie · Classé », « Vu il y a 3 h », sinon depuis
+  /// quand on est amis.
+  static String _presenceText(BuildContext context, FriendshipDto friendship) {
+    final l10n = context.l10n;
+    switch (friendship.presence) {
+      case EnumFriendPresence.online:
+        return l10n.presenceOnline;
+      case EnumFriendPresence.playing:
+        return l10n.presencePlaying(
+          friendship.playing == EnumType.classe
+              ? l10n.modeRanked
+              : l10n.modeMulti,
+        );
+      case EnumFriendPresence.offline || null:
+        final seen = friendship.lastSeenAt;
+        if (seen != null) {
+          final ago = DateTime.now().difference(seen.toLocal());
+          if (ago.inMinutes < 1) return l10n.presenceSeenJustNow;
+          if (ago.inHours < 1) return l10n.presenceSeenMinutes(ago.inMinutes);
+          if (ago.inDays < 1) return l10n.presenceSeenHours(ago.inHours);
+          return l10n.presenceSeenDays(ago.inDays);
+        }
+        final locale = Localizations.localeOf(context).toLanguageTag();
+        final since = friendship.respondedAt ?? friendship.createdAt;
+        return l10n.friendsSince(
+          DateFormat.yMMMd(locale).format(since.toLocal()),
+        );
+    }
   }
 
   Future<void> _confirmRemove(

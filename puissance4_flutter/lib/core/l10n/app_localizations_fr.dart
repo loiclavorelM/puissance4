@@ -180,6 +180,29 @@ class AppLocalizationsFr extends AppLocalizations {
   String get cancel => 'Annuler';
 
   @override
+  String challengeDeclined(String name) {
+    return '$name a refusé ton défi.';
+  }
+
+  @override
+  String challengeExpired(String name) {
+    return '$name n\'a pas répondu à ton défi.';
+  }
+
+  @override
+  String get challengeGone => 'Ce défi n\'existe plus.';
+
+  @override
+  String challengeReceived(String name) {
+    return '$name te défie !';
+  }
+
+  @override
+  String challengeWaiting(String name) {
+    return 'En attente de $name…';
+  }
+
+  @override
   String get chooseMode => 'CHOISIS TON MODE';
 
   @override
@@ -309,6 +332,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get friendAdd => 'Ajouter';
 
   @override
+  String get friendChallenge => 'Défier';
+
+  @override
   String get friendCodeCopied => 'Code ami copié.';
 
   @override
@@ -371,6 +397,9 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get friendSearchTooShort =>
       'Tape au moins 3 caractères, ou un code ami.';
+
+  @override
+  String get friendUnavailable => 'Cet ami n\'est plus disponible pour jouer.';
 
   @override
   String get friendsEmpty =>
@@ -698,6 +727,32 @@ class AppLocalizationsFr extends AppLocalizations {
   String get preferencesSection => 'PRÉFÉRENCES';
 
   @override
+  String get presenceOnline => 'En ligne';
+
+  @override
+  String presencePlaying(String mode) {
+    return 'En partie · $mode';
+  }
+
+  @override
+  String presenceSeenDays(int count) {
+    return 'Vu il y a $count j';
+  }
+
+  @override
+  String presenceSeenHours(int count) {
+    return 'Vu il y a $count h';
+  }
+
+  @override
+  String get presenceSeenJustNow => 'Vu à l\'instant';
+
+  @override
+  String presenceSeenMinutes(int count) {
+    return 'Vu il y a $count min';
+  }
+
+  @override
   String get publicRoom => 'Salle publique';
 
   @override
@@ -717,6 +772,13 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get rankedRules =>
       'Chaque coup est validé par le serveur. Victoire, défaite ou nul font varier ton Elo ; quitter la partie compte comme une défaite (sauf si tu n\'as joué aucun coup). 60 s par coup.';
+
+  @override
+  String get recentOpponents => 'RENCONTRÉS RÉCEMMENT';
+
+  @override
+  String get recentOpponentsEmpty =>
+      'Tes adversaires en Multi apparaîtront ici, pour les ajouter en un tap.';
 
   @override
   String get replayFirst => 'Début';

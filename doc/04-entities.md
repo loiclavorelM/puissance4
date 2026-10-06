@@ -21,6 +21,7 @@ string username
 string thumbnail_path
 int elo = 1000
 string? friendCode   // code ami E15 (6 caractères, unique), attribué au besoin
+DateTime? lastSeenAt // E15 : dernière déconnexion du temps réel (« vu il y a »)
 {Champs d'audits}
 ```
 ### Bot

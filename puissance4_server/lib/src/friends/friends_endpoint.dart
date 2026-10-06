@@ -2,10 +2,14 @@ import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_idp_server/core.dart';
 
 import '../auth/guest_upgrade.dart';
+import '../game/server_game.dart';
 import '../generated/protocol.dart';
 import '../live/live_notifier.dart';
+import '../multiplayer/multiplayer_config.dart';
+import '../multiplayer/multiplayer_endpoint.dart';
 import '../profile/profile_photo.dart';
 import 'friend_code.dart';
+import 'friends_config.dart';
 
 /// Amis (E15) : demandes d'ami, liste d'amis, recherche de joueurs. Réservé
 /// aux comptes email — un invité (compte anonyme) reçoit
@@ -19,9 +23,11 @@ class FriendsEndpoint extends Endpoint {
   static const maxFriends = 200;
   static const minSearchLength = 3;
   static const searchLimit = 20;
+  static const recentOpponentsLimit = 10;
 
-  /// Tout l'onglet Amis : code ami (attribué au premier appel), amis triés
-  /// par Elo, demandes reçues et envoyées (plus récentes d'abord).
+  /// Tout l'onglet Amis : code ami (attribué au premier appel), amis — en
+  /// ligne d'abord, puis en partie, puis par Elo —, demandes reçues et
+  /// envoyées (plus récentes d'abord).
   Future<FriendsOverviewDto> getOverview(Session session) async {
     final me = await _requireMember(session);
     final rows = await Friendship.db.find(
@@ -29,11 +35,21 @@ class FriendsEndpoint extends Endpoint {
       where: (t) => t.requesterId.equals(me.id) | t.addresseeId.equals(me.id),
       orderBy: (t) => t.createdAt.desc(),
     );
-    final dtos = await _toDtos(session, me, rows);
+    final (dtos, others) = await _toDtos(session, me, rows);
 
-    final friends =
-        dtos.where((f) => f.status == EnumFriendshipStatus.accepted).toList()
-          ..sort((a, b) => b.other.elo.compareTo(a.other.elo));
+    final accepted = [
+      for (final f in dtos)
+        if (f.status == EnumFriendshipStatus.accepted) f,
+    ];
+    final friends = await _withPresence(session, accepted, others)
+      ..sort((a, b) {
+        final byPresence = _presenceOrder(
+          a.presence,
+        ).compareTo(_presenceOrder(b.presence));
+        return byPresence != 0
+            ? byPresence
+            : b.other.elo.compareTo(a.other.elo);
+      });
     final pending = dtos.where((f) => f.status == EnumFriendshipStatus.pending);
     return FriendsOverviewDto(
       friendCode: await _ensureFriendCode(session, me),
@@ -79,17 +95,115 @@ class FriendsEndpoint extends Endpoint {
       );
     }
 
+    return _searchResults(session, me, candidates, searchLimit);
+  }
+
+  /// Derniers adversaires humains du joueur en Multi (US15.5), du plus
+  /// récent au plus ancien, avec leur relation — pour les ajouter en un tap.
+  Future<List<PlayerSearchResultDto>> recentOpponents(Session session) async {
+    final me = await _requireMember(session);
+    final myPlayers = await Player.db.find(
+      session,
+      where: (t) => t.userId.equals(me.id),
+    );
+    if (myPlayers.isEmpty) return [];
+    final myPlayerIds = {for (final p in myPlayers) p.id!};
+    final parties = await Partie.db.find(
+      session,
+      where: (t) =>
+          t.typePartie.equals(EnumType.multi) &
+          t.status.equals(EnumStatut.finished) &
+          (t.playerRougeId.inSet(myPlayerIds) |
+              t.playerJauneId.inSet(myPlayerIds)),
+      orderBy: (t) => t.createdAt.desc(),
+      limit: recentOpponentsLimit * 3,
+    );
+    final opponentPlayerIds = [
+      for (final partie in parties)
+        myPlayerIds.contains(partie.playerRougeId)
+            ? partie.playerJauneId
+            : partie.playerRougeId,
+    ];
+    if (opponentPlayerIds.isEmpty) return [];
+    final players = await Player.db.find(
+      session,
+      where: (t) => t.id.inSet(opponentPlayerIds.toSet()),
+    );
+    final userIdByPlayer = {for (final p in players) p.id!: p.userId};
+    final users = await User.db.find(
+      session,
+      where: (t) => t.id.inSet(<UuidValue>{for (final p in players) ?p.userId}),
+    );
+    final userById = {for (final u in users) u.id!: u};
+    final candidates = [
+      for (final playerId in opponentPlayerIds)
+        ?userById[userIdByPlayer[playerId]],
+    ];
+    return _searchResults(session, me, candidates, recentOpponentsLimit);
+  }
+
+  /// Défis reçus encore ouverts (E15) : des salles privées réservées au
+  /// joueur courant, à rejoindre par `MultiplayerEndpoint.joinRoom`.
+  Future<List<FriendChallengeDto>> getChallenges(Session session) async {
+    final me = await _requireMember(session);
+    final rooms = await MultiplayerConfig.rooms.listInvitations(
+      me.authUserId!,
+    );
+    if (rooms.isEmpty) return [];
+    final hosts = await User.db.find(
+      session,
+      where: (t) =>
+          t.id.inSet(<UuidValue>{for (final room in rooms) room.hostUserId}),
+    );
+    final hostById = {for (final host in hosts) host.id!: host};
+    final photoUrls = await ProfilePhoto.urls(
+      session,
+      hosts.map((u) => u.thumbnailPath),
+    );
+    return [
+      for (final room in rooms)
+        if (hostById[room.hostUserId] case final host?)
+          FriendChallengeDto(
+            code: room.code,
+            from: _userDto(host, photoUrls),
+            expiresAt: room.expiresAt,
+          ),
+    ]..sort((a, b) => b.expiresAt.compareTo(a.expiresAt));
+  }
+
+  /// Refuse le défi [code] : la salle se ferme et son hôte reçoit
+  /// `challengeDeclined`.
+  Future<void> declineChallenge(Session session, String code) async {
+    final me = await _requireMember(session);
+    final room = await MultiplayerConfig.rooms.decline(code, me.authUserId!);
+    if (room == null) {
+      throw FriendsException(reason: EnumFriendsError.challengeNotFound);
+    }
+    await session.messages.postMessage(
+      MultiplayerEndpoint.roomChannel(room.code),
+      GameEvent(type: EnumGameEventType.challengeDeclined, code: room.code),
+    );
+  }
+
+  /// [candidates] sans soi-même, les invités ni les doublons (au plus
+  /// [limit]), avec leur relation au joueur courant.
+  Future<List<PlayerSearchResultDto>> _searchResults(
+    Session session,
+    User me,
+    List<User> candidates,
+    int limit,
+  ) async {
     final guests = await _guestAuthUserIds(session, candidates);
     final seen = <UuidValue>{me.id!};
     final players = [
       for (final user in candidates)
         if (!guests.contains(user.authUserId) && seen.add(user.id!)) user,
-    ].take(searchLimit).toList();
+    ].take(limit).toList();
     if (players.isEmpty) return [];
 
     final rows = await Friendship.db.find(
       session,
-      where: (t) => t.pairKey.inSet({
+      where: (t) => t.pairKey.inSet(<String>{
         for (final user in players) friendPairKey(me.id!, user.id!),
       }),
     );
@@ -373,12 +487,13 @@ class FriendsEndpoint extends Endpoint {
     return _friendshipDto(me, row, other, photoUrls);
   }
 
-  Future<List<FriendshipDto>> _toDtos(
+  /// Les DTO de [rows], et les autres joueurs par `User.id`.
+  Future<(List<FriendshipDto>, Map<UuidValue, User>)> _toDtos(
     Session session,
     User me,
     List<Friendship> rows,
   ) async {
-    if (rows.isEmpty) return [];
+    if (rows.isEmpty) return (<FriendshipDto>[], <UuidValue, User>{});
     final others = await User.db.find(
       session,
       where: (t) => t.id.inSet(<UuidValue>{
@@ -391,16 +506,79 @@ class FriendsEndpoint extends Endpoint {
       session,
       others.map((u) => u.thumbnailPath),
     );
+    return (
+      [
+        for (final row in rows)
+          _friendshipDto(
+            me,
+            row,
+            byId[row.requesterId == me.id ? row.addresseeId : row.requesterId]!,
+            photoUrls,
+          ),
+      ],
+      byId,
+    );
+  }
+
+  /// [friends] avec leur présence : en partie (serveur) l'emporte sur en
+  /// ligne ; sinon l'heure de leur dernière déconnexion.
+  Future<List<FriendshipDto>> _withPresence(
+    Session session,
+    List<FriendshipDto> friends,
+    Map<UuidValue, User> users,
+  ) async {
+    if (friends.isEmpty) return friends;
+    final online = await FriendsConfig.presence.onlineAmong([
+      for (final f in friends) ?users[f.other.userId]?.authUserId,
+    ]);
+    final playing = await _playing(session, {
+      for (final f in friends) f.other.userId,
+    });
     return [
-      for (final row in rows)
-        _friendshipDto(
-          me,
-          row,
-          byId[row.requesterId == me.id ? row.addresseeId : row.requesterId]!,
-          photoUrls,
+      for (final f in friends)
+        f.copyWith(
+          presence: playing.containsKey(f.other.userId)
+              ? EnumFriendPresence.playing
+              : online.contains(users[f.other.userId]?.authUserId)
+              ? EnumFriendPresence.online
+              : EnumFriendPresence.offline,
+          playing: playing[f.other.userId],
+          lastSeenAt: users[f.other.userId]?.lastSeenAt,
         ),
     ];
   }
+
+  /// Type de la partie serveur en cours de chacun de [userIds] qui joue.
+  Future<Map<UuidValue, EnumType>> _playing(
+    Session session,
+    Set<UuidValue> userIds,
+  ) async {
+    final players = await Player.db.find(
+      session,
+      where: (t) => t.userId.inSet(userIds),
+    );
+    if (players.isEmpty) return {};
+    final userByPlayer = {for (final p in players) p.id!: p.userId!};
+    final playerIds = userByPlayer.keys.toSet();
+    final parties = await Partie.db.find(
+      session,
+      where: (t) =>
+          t.typePartie.inSet(ServerGame.liveTypes) &
+          t.status.equals(EnumStatut.inProgress) &
+          (t.playerRougeId.inSet(playerIds) | t.playerJauneId.inSet(playerIds)),
+    );
+    return {
+      for (final partie in parties)
+        for (final playerId in [partie.playerRougeId, partie.playerJauneId])
+          ?userByPlayer[playerId]: partie.typePartie,
+    };
+  }
+
+  static int _presenceOrder(EnumFriendPresence? presence) => switch (presence) {
+    EnumFriendPresence.online => 0,
+    EnumFriendPresence.playing => 1,
+    _ => 2,
+  };
 
   FriendshipDto _friendshipDto(
     User me,

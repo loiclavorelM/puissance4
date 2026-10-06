@@ -11,11 +11,17 @@ class FriendTile extends StatelessWidget {
     super.key,
     required this.player,
     this.subtitle,
+    this.subtitleColor = Colors.white54,
+    this.presence,
     this.trailing,
   });
 
   final FriendUserDto player;
   final String? subtitle;
+  final Color subtitleColor;
+
+  /// Pastille sur l'avatar (amis seulement).
+  final EnumFriendPresence? presence;
   final Widget? trailing;
 
   @override
@@ -28,10 +34,28 @@ class FriendTile extends StatelessWidget {
       ),
       child: Row(
         children: [
-          ProfileAvatar(
-            username: player.username,
-            thumbnailUrl: player.thumbnailUrl,
-            radius: 20,
+          Stack(
+            children: [
+              ProfileAvatar(
+                username: player.username,
+                thumbnailUrl: player.thumbnailUrl,
+                radius: 20,
+              ),
+              if (presence case final presence?)
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: presenceColor(presence),
+                      border: Border.all(color: AppColors.card, width: 2),
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -68,7 +92,7 @@ class FriendTile extends StatelessWidget {
                     subtitle!,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white54, fontSize: 12),
+                    style: TextStyle(color: subtitleColor, fontSize: 12),
                   ),
               ],
             ),
@@ -79,6 +103,12 @@ class FriendTile extends StatelessWidget {
     );
   }
 }
+
+Color presenceColor(EnumFriendPresence presence) => switch (presence) {
+  EnumFriendPresence.online => AppColors.green,
+  EnumFriendPresence.playing => AppColors.yellow,
+  EnumFriendPresence.offline => Colors.white24,
+};
 
 /// Message centré d'un onglet vide ou en erreur, avec une action facultative.
 class FriendsMessage extends StatelessWidget {

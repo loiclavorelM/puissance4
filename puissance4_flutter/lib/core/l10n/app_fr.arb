@@ -74,6 +74,39 @@
   },
   "botsLoadError": "Impossible de charger les bots.",
   "cancel": "Annuler",
+  "challengeDeclined": "{name} a refusé ton défi.",
+  "@challengeDeclined": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "challengeExpired": "{name} n'a pas répondu à ton défi.",
+  "@challengeExpired": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "challengeGone": "Ce défi n'existe plus.",
+  "challengeReceived": "{name} te défie !",
+  "@challengeReceived": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "challengeWaiting": "En attente de {name}…",
+  "@challengeWaiting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "chooseMode": "CHOISIS TON MODE",
   "chooseOpponent": "CHOISIS TON ADVERSAIRE",
   "codeCopied": "Code copié",
@@ -153,6 +186,7 @@
     }
   },
   "friendAdd": "Ajouter",
+  "friendChallenge": "Défier",
   "friendCodeCopied": "Code ami copié.",
   "friendCodeCopy": "Copier le code",
   "friendCodeHint": "Donne-le à un ami pour qu'il t'ajoute.",
@@ -193,6 +227,7 @@
   "friendSearchHint": "Pseudo ou code ami (P4-…)",
   "friendSearchNoResult": "Aucun joueur trouvé.",
   "friendSearchTooShort": "Tape au moins 3 caractères, ou un code ami.",
+  "friendUnavailable": "Cet ami n'est plus disponible pour jouer.",
   "friendsEmpty": "Pas encore d'amis. Ajoute les joueurs que tu croises !",
   "friendsEmptyAction": "Ajouter des amis",
   "friendsErrorAlreadyFriends": "Vous êtes déjà amis.",
@@ -334,6 +369,40 @@
   },
   "poweredByServerpod": "Propulsé par Serverpod",
   "preferencesSection": "PRÉFÉRENCES",
+  "presenceOnline": "En ligne",
+  "presencePlaying": "En partie · {mode}",
+  "@presencePlaying": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "presenceSeenDays": "Vu il y a {count} j",
+  "@presenceSeenDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "presenceSeenHours": "Vu il y a {count} h",
+  "@presenceSeenHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "presenceSeenJustNow": "Vu à l'instant",
+  "presenceSeenMinutes": "Vu il y a {count} min",
+  "@presenceSeenMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "publicRoom": "Salle publique",
   "publicRoomOff": "Seuls ceux qui ont le code peuvent rejoindre",
   "publicRoomOn": "Visible par tous dans les salles ouvertes",
@@ -350,6 +419,8 @@
   },
   "rankedOpponentByElo": "Adversaire choisi selon ton Elo",
   "rankedRules": "Chaque coup est validé par le serveur. Victoire, défaite ou nul font varier ton Elo ; quitter la partie compte comme une défaite (sauf si tu n'as joué aucun coup). 60 s par coup.",
+  "recentOpponents": "RENCONTRÉS RÉCEMMENT",
+  "recentOpponentsEmpty": "Tes adversaires en Multi apparaîtront ici, pour les ajouter en un tap.",
   "replayFirst": "Début",
   "replayLast": "Fin",
   "replayMove": "Coup {cursor} / {total}",

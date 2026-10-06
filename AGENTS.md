@@ -19,7 +19,7 @@ Key pieces:
 - Flutter `features/game/`: `GameScreen` only reads a `GameSnapshot` from a `GameEngine` passed in a `GameLaunch`. Engines: `LocalGameEngine` (rules on the phone, seats = human or on-device `BotBrain`), `ServerGameEngine` (server decides — Multi & Classé), `ReplayGameEngine` (moves from history). Never build a mode-specific board or game screen.
 - Server `lib/src/game/`: `ServerGame` (Multi + Classé state machine, DB is the source of truth, row locks, idempotent scheduled checks), `GameEndpoint` (`watchPartie`, `playMove`, `abandon`, `getActivePartie`), `GameStream`/`followPartie` (per-client stream + presence).
 - **No ghost games**: a server `Partie` is only created once both sides are known (Multi rooms live in memory while the host's stream is open), and every `inProgress` game always has a scheduled end (60 s per move, 15 s disconnect grace, `resumePending` at boot). Games cancelled before any human move end as `EnumStatut.abandoned` (excluded from history/stats/Elo).
-- **Redis/cluster-ready**: only `GameScheduler` (`server_game_config.dart`) and `RoomStore` (`multiplayer_config.dart`) are in-memory; swap them for shared implementations when enabling Redis.
+- **Redis/cluster-ready**: only `GameScheduler` (`server_game_config.dart`), `RoomStore` (`multiplayer_config.dart`) and `PresenceStore` (`friends_config.dart`, who is online for the friends tab) are in-memory; swap them for shared implementations when enabling Redis.
 
 ## Architecture
 

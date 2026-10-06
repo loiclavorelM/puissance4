@@ -48,6 +48,7 @@ void main() {
     FriendsAccess access = FriendsAccess.member,
     FriendsOverviewDto? overview,
     FriendsRepository? repository,
+    List<PlayerSearchResultDto> recent = const [],
   }) async {
     tester.view.physicalSize = const Size(1080, 2340);
     tester.view.devicePixelRatio = 3;
@@ -58,6 +59,7 @@ void main() {
           ...l10nOverrides,
           friendsAccessProvider.overrideWithValue(access),
           friendsOverviewProvider.overrideWith((ref) => Stream.value(overview)),
+          recentOpponentsProvider.overrideWith((ref) async => recent),
           if (repository != null)
             friendsRepositoryProvider.overrideWithValue(repository),
         ],
@@ -163,5 +165,102 @@ void main() {
     expect(repository.queries, ['dav']);
     expect(find.text('dave'), findsOneWidget);
     expect(find.text('Ami'), findsOneWidget);
+  });
+
+  testWidgets('friends show their presence; only online ones can be '
+      'challenged', (tester) async {
+    FriendshipDto withPresence(
+      String name,
+      EnumFriendPresence presence, {
+      EnumType? playing,
+      DateTime? lastSeenAt,
+    }) => friendship(name).copyWith(
+      presence: presence,
+      playing: playing,
+      lastSeenAt: lastSeenAt,
+    );
+    await pump(
+      tester,
+      overview: FriendsOverviewDto(
+        friendCode: '7KQ2X9',
+        friends: [
+          withPresence('ana', EnumFriendPresence.online),
+          withPresence(
+            'ben',
+            EnumFriendPresence.playing,
+            playing: EnumType.classe,
+          ),
+          withPresence(
+            'cleo',
+            EnumFriendPresence.offline,
+            lastSeenAt: DateTime.now().subtract(const Duration(hours: 3)),
+          ),
+        ],
+        incoming: [],
+        outgoing: [],
+      ),
+    );
+
+    expect(find.text('En ligne'), findsOneWidget);
+    expect(find.text('En partie · Classé'), findsOneWidget);
+    expect(find.text('Vu il y a 3 h'), findsOneWidget);
+    final challengeButtons = tester
+        .widgetList<IconButton>(
+          find.widgetWithIcon(IconButton, Icons.sports_esports),
+        )
+        .map((b) => b.onPressed != null)
+        .toList();
+    expect(challengeButtons, [true, false, false]);
+  });
+
+  testWidgets('recent opponents are offered under an empty search', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      overview: FriendsOverviewDto(
+        friendCode: '7KQ2X9',
+        friends: [],
+        incoming: [],
+        outgoing: [],
+      ),
+      recent: [
+        PlayerSearchResultDto(
+          player: player('rival'),
+          relation: EnumFriendRelation.none,
+        ),
+      ],
+    );
+
+    await tester.tap(find.text('Ajouter').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('RENCONTRÉS RÉCEMMENT'), findsOneWidget);
+    expect(find.text('rival'), findsOneWidget);
+  });
+
+  testWidgets('without recent opponents the section explains itself', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      overview: FriendsOverviewDto(
+        friendCode: '7KQ2X9',
+        friends: [],
+        incoming: [],
+        outgoing: [],
+      ),
+    );
+
+    await tester.tap(find.text('Ajouter').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('RENCONTRÉS RÉCEMMENT'), findsOneWidget);
+    expect(
+      find.text(
+        'Tes adversaires en Multi apparaîtront ici, pour les ajouter en un tap.',
+      ),
+      findsOneWidget,
+    );
   });
 }

@@ -10,3 +10,5 @@ values:
   - lobbyChanged
   # Amis (E15) : demande reçue, acceptée, refusée, annulée ou ami retiré.
   - friendsChanged
+  # Défi d'un ami reçu, retiré ou expiré (E15, `FriendsEndpoint.getChallenges`).
+  - challengesChanged

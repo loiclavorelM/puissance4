@@ -42,6 +42,7 @@ final liveUpdatesProvider = Provider<void>((ref) {
     ref.invalidate(serverHistoryProvider);
     ref.invalidate(leaderboardProvider);
     ref.invalidate(friendsOverviewProvider);
+    ref.invalidate(friendChallengesProvider);
   }
 
   void onEvent(LiveEvent event) {
@@ -56,6 +57,8 @@ final liveUpdatesProvider = Provider<void>((ref) {
         ref.invalidate(leaderboardProvider);
       case EnumLiveEventType.friendsChanged:
         ref.invalidate(friendsOverviewProvider);
+      case EnumLiveEventType.challengesChanged:
+        ref.invalidate(friendChallengesProvider);
       case EnumLiveEventType.lobbyChanged:
         // Propre au lobby Multi, qui a son stream (`lobbyRoomsProvider`).
         break;

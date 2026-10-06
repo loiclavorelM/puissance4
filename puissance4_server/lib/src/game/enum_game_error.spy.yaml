@@ -10,3 +10,5 @@ values:
   - notYourTurn
   - invalidMove
   - noBotAvailable
+  # Défi (E15) : l'invité n'est pas (ou plus) un ami, ou est déjà en partie.
+  - friendUnavailable

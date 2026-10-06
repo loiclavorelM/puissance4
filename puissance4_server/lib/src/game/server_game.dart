@@ -6,6 +6,7 @@ import 'package:puissance4_rules/puissance4_rules.dart';
 import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart';
 
+import '../friends/friend_notifier.dart';
 import '../generated/protocol.dart';
 import '../live/live_notifier.dart';
 import '../ranked/elo.dart';
@@ -193,6 +194,10 @@ abstract final class ServerGame {
       partie,
       botToPlay: _isBotTurn(partie, GameSeats(rouge: rouge, jaune: jaune)),
     );
+    // Leurs amis les voient « en partie » (E15).
+    await notifyFriendsOf(session, [
+      for (final seat in [first, second]) ?seat.user?.id,
+    ]);
     return partie;
   }
 
@@ -796,6 +801,10 @@ abstract final class ServerGame {
       partieChannel(partie.id!),
       snapshot(partie, seats, EnumGameEventType.gameOver),
     );
+    // Leurs amis ne les voient plus « en partie » (E15).
+    await notifyFriendsOf(session, [
+      for (final color in EnumColor.values) ?seats.of(color).user?.id,
+    ]);
     // Une partie annulée n'entre ni dans l'historique ni dans les stats.
     if (partie.status != EnumStatut.finished) return;
     for (final color in EnumColor.values) {

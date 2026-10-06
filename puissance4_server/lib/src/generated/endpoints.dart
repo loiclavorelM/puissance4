@@ -429,6 +429,45 @@ class Endpoints extends _is.EndpointDispatch {
                     params['query'],
                   ),
         ),
+        'recentOpponents': _is.MethodConnector(
+          name: 'recentOpponents',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .recentOpponents(session),
+        ),
+        'getChallenges': _is.MethodConnector(
+          name: 'getChallenges',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .getChallenges(session),
+        ),
+        'declineChallenge': _is.MethodConnector(
+          name: 'declineChallenge',
+          params: {
+            'code': _is.ParameterDescription(
+              name: 'code',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .declineChallenge(
+                    session,
+                    params['code'],
+                  ),
+        ),
         'sendRequest': _is.MethodConnector(
           name: 'sendRequest',
           params: {
@@ -780,6 +819,11 @@ class Endpoints extends _is.EndpointDispatch {
               type: _is.getType<bool>(),
               nullable: false,
             ),
+            'challengeUserId': _is.ParameterDescription(
+              name: 'challengeUserId',
+              type: _is.getType<_is.UuidValue?>(),
+              nullable: true,
+            ),
           },
           streamParams: {},
           returnType: _is.MethodStreamReturnType.streamType,
@@ -792,6 +836,7 @@ class Endpoints extends _is.EndpointDispatch {
                   .hostRoom(
                     session,
                     params['isPublic'],
+                    challengeUserId: params['challengeUserId'],
                   ),
         ),
         'watchLobby': _is.MethodStreamConnector(

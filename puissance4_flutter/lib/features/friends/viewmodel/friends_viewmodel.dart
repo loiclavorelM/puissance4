@@ -73,6 +73,22 @@ class FriendsTabRequestViewModel extends Notifier<int?> {
   void clear() => state = null;
 }
 
+/// Défis reçus encore ouverts (E15, US15.5) — vide hors compte email.
+/// Relancé sur chaque `challengesChanged` temps réel.
+final friendChallengesProvider = FutureProvider<List<FriendChallengeDto>>((
+  ref,
+) async {
+  if (ref.watch(friendsAccessProvider) != FriendsAccess.member) return [];
+  return ref.read(friendsRepositoryProvider).challenges();
+});
+
+/// « Rencontrés récemment » de l'onglet Ajouter : derniers adversaires
+/// Multi, avec leur relation.
+final recentOpponentsProvider =
+    FutureProvider.autoDispose<List<PlayerSearchResultDto>>(
+      (ref) => ref.read(friendsRepositoryProvider).recentOpponents(),
+    );
+
 /// Badge de l'onglet Amis et du sous-onglet Demandes.
 final incomingFriendRequestCountProvider = Provider<int>(
   (ref) => ref.watch(friendsOverviewProvider).valueOrNull?.incoming.length ?? 0,
@@ -118,6 +134,13 @@ class FriendActionsViewModel extends Notifier<Set<UuidValue>> {
         return null;
       });
 
+  /// Refuse le défi [challenge] : la salle de l'ami se ferme.
+  Future<String?> declineChallenge(FriendChallengeDto challenge) =>
+      _run(challenge.from.userId, (repository, _) async {
+        await repository.declineChallenge(challenge.code);
+        return null;
+      });
+
   Future<String?> remove(FriendUserDto friend) =>
       _run(friend.userId, (repository, _) async {
         await repository.remove(friend.userId);
@@ -141,7 +164,10 @@ class FriendActionsViewModel extends Notifier<Set<UuidValue>> {
       state = {...state}..remove(key);
       // Sans attendre l'événement temps réel, au cas où le stream serait
       // coupé.
-      ref.invalidate(friendsOverviewProvider);
+      ref
+        ..invalidate(friendsOverviewProvider)
+        ..invalidate(friendChallengesProvider)
+        ..invalidate(recentOpponentsProvider);
     }
   }
 }
@@ -156,6 +182,7 @@ String friendsErrorMessage(AppLocalizations l10n, EnumFriendsError reason) =>
       EnumFriendsError.requestNotFound => l10n.friendsErrorRequestNotFound,
       EnumFriendsError.notFriends => l10n.friendsErrorNotFriends,
       EnumFriendsError.tooManyFriends => l10n.friendsErrorTooMany,
+      EnumFriendsError.challengeNotFound => l10n.challengeGone,
     };
 
 /// Recherche de l'onglet « Ajouter » : [results] vaut `null` tant que la

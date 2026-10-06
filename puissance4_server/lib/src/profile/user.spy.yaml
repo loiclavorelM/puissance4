@@ -11,6 +11,8 @@ fields:
   # Code ami (E15, `P4-XXXXXX` sans le préfixe) : attribué au premier
   # affichage de l'onglet Amis (`FriendsEndpoint`), jamais pour un invité.
   friendCode: String?
+  # Dernière déconnexion du temps réel (E15, « vu il y a… » chez ses amis).
+  lastSeenAt: DateTime?
   createdAt: DateTime, default=now
   updatedAt: DateTime?
 

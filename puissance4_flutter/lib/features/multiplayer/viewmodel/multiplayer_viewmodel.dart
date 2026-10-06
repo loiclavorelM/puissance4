@@ -25,6 +25,7 @@ class LobbyState {
     this.roomExpiresAt,
     this.resumablePartieId,
     this.errorMessage,
+    this.challenged,
   });
 
   final LobbyPhase phase;
@@ -35,6 +36,10 @@ class LobbyState {
   /// propose de la reprendre.
   final UuidValue? resumablePartieId;
   final String? errorMessage;
+
+  /// Ami défié (E15) : la salle lui est réservée, son code n'est pas à
+  /// partager.
+  final FriendUserDto? challenged;
 }
 
 final multiplayerRepositoryProvider = Provider<MultiplayerRepository>(
@@ -62,6 +67,7 @@ class MultiplayerViewModel extends AutoDisposeNotifier<LobbyState> {
   final _launches = StreamController<GameLaunch>.broadcast();
   var _disposed = false;
   var _fromLobby = false;
+  FriendUserDto? _challenged;
 
   Stream<GameLaunch> get launches => _launches.stream;
 
@@ -78,8 +84,21 @@ class MultiplayerViewModel extends AutoDisposeNotifier<LobbyState> {
 
   void host({bool isPublic = false}) {
     _fromLobby = false;
+    _challenged = null;
     _follow(
       ref.read(multiplayerRepositoryProvider).hostRoom(isPublic: isPublic),
+    );
+  }
+
+  /// Défie l'ami [friend] (E15) : salle privée qui lui est réservée ; il la
+  /// voit dans ses défis reçus.
+  void challenge(FriendUserDto friend) {
+    _fromLobby = false;
+    _challenged = friend;
+    _follow(
+      ref
+          .read(multiplayerRepositoryProvider)
+          .hostRoom(challengeUserId: friend.userId),
     );
   }
 
@@ -87,6 +106,7 @@ class MultiplayerViewModel extends AutoDisposeNotifier<LobbyState> {
   /// ([fromLobby] : une salle disparue y a été prise par quelqu'un d'autre).
   void join(String code, {bool fromLobby = false}) {
     _fromLobby = fromLobby;
+    _challenged = null;
     final normalized = code.trim().toUpperCase();
     if (normalized.length != 6) {
       state = LobbyState(
@@ -150,11 +170,22 @@ class MultiplayerViewModel extends AutoDisposeNotifier<LobbyState> {
           phase: LobbyPhase.hosting,
           code: event.code,
           roomExpiresAt: event.roomExpiresAt,
+          challenged: _challenged,
         );
       case EnumGameEventType.roomClosed:
         _subscription = null;
+        final l10n = ref.read(l10nProvider);
         state = LobbyState(
-          errorMessage: ref.read(l10nProvider).roomClosedNobody,
+          errorMessage: _challenged == null
+              ? l10n.roomClosedNobody
+              : l10n.challengeExpired(_challenged!.username),
+        );
+      case EnumGameEventType.challengeDeclined:
+        _subscription = null;
+        state = LobbyState(
+          errorMessage: ref
+              .read(l10nProvider)
+              .challengeDeclined(_challenged?.username ?? ''),
         );
       case EnumGameEventType.gameStarted:
         // Passage de relais : le moteur prend l'abonnement tout de suite,
@@ -218,6 +249,7 @@ class MultiplayerViewModel extends AutoDisposeNotifier<LobbyState> {
       EnumGameError.roomNotFound => l10n.roomNotFound,
       EnumGameError.ownRoom => l10n.ownRoom,
       EnumGameError.alreadyInGame => l10n.alreadyInGame,
+      EnumGameError.friendUnavailable => l10n.friendUnavailable,
       _ => l10n.actionImpossible,
     };
   }

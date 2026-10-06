@@ -1,0 +1,6 @@
+enum: EnumFriendPresence
+values:
+  - offline
+  - online
+  # Partie serveur (Multi ou Classé) en cours.
+  - playing

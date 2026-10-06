@@ -416,6 +416,36 @@ abstract class AppLocalizations {
   /// **'Annuler'**
   String get cancel;
 
+  /// No description provided for @challengeDeclined.
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} a refusé ton défi.'**
+  String challengeDeclined(String name);
+
+  /// No description provided for @challengeExpired.
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} n\'a pas répondu à ton défi.'**
+  String challengeExpired(String name);
+
+  /// No description provided for @challengeGone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce défi n\'existe plus.'**
+  String get challengeGone;
+
+  /// No description provided for @challengeReceived.
+  ///
+  /// In fr, this message translates to:
+  /// **'{name} te défie !'**
+  String challengeReceived(String name);
+
+  /// No description provided for @challengeWaiting.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente de {name}…'**
+  String challengeWaiting(String name);
+
   /// No description provided for @chooseMode.
   ///
   /// In fr, this message translates to:
@@ -638,6 +668,12 @@ abstract class AppLocalizations {
   /// **'Ajouter'**
   String get friendAdd;
 
+  /// No description provided for @friendChallenge.
+  ///
+  /// In fr, this message translates to:
+  /// **'Défier'**
+  String get friendChallenge;
+
   /// No description provided for @friendCodeCopied.
   ///
   /// In fr, this message translates to:
@@ -751,6 +787,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Tape au moins 3 caractères, ou un code ami.'**
   String get friendSearchTooShort;
+
+  /// No description provided for @friendUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet ami n\'est plus disponible pour jouer.'**
+  String get friendUnavailable;
 
   /// No description provided for @friendsEmpty.
   ///
@@ -1352,6 +1394,42 @@ abstract class AppLocalizations {
   /// **'PRÉFÉRENCES'**
   String get preferencesSection;
 
+  /// No description provided for @presenceOnline.
+  ///
+  /// In fr, this message translates to:
+  /// **'En ligne'**
+  String get presenceOnline;
+
+  /// No description provided for @presencePlaying.
+  ///
+  /// In fr, this message translates to:
+  /// **'En partie · {mode}'**
+  String presencePlaying(String mode);
+
+  /// No description provided for @presenceSeenDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vu il y a {count} j'**
+  String presenceSeenDays(int count);
+
+  /// No description provided for @presenceSeenHours.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vu il y a {count} h'**
+  String presenceSeenHours(int count);
+
+  /// No description provided for @presenceSeenJustNow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vu à l\'instant'**
+  String get presenceSeenJustNow;
+
+  /// No description provided for @presenceSeenMinutes.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vu il y a {count} min'**
+  String presenceSeenMinutes(int count);
+
   /// No description provided for @publicRoom.
   ///
   /// In fr, this message translates to:
@@ -1387,6 +1465,18 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Chaque coup est validé par le serveur. Victoire, défaite ou nul font varier ton Elo ; quitter la partie compte comme une défaite (sauf si tu n\'as joué aucun coup). 60 s par coup.'**
   String get rankedRules;
+
+  /// No description provided for @recentOpponents.
+  ///
+  /// In fr, this message translates to:
+  /// **'RENCONTRÉS RÉCEMMENT'**
+  String get recentOpponents;
+
+  /// No description provided for @recentOpponentsEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tes adversaires en Multi apparaîtront ici, pour les ajouter en un tap.'**
+  String get recentOpponentsEmpty;
 
   /// No description provided for @replayFirst.
   ///

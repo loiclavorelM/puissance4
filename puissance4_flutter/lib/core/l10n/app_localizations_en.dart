@@ -180,6 +180,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cancel => 'Cancel';
 
   @override
+  String challengeDeclined(String name) {
+    return '$name declined your challenge.';
+  }
+
+  @override
+  String challengeExpired(String name) {
+    return '$name didn\'t answer your challenge.';
+  }
+
+  @override
+  String get challengeGone => 'This challenge no longer exists.';
+
+  @override
+  String challengeReceived(String name) {
+    return '$name challenges you!';
+  }
+
+  @override
+  String challengeWaiting(String name) {
+    return 'Waiting for $name…';
+  }
+
+  @override
   String get chooseMode => 'CHOOSE YOUR MODE';
 
   @override
@@ -308,6 +331,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get friendAdd => 'Add';
 
   @override
+  String get friendChallenge => 'Challenge';
+
+  @override
   String get friendCodeCopied => 'Friend code copied.';
 
   @override
@@ -370,6 +396,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get friendSearchTooShort =>
       'Type at least 3 characters, or a friend code.';
+
+  @override
+  String get friendUnavailable => 'This friend is no longer available to play.';
 
   @override
   String get friendsEmpty => 'No friends yet. Add the players you meet!';
@@ -692,6 +721,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get preferencesSection => 'PREFERENCES';
 
   @override
+  String get presenceOnline => 'Online';
+
+  @override
+  String presencePlaying(String mode) {
+    return 'Playing · $mode';
+  }
+
+  @override
+  String presenceSeenDays(int count) {
+    return 'Seen $count d ago';
+  }
+
+  @override
+  String presenceSeenHours(int count) {
+    return 'Seen $count h ago';
+  }
+
+  @override
+  String get presenceSeenJustNow => 'Seen just now';
+
+  @override
+  String presenceSeenMinutes(int count) {
+    return 'Seen $count min ago';
+  }
+
+  @override
   String get publicRoom => 'Public room';
 
   @override
@@ -711,6 +766,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get rankedRules =>
       'Every move is checked by the server. Wins, losses and draws change your Elo; leaving counts as a loss (unless you haven\'t played a move). 60 s per move.';
+
+  @override
+  String get recentOpponents => 'RECENTLY PLAYED';
+
+  @override
+  String get recentOpponentsEmpty =>
+      'Your Multiplayer opponents will show up here, to add them in one tap.';
 
   @override
   String get replayFirst => 'Start';

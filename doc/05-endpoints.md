@@ -97,12 +97,16 @@ Prêt pour Redis/cluster : état des parties en base (verrou `FOR UPDATE`),
 La **salle** (code d'attente) n'est jamais en base et ne vit que tant que le
 stream de l'hôte est ouvert ; la `Partie` n'est créée qu'à l'arrivée de
 l'adversaire.
-- `hostRoom(isPublic: bool) -> Stream<GameEvent>`
+- `hostRoom(isPublic: bool, {challengeUserId: Guid?}) -> Stream<GameEvent>`
   `roomCreated` (code, expiration 10 min), puis `gameStarted` et la suite de la
   partie sur le même stream. Fermer le stream ferme la salle ; à expiration :
   `roomClosed`. Ouvrir une 2ᵉ salle ferme la 1ʳᵉ. Une salle `isPublic` apparaît
   dans le lobby (pseudo, Elo et avatar de l'hôte lus à l'ouverture) ; une salle
   privée ne se rejoint que par son code.
+  Avec `challengeUserId` (E15) : défi à un ami — salle privée réservée à lui
+  seul, 2 min, visible dans ses `FriendsEndpoint.getChallenges` ; s'il refuse,
+  `challengeDeclined` termine le stream. Lève `GameException(friendUnavailable)`
+  si ce n'est pas un ami ou s'il est déjà en partie.
 - `watchLobby() -> Stream<LobbySnapshot>` (US7.4)
   Salles publiques ouvertes, sauf la sienne : la liste au départ, puis une
   nouvelle à chaque ouverture, fermeture, prise ou expiration d'une salle
@@ -149,7 +153,7 @@ RL (E5).
 - `watchUpdates() -> Stream<LiveEvent>`
   Stream (WebSocket) ouvert par le client tant qu'il est connecté. Émet
   `LiveEvent(type: profileChanged | historyChanged | leaderboardChanged |
-  friendsChanged)` —
+  friendsChanged | challengesChanged)` —
   sans payload : le client recharge la donnée concernée (cache local puis
   réseau). Alimenté par `session.messages` via `live_notifier.dart` : canal
   `live.user.<authUserId>` (profil/historique) et `live.leaderboard` (tous).
@@ -159,14 +163,24 @@ Réservé aux comptes email : un invité reçoit `FriendsException(guestNotAllow
 et n'apparaît jamais dans les recherches. Chaque changement envoie
 `LiveEvent(friendsChanged)` aux deux joueurs.
 - `getOverview() -> FriendsOverviewDto`
-  Code ami (attribué au premier appel), amis (par Elo), demandes reçues et
-  envoyées.
+  Code ami (attribué au premier appel), amis avec leur présence
+  (`online | playing | offline`, type de partie, `lastSeenAt` ; en ligne
+  d'abord, puis en partie, puis par Elo), demandes reçues et envoyées.
 - `searchPlayers(query: String) -> List<PlayerSearchResultDto>`
   Pseudos commençant par `query` (3 caractères min., 20 résultats), précédés du
   joueur dont c'est le code ami (`P4-XXXXXX`, préfixe et casse libres) ; chaque
   résultat porte la relation (`none | friend | requestSent | requestReceived`).
 - `sendRequest(userId: Guid) -> FriendshipDto`
   Accepte directement si l'autre avait déjà envoyé une demande.
+- `recentOpponents() -> List<PlayerSearchResultDto>`
+  10 derniers adversaires Multi (une fois chacun), avec leur relation.
+- `getChallenges() -> List<FriendChallengeDto>`
+  Défis reçus encore ouverts : salles privées réservées au joueur, ouvertes
+  par `MultiplayerEndpoint.hostRoom(challengeUserId:)`, à rejoindre par
+  `joinRoom(code)`.
+- `declineChallenge(code: String)`
+  Ferme la salle ; le stream de l'hôte émet `challengeDeclined`. Lève
+  `FriendsException(challengeNotFound)` si elle n'existe plus.
 - `acceptRequest(friendshipId)`, `declineRequest(friendshipId)`,
   `cancelRequest(friendshipId)`, `removeFriend(userId)`
   Lèvent `FriendsException(reason: userNotFound | cannotAddSelf |

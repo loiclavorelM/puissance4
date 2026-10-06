@@ -15,6 +15,8 @@ import 'dart:async' as _ida;
 import 'dart:io' as _idi;
 import 'dart:typed_data' as _idt;
 import 'package:puissance4_server/src/generated/bot/bot.dart' as _iyz5ninx;
+import 'package:puissance4_server/src/generated/friends/friend_challenge_dto.dart'
+    as _ifqc6g4v;
 import 'package:puissance4_server/src/generated/friends/friends_overview_dto.dart'
     as _ichi9ll7;
 import 'package:puissance4_server/src/generated/friends/friendship_dto.dart'
@@ -788,6 +790,97 @@ class _FriendsEndpoint {
     });
   }
 
+  _ida.Future<List<_i259h1cp.PlayerSearchResultDto>> recentOpponents(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'friends',
+            method: 'recentOpponents',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'friends',
+          methodName: 'recentOpponents',
+          parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_i259h1cp.PlayerSearchResultDto>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<List<_ifqc6g4v.FriendChallengeDto>> getChallenges(
+    _ist.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'friends',
+            method: 'getChallenges',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'friends',
+          methodName: 'getChallenges',
+          parameters: _ist.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<List<_ifqc6g4v.FriendChallengeDto>>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<void> declineChallenge(
+    _ist.TestSessionBuilder sessionBuilder,
+    String code,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'friends',
+            method: 'declineChallenge',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'friends',
+          methodName: 'declineChallenge',
+          parameters: _ist.testObjectToJson({'code': code}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<void>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _ida.Future<_i3g0h0jv.FriendshipDto> sendRequest(
     _ist.TestSessionBuilder sessionBuilder,
     _is.UuidValue userId,
@@ -1365,8 +1458,9 @@ class _MultiplayerEndpoint {
 
   _ida.Stream<_iylml733.GameEvent> hostRoom(
     _ist.TestSessionBuilder sessionBuilder,
-    bool isPublic,
-  ) {
+    bool isPublic, {
+    _is.UuidValue? challengeUserId,
+  }) {
     var _localTestStreamManager = _ist.TestStreamManager<_iylml733.GameEvent>();
     _ist.callStreamFunctionAndHandleExceptions(
       () async {
@@ -1380,7 +1474,10 @@ class _MultiplayerEndpoint {
               createSessionCallback: (_) => _localUniqueSession,
               endpointPath: 'multiplayer',
               methodName: 'hostRoom',
-              arguments: {'isPublic': isPublic},
+              arguments: {
+                'isPublic': isPublic,
+                'challengeUserId': challengeUserId,
+              },
               requestedInputStreams: [],
               serializationManager: _serializationManager,
             );

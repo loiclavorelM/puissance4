@@ -20,7 +20,8 @@ enum EnumFriendsError implements _is.SerializableModel {
   requestAlreadySent,
   requestNotFound,
   notFriends,
-  tooManyFriends;
+  tooManyFriends,
+  challengeNotFound;
 
   static EnumFriendsError fromJson(String name) {
     switch (name) {
@@ -40,6 +41,8 @@ enum EnumFriendsError implements _is.SerializableModel {
         return EnumFriendsError.notFriends;
       case 'tooManyFriends':
         return EnumFriendsError.tooManyFriends;
+      case 'challengeNotFound':
+        return EnumFriendsError.challengeNotFound;
       default:
         throw ArgumentError(
           'Value "$name" cannot be converted to "EnumFriendsError"',

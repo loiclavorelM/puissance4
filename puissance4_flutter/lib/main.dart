@@ -7,6 +7,7 @@ import 'core/l10n/l10n.dart';
 import 'core/theme/app_colors.dart';
 import 'features/auth/view/login_screen.dart';
 import 'features/auth/viewmodel/auth_viewmodel.dart';
+import 'features/friends/view/challenge_banner.dart';
 import 'features/friends/view/friends_screen.dart';
 import 'features/friends/viewmodel/friends_viewmodel.dart';
 import 'features/game/view/game_home_screen.dart';
@@ -182,7 +183,15 @@ class _MainShellState extends ConsumerState<_MainShell> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: IndexedStack(index: _selectedIndex, children: screens),
+        child: Column(
+          children: [
+            // Défi d'un ami (E15), visible depuis tous les onglets.
+            const ChallengeBanner(),
+            Expanded(
+              child: IndexedStack(index: _selectedIndex, children: screens),
+            ),
+          ],
+        ),
       ),
       bottomNavigationBar: NavigationBarTheme(
         data: NavigationBarThemeData(

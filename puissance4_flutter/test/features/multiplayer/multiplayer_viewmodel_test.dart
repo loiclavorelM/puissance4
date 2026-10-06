@@ -15,13 +15,18 @@ import '../../helpers/l10n.dart';
 class _FakeLobbyRepository implements MultiplayerRepository {
   final host = StreamController<GameEvent>();
   bool? hostedPublic;
+  UuidValue? challenged;
 
   /// Refus renvoyé par [joinRoom] (aucun si `null`).
   GameException? joinError;
 
   @override
-  Stream<GameEvent> hostRoom({bool isPublic = false}) {
+  Stream<GameEvent> hostRoom({
+    bool isPublic = false,
+    UuidValue? challengeUserId,
+  }) {
     hostedPublic = isPublic;
+    challenged = challengeUserId;
     return host.stream;
   }
 
@@ -102,6 +107,25 @@ void main() {
       expect(read().errorMessage, isNotNull);
     },
   );
+
+  test('a declined challenge names the friend', () async {
+    final bob = FriendUserDto(userId: testPartieId, username: 'bob', elo: 1000);
+
+    viewModel().challenge(bob);
+    expect(lobby.challenged, bob.userId);
+    expect(lobby.hostedPublic, isFalse);
+    lobby.host.add(
+      GameEvent(type: EnumGameEventType.roomCreated, code: 'ABC234'),
+    );
+    await pumpEventQueue();
+    expect(read().phase, LobbyPhase.hosting);
+    expect(read().challenged?.username, 'bob');
+
+    lobby.host.add(GameEvent(type: EnumGameEventType.challengeDeclined));
+    await pumpEventQueue();
+    expect(read().phase, LobbyPhase.idle);
+    expect(read().errorMessage, 'bob a refusé ton défi.');
+  });
 
   test('a room is private unless asked otherwise', () {
     viewModel().host();

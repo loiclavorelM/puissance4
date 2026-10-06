@@ -10,3 +10,5 @@ values:
   - requestNotFound
   - notFriends
   - tooManyFriends
+  # Défi déjà accepté, annulé ou expiré.
+  - challengeNotFound
