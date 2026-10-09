@@ -1,0 +1,7 @@
+include: package:flutter_lints/flutter.yaml
+formatter:
+  trailing_commas: preserve
+analyzer:
+  exclude:
+    - lib/src/l10n/assistant_ui_localizations*.dart
+    - build/**

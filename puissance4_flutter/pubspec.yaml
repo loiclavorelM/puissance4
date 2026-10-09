@@ -24,6 +24,10 @@ environment:
 resolution: workspace
 
 dependencies:
+  assistant_contracts:
+    path: ../packages/assistant_contracts
+  assistant_ui:
+    path: ../packages/assistant_ui
   connectivity_plus: ^7.3.1
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

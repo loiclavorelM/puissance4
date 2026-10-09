@@ -992,6 +992,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de charger tes stats à jour — valeurs par défaut affichées.';
 
   @override
+  String get statsServerRequired =>
+      'Le tableau de bord et l\'assistant ont besoin d\'une connexion au serveur. Connecte-toi pour les utiliser.';
+
+  @override
+  String get statsTitle => 'Mes stats';
+
+  @override
   String get statusConnected => 'Connecté';
 
   @override
@@ -1029,6 +1036,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tabPlay => 'Jouer';
+
+  @override
+  String get tabStats => 'Stats';
 
   @override
   String get theme => 'Thème';

@@ -1844,6 +1844,18 @@ abstract class AppLocalizations {
   /// **'Impossible de charger tes stats à jour — valeurs par défaut affichées.'**
   String get statsLoadError;
 
+  /// No description provided for @statsServerRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le tableau de bord et l\'assistant ont besoin d\'une connexion au serveur. Connecte-toi pour les utiliser.'**
+  String get statsServerRequired;
+
+  /// No description provided for @statsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes stats'**
+  String get statsTitle;
+
   /// No description provided for @statusConnected.
   ///
   /// In fr, this message translates to:
@@ -1915,6 +1927,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Jouer'**
   String get tabPlay;
+
+  /// No description provided for @tabStats.
+  ///
+  /// In fr, this message translates to:
+  /// **'Stats'**
+  String get tabStats;
 
   /// No description provided for @theme.
   ///

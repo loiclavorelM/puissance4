@@ -980,6 +980,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t load your latest stats — showing defaults.';
 
   @override
+  String get statsServerRequired =>
+      'The dashboard and the assistant need a server connection. Sign in to use them.';
+
+  @override
+  String get statsTitle => 'My stats';
+
+  @override
   String get statusConnected => 'Connected';
 
   @override
@@ -1017,6 +1024,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tabPlay => 'Play';
+
+  @override
+  String get tabStats => 'Stats';
 
   @override
   String get theme => 'Theme';

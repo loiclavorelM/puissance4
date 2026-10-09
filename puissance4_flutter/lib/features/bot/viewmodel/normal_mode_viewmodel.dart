@@ -6,6 +6,7 @@ import '../../../client.dart';
 import '../../auth/viewmodel/auth_viewmodel.dart';
 import '../../game/model/game_launch.dart';
 import '../../history/viewmodel/history_viewmodel.dart';
+import '../../live/viewmodel/live_updates_provider.dart';
 import '../../game/model/game_participant.dart';
 import '../../game/model/local_game_engine.dart';
 import '../../game/viewmodel/game_home_viewmodel.dart';
@@ -107,7 +108,11 @@ Future<GameLaunch> createNormalLaunch(Ref ref, Bot bot) async {
         repository,
         partieId,
         userColor,
-        onFinished: () => gameRef.invalidate(offlineHistoryProvider),
+        onFinished: () {
+          gameRef.invalidate(offlineHistoryProvider);
+          // Synchronisée (si le réseau le permet) : le tableau de bord la voit.
+          gameRef.read(gameDataChangesProvider).add(null);
+        },
       ),
     ),
     restart: (restartRef) => createNormalLaunch(restartRef, bot),
