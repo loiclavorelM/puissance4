@@ -3,14 +3,14 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../core/l10n/l10n.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../model/friend_code_scan.dart';
 
 /// Mon code ami en QR code (US15.6), à faire scanner par un ami.
 Future<void> showFriendCodeQr(BuildContext context, String code) =>
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppColors.card,
+      backgroundColor: context.colors.card,
       showDragHandle: true,
       builder: (context) => SafeArea(
         child: Padding(
@@ -22,7 +22,7 @@ Future<void> showFriendCodeQr(BuildContext context, String code) =>
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   // Fond blanc : les lecteurs de QR lisent mal un code clair
-                  // sur fond sombre.
+                  // sur fond sombre (dans les deux thèmes).
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -31,8 +31,8 @@ Future<void> showFriendCodeQr(BuildContext context, String code) =>
               const SizedBox(height: 16),
               Text(
                 code,
-                style: const TextStyle(
-                  color: AppColors.green,
+                style: TextStyle(
+                  color: context.colors.green,
                   fontWeight: FontWeight.bold,
                   fontSize: 22,
                   letterSpacing: 2,
@@ -42,7 +42,7 @@ Future<void> showFriendCodeQr(BuildContext context, String code) =>
               Text(
                 context.l10n.friendQrHint,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white54, fontSize: 13),
+                style: TextStyle(color: context.colors.textMuted, fontSize: 13),
               ),
             ],
           ),
@@ -109,7 +109,7 @@ class _FriendCodeScannerState extends State<_FriendCodeScanner> {
               width: 240,
               height: 240,
               decoration: BoxDecoration(
-                border: Border.all(color: AppColors.green, width: 3),
+                border: Border.all(color: context.colors.green, width: 3),
                 borderRadius: BorderRadius.circular(24),
               ),
             ),

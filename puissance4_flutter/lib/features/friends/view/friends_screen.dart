@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/l10n.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../auth/view/create_account_screen.dart';
 import '../viewmodel/friends_viewmodel.dart';
 import 'add_friend_tab.dart';
@@ -30,8 +30,8 @@ class FriendsScreen extends ConsumerWidget {
         children: [
           Text(
             context.l10n.tabFriends,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: context.colors.text,
               fontWeight: FontWeight.bold,
               fontSize: 28,
             ),
@@ -125,9 +125,9 @@ class _FriendsTabsState extends ConsumerState<_FriendsTabs>
           controller: _controller,
           // Les 4 onglets restent visibles même sur un écran de 360 dp.
           labelPadding: const EdgeInsets.symmetric(horizontal: 2),
-          labelColor: AppColors.primary,
-          unselectedLabelColor: Colors.white54,
-          indicatorColor: AppColors.primary,
+          labelColor: context.colors.primary,
+          unselectedLabelColor: context.colors.textMuted,
+          indicatorColor: context.colors.primary,
           dividerColor: Colors.transparent,
           labelStyle: const TextStyle(
             fontWeight: FontWeight.bold,

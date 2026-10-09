@@ -166,7 +166,6 @@
   "createGameFailedRetry": "Impossible de créer la partie. Réessaie.",
   "createRoom": "Créer et obtenir un code",
   "createRoomSection": "CRÉER UNE SALLE",
-  "darkTheme": "Thème sombre",
   "dateToday": "Aujourd'hui, {time}",
   "@dateToday": {
     "placeholders": {
@@ -344,7 +343,6 @@
   "leaderboardLoadError": "Impossible de charger le classement.",
   "leaderboardNoFriends": "Ajoute des amis pour te comparer à eux.",
   "leaderboardSignIn": "Connecte-toi pour voir le classement.",
-  "lightThemeSoon": "Le thème clair arrive bientôt — ton choix est déjà mémorisé.",
   "loginTagline": "Défie l'IA. Grimpe le classement.",
   "loginWordmark": "PUISSANCE ",
   "losingMove": "Coup perdant — l'Expert jouait la colonne {column}",
@@ -589,6 +587,10 @@
   "tabHistory": "Historique",
   "tabLeaderboard": "Classement",
   "tabPlay": "Jouer",
+  "theme": "Thème",
+  "themeDark": "Sombre",
+  "themeLight": "Clair",
+  "themeSystem": "Système",
   "turnOf": "À {name} de jouer",
   "@turnOf": {
     "placeholders": {

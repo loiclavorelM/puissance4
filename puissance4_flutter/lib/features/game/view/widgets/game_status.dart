@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
 import '../../../../core/l10n/l10n.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_palette.dart';
 import '../../model/game_participant.dart';
 import '../../model/game_snapshot.dart';
 import '../participant_name.dart';
@@ -20,20 +20,20 @@ class GameStatus extends StatelessWidget {
     final l10n = context.l10n;
     final replay = snapshot.replay;
     if (snapshot.isOver) {
-      final (text, color) = resultLabel(l10n, snapshot);
+      final (text, color) = resultLabel(l10n, context.colors, snapshot);
       return _Line(text: text, color: color, big: true);
     }
     if (replay != null) {
       return _Line(
         text: l10n.replayMove(replay.cursor, replay.total),
-        color: Colors.white70,
+        color: context.colors.textSecondary,
       );
     }
     if (snapshot.isConnecting) {
-      return _Line(text: l10n.gameConnecting, color: Colors.white54);
+      return _Line(text: l10n.gameConnecting, color: context.colors.textMuted);
     }
     if (snapshot.isReconnecting) {
-      return _Line(text: l10n.gameReconnecting, color: AppColors.yellow);
+      return _Line(text: l10n.gameReconnecting, color: context.colors.yellow);
     }
 
     final toPlay = snapshot.participant(snapshot.colorToPlay);
@@ -50,7 +50,7 @@ class GameStatus extends StatelessWidget {
 
     return Column(
       children: [
-        _Line(text: text, color: Colors.white, big: true),
+        _Line(text: text, color: context.colors.text, big: true),
         if (deadline != null)
           Countdown(
             deadline: deadline,
@@ -58,8 +58,8 @@ class GameStatus extends StatelessWidget {
               l10n.secondsLeft(remaining.inSeconds),
               style: TextStyle(
                 color: remaining.inSeconds <= 10
-                    ? AppColors.primary
-                    : Colors.white54,
+                    ? context.colors.primary
+                    : context.colors.textMuted,
               ),
             ),
           ),
@@ -69,7 +69,7 @@ class GameStatus extends StatelessWidget {
             child: Text(
               l10n.opponentDisconnected,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.yellow, fontSize: 12),
+              style: TextStyle(color: context.colors.yellow, fontSize: 12),
             ),
           ),
       ],
@@ -79,14 +79,15 @@ class GameStatus extends StatelessWidget {
   /// Texte et couleur du résultat, du point de vue du joueur de l'appareil.
   static (String, Color) resultLabel(
     AppLocalizations l10n,
+    AppPalette colors,
     GameSnapshot snapshot,
   ) {
     final result = snapshot.result!;
     final winner = result.winner;
     final elo = _elo(l10n, result);
-    if (winner == null) return (l10n.gameCancelled, Colors.white70);
+    if (winner == null) return (l10n.gameCancelled, colors.textSecondary);
     if (winner == EnumOutcome.draw) {
-      return ('${l10n.gameDraw}$elo', Colors.white70);
+      return ('${l10n.gameDraw}$elo', colors.textSecondary);
     }
     final winnerColor = winner == EnumOutcome.rouge
         ? EnumColor.rouge
@@ -97,7 +98,7 @@ class GameStatus extends StatelessWidget {
         l10n.playerWins(
           participantName(l10n, snapshot.participant(winnerColor)),
         ),
-        AppColors.green,
+        colors.green,
       );
     }
     final won = winnerColor == myColor;
@@ -110,7 +111,7 @@ class GameStatus extends StatelessWidget {
         won ? l10n.gameWonOnTime : l10n.gameLostOnTime,
       _ => won ? l10n.gameWon : l10n.gameLost,
     };
-    return ('$label$elo', won ? AppColors.green : AppColors.primary);
+    return ('$label$elo', won ? colors.green : colors.primary);
   }
 
   static String _elo(AppLocalizations l10n, GameResult result) {

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 import 'package:puissance4_rules/puissance4_rules.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../game/model/color_mapping.dart';
 import '../../game/model/game_snapshot.dart';
 import '../viewmodel/move_explanation_viewmodel.dart';
@@ -31,9 +31,9 @@ class MoveReviewCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: context.colors.card,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: context.colors.divider),
       ),
       child: analysis == null
           ? const _Analysing()
@@ -48,7 +48,7 @@ class MoveReviewCard extends StatelessWidget {
                           participantName(l10n, snapshot.participant(color)),
                           analysis.played + 1,
                         ),
-                  style: const TextStyle(color: Colors.white, fontSize: 15),
+                  style: TextStyle(color: context.colors.text, fontSize: 15),
                 ),
                 const SizedBox(height: 4),
                 _Verdict(analysis: analysis),
@@ -80,7 +80,7 @@ class _Analysing extends StatelessWidget {
         Expanded(
           child: Text(
             context.l10n.expertAnalysing,
-            style: TextStyle(color: Colors.white54),
+            style: TextStyle(color: context.colors.textMuted),
           ),
         ),
       ],
@@ -98,10 +98,14 @@ class _Verdict extends StatelessWidget {
     final l10n = context.l10n;
     final column = analysis.recommended + 1;
     final (icon, text, color) = analysis.isBest
-        ? (Icons.check_circle, l10n.bestMove, AppColors.green)
+        ? (Icons.check_circle, l10n.bestMove, context.colors.green)
         : analysis.playedVerdict == MoveVerdict.forcedLoss
-        ? (Icons.error, l10n.losingMove(column), AppColors.primary)
-        : (Icons.lightbulb, l10n.expertWouldPlay(column), AppColors.yellow);
+        ? (Icons.error, l10n.losingMove(column), context.colors.primary)
+        : (
+            Icons.lightbulb,
+            l10n.expertWouldPlay(column),
+            context.colors.yellow,
+          );
     return Row(
       children: [
         Icon(icon, color: color, size: 18),
@@ -131,7 +135,7 @@ class _Explanation extends ConsumerWidget {
         alignment: Alignment.centerLeft,
         child: TextButton.icon(
           style: TextButton.styleFrom(
-            foregroundColor: Colors.white70,
+            foregroundColor: context.colors.textSecondary,
             padding: EdgeInsets.zero,
           ),
           onPressed: explain,
@@ -149,7 +153,7 @@ class _Explanation extends ConsumerWidget {
           padding: const EdgeInsets.only(top: 8, bottom: 4),
           child: Text(
             text,
-            style: const TextStyle(color: Colors.white70, height: 1.35),
+            style: TextStyle(color: context.colors.textSecondary, height: 1.35),
           ),
         ),
       ),
@@ -158,7 +162,7 @@ class _Explanation extends ConsumerWidget {
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(color: Colors.white54, fontSize: 13),
+              style: TextStyle(color: context.colors.textMuted, fontSize: 13),
             ),
           ),
           TextButton(onPressed: explain, child: Text(context.l10n.retry)),

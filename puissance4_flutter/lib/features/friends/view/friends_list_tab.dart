@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
 import '../../../core/l10n/l10n.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../multiplayer/view/multiplayer_screen.dart';
 import '../viewmodel/friends_viewmodel.dart';
 import 'friend_tile.dart';
@@ -22,7 +22,7 @@ class FriendsListTab extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, _) => FriendsMessage(
         text: context.l10n.friendsLoadError,
-        color: AppColors.yellow,
+        color: context.colors.yellow,
       ),
       data: (overview) {
         final friends = overview?.friends ?? const <FriendshipDto>[];
@@ -62,8 +62,8 @@ class _FriendRow extends ConsumerWidget {
       presence: presence,
       subtitle: _presenceText(context, friendship),
       subtitleColor: presence == EnumFriendPresence.offline
-          ? Colors.white54
-          : presenceColor(presence),
+          ? context.colors.textMuted
+          : presenceColor(context.colors, presence),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -77,20 +77,20 @@ class _FriendRow extends ConsumerWidget {
                     ),
                   )
                 : null,
-            color: AppColors.green,
-            disabledColor: Colors.white24,
+            color: context.colors.green,
+            disabledColor: context.colors.outline,
             icon: const Icon(Icons.sports_esports),
           ),
           PopupMenuButton<void>(
             enabled: !busy,
-            iconColor: Colors.white54,
-            color: AppColors.card,
+            iconColor: context.colors.textMuted,
+            color: context.colors.card,
             itemBuilder: (context) => [
               PopupMenuItem(
                 onTap: () => _confirmRemove(context, ref, friend),
                 child: Text(
                   context.l10n.friendRemove,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: context.colors.text),
                 ),
               ),
             ],

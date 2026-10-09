@@ -40,10 +40,19 @@ Critères d'acceptation :
 - La synchronisation bidirectionnelle CRDT (conflict-free replicated data types) envoie automatiquement les données locales vers PostgreSQL dès que la connexion est disponible.
 - Après la première synchronisation réussie, le serveur reste la source de vérité.
 
+**Révisée** : un invité a déjà un vrai `AuthUser` (connexion anonyme dès que le
+serveur est joignable), et la synchro offline est liée à cet `authUserId`. Au
+lieu de ré-attribuer ses données, l'inscription par email depuis les Réglages
+(« Créer un compte ») **rattache le compte email à l'`AuthUser` de l'invité**
+(`EmailIdpEndpoint.finishRegistration` → `guest_upgrade.dart`, fusion via
+`AccountMerger`) : même `authUserId`, donc `User`, Elo, parties et espace de
+synchro conservés sans migration. Se déconnecter en invité demande
+confirmation (progression perdue).
+
 Tickets :
-- [ ] T0.2.1 — Association du userId invité au compte authentifié dans le(s) modèle(s) `sync` (stratégie de ré-attribution des enregistrements locaux) — `owner:B` `area:backend`
-- [ ] T0.2.2 — Déclenchement/contrôle de la synchronisation `serverpod_offline_sync` juste après le premier login réussi — `owner:A`
-- [ ] T0.2.3 — Gestion du cas où le compte a déjà un `User` côté serveur (l'index unique sur `authUserId` empêche un second lien direct) : **fusion de l'historique des deux comptes** (parties/stats du `User` invité rattachées au `User` déjà existant du compte, puis suppression du `User` invité devenu orphelin) — `owner:B` `area:backend`
+- [x] T0.2.1 — Association du userId invité au compte authentifié dans le(s) modèle(s) `sync` (stratégie de ré-attribution des enregistrements locaux) — `owner:B` `area:backend` *(le compte email reprend l'`authUserId` de l'invité : rien à ré-attribuer)*
+- [ ] ~~T0.2.2 — Déclenchement/contrôle de la synchronisation `serverpod_offline_sync` juste après le premier login réussi~~ — **sans objet** (même `authUserId` : la session de synchro continue) — `owner:A`
+- [ ] T0.2.3 — Gestion du cas où le compte a déjà un `User` côté serveur (l'index unique sur `authUserId` empêche un second lien direct) : **fusion de l'historique des deux comptes** (parties/stats du `User` invité rattachées au `User` déjà existant du compte, puis suppression du `User` invité devenu orphelin) — `owner:B` `area:backend` *(non fait : se connecter à un compte existant reste refusé tant qu'on est invité, et `mergeGameUsers` refuse de fusionner deux joueurs qui ont des parties)*
 
 ### US0.3 — En tant que joueur déjà connecté qui perd sa connexion en cours d'utilisation, je veux que le résultat de ma partie (Normale ou Classée) ne soit pas perdu, afin que mes stats/Elo restent cohérents une fois reconnecté.
 
@@ -329,6 +338,13 @@ Critères d'acceptation :
 Tickets :
 - [x] T11.1.1 — Setup `flutter_localizations` + fichiers `.arb` FR/EN — `owner:A` *(`lib/core/l10n/`, français = modèle ; langue de Réglages appliquée, sinon celle de l'appareil)*
 - [x] T11.1.2 — Extraction de toutes les chaînes en dur vers l10n — `owner:A`/`owner:B`
+
+Limite connue : sur l'écran de connexion, le champ mot de passe reste
+libellé « Password ». Le `LoginForm` de `serverpod_auth_idp_flutter`
+(4.0.3, toujours le cas en 4.0.4 et 4.1.0-beta.3) crée son `PasswordField`
+sans lui passer `texts.passwordLabel` : notre traduction (`authPasswordLabel`,
+fournie dans `auth_form_theme.dart`) est ignorée, sans moyen de la
+surcharger de l'extérieur. Les autres écrans d'auth sont bien traduits.
 
 ---
 

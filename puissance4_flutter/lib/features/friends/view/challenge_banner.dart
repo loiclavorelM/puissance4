@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
 import '../../../core/l10n/l10n.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../game/view/widgets/countdown.dart';
 import '../../multiplayer/view/multiplayer_screen.dart';
 import '../../profile/view/profile_avatar.dart';
@@ -30,9 +30,11 @@ class ChallengeBanner extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
         decoration: BoxDecoration(
-          color: AppColors.card,
+          color: context.colors.card,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.green.withValues(alpha: 0.6)),
+          border: Border.all(
+            color: context.colors.green.withValues(alpha: 0.6),
+          ),
         ),
         child: Row(
           children: [
@@ -50,8 +52,8 @@ class ChallengeBanner extends ConsumerWidget {
                     context.l10n.challengeReceived(challenge.from.username),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: context.colors.text,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -59,8 +61,8 @@ class ChallengeBanner extends ConsumerWidget {
                     deadline: challenge.expiresAt,
                     builder: (remaining) => Text(
                       formatDuration(remaining),
-                      style: const TextStyle(
-                        color: Colors.white54,
+                      style: TextStyle(
+                        color: context.colors.textMuted,
                         fontSize: 12,
                       ),
                     ),
@@ -80,11 +82,13 @@ class ChallengeBanner extends ConsumerWidget {
                         showFriendsSnackBar(context, message);
                       }
                     },
-              icon: const Icon(Icons.close, color: Colors.white54),
+              icon: Icon(Icons.close, color: context.colors.textMuted),
             ),
             FilledButton(
               onPressed: busy ? null : () => _accept(context, ref, challenge),
-              style: FilledButton.styleFrom(backgroundColor: AppColors.green),
+              style: FilledButton.styleFrom(
+                backgroundColor: context.colors.green,
+              ),
               child: Text(context.l10n.friendAccept),
             ),
           ],

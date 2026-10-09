@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import 'package:flutter/material.dart' show ThemeMode;
+
 /// Langues de l'app (E11), choisies dans Réglages.
 enum AppLanguage {
   fr('Français'),
@@ -18,22 +20,26 @@ enum AppLanguage {
 /// Préférences locales à l'appareil (pas synchronisées avec le compte, donc
 /// disponibles aussi pour l'invité local E0).
 class AppPreferences {
-  const AppPreferences({required this.language, required this.darkTheme});
+  const AppPreferences({required this.language, required this.themeMode});
 
-  /// Langue de l'appareil tant qu'aucune n'a été choisie. L'app est
-  /// aujourd'hui entièrement sombre, d'où `darkTheme: true`.
-  static AppPreferences get defaults =>
-      AppPreferences(language: AppLanguage.ofDevice(), darkTheme: true);
+  /// Thème sombre tant qu'aucun n'a été choisi : c'est celui des maquettes.
+  static const defaultThemeMode = ThemeMode.dark;
+
+  /// Langue de l'appareil tant qu'aucune n'a été choisie.
+  static AppPreferences get defaults => AppPreferences(
+    language: AppLanguage.ofDevice(),
+    themeMode: defaultThemeMode,
+  );
 
   final AppLanguage language;
 
-  /// Pas encore appliqué : il n'existe pas de thème clair (cf. AppColors).
-  final bool darkTheme;
+  /// Système, clair ou sombre.
+  final ThemeMode themeMode;
 
-  AppPreferences copyWith({AppLanguage? language, bool? darkTheme}) {
+  AppPreferences copyWith({AppLanguage? language, ThemeMode? themeMode}) {
     return AppPreferences(
       language: language ?? this.language,
-      darkTheme: darkTheme ?? this.darkTheme,
+      themeMode: themeMode ?? this.themeMode,
     );
   }
 }

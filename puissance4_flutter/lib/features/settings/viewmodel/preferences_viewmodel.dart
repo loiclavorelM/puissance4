@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../model/app_preferences.dart';
@@ -12,8 +13,8 @@ final preferencesViewModelProvider =
       PreferencesViewModel.new,
     );
 
-/// Préférences affichées dans Réglages. La langue est appliquée à toute
-/// l'app (`localeProvider`, E11) ; le thème est seulement mémorisé.
+/// Préférences affichées dans Réglages, appliquées à toute l'app : la langue
+/// via `localeProvider` (E11), le thème via `themeModeProvider`.
 class PreferencesViewModel extends AsyncNotifier<AppPreferences> {
   PreferencesRepository get _repository =>
       ref.read(preferencesRepositoryProvider);
@@ -30,8 +31,8 @@ class PreferencesViewModel extends AsyncNotifier<AppPreferences> {
     await _repository.saveLanguage(language);
   }
 
-  Future<void> setDarkTheme(bool darkTheme) async {
-    state = AsyncData(_current.copyWith(darkTheme: darkTheme));
-    await _repository.saveDarkTheme(darkTheme);
+  Future<void> setThemeMode(ThemeMode themeMode) async {
+    state = AsyncData(_current.copyWith(themeMode: themeMode));
+    await _repository.saveThemeMode(themeMode);
   }
 }

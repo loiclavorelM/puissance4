@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
 import '../../../core/l10n/l10n.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../bot/view/bot_labels.dart';
 import '../../history/view/history_screen.dart';
 import '../../profile/view/profile_avatar.dart';
@@ -27,7 +27,7 @@ class RivalriesTab extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, _) => FriendsMessage(
         text: context.l10n.friendsLoadError,
-        color: AppColors.yellow,
+        color: context.colors.yellow,
       ),
       data: (rivalries) {
         if (rivalries.isEmpty) {
@@ -55,7 +55,10 @@ class RivalriesTab extends ConsumerWidget {
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Text(
                     context.l10n.activityEmpty,
-                    style: const TextStyle(color: Colors.white38, fontSize: 13),
+                    style: TextStyle(
+                      color: context.colors.textFaint,
+                      fontSize: 13,
+                    ),
                   ),
                 )
               else
@@ -87,8 +90,8 @@ class _SectionTitle extends StatelessWidget {
     padding: const EdgeInsets.only(bottom: 10),
     child: Text(
       text,
-      style: const TextStyle(
-        color: Colors.white38,
+      style: TextStyle(
+        color: context.colors.textFaint,
         fontWeight: FontWeight.bold,
         fontSize: 12,
         letterSpacing: 1,
@@ -139,11 +142,11 @@ class _ActivityRow extends ConsumerWidget {
                 text,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Colors.white, fontSize: 13),
+                style: TextStyle(color: context.colors.text, fontSize: 13),
               ),
               Text(
                 formatRelativeDate(context, event.at),
-                style: const TextStyle(color: Colors.white38, fontSize: 11),
+                style: TextStyle(color: context.colors.textFaint, fontSize: 11),
               ),
             ],
           ),
@@ -152,7 +155,9 @@ class _ActivityRow extends ConsumerWidget {
           Text(
             variation >= 0 ? '+$variation' : '$variation',
             style: TextStyle(
-              color: variation >= 0 ? AppColors.green : AppColors.primary,
+              color: variation >= 0
+                  ? context.colors.green
+                  : context.colors.primary,
               fontWeight: FontWeight.bold,
               fontSize: 13,
             ),
@@ -190,12 +195,14 @@ class _RivalryRow extends StatelessWidget {
               Text(
                 streak,
                 style: TextStyle(
-                  color: rivalry.streak > 0 ? AppColors.yellow : Colors.white54,
+                  color: rivalry.streak > 0
+                      ? context.colors.yellow
+                      : context.colors.textMuted,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
                 ),
               ),
-            const Icon(Icons.chevron_right, color: Colors.white38),
+            Icon(Icons.chevron_right, color: context.colors.textFaint),
           ],
         ),
       ),

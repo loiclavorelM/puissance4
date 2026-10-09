@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../auth/viewmodel/auth_viewmodel.dart';
 import '../../bot/view/normal_mode_screen.dart';
 import '../../multiplayer/view/multiplayer_screen.dart';
@@ -65,16 +65,16 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
                   children: [
                     Text(
                       state.username,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: context.colors.text,
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
                       ),
                     ),
                     Text(
                       context.l10n.eloLabel(state.elo),
-                      style: const TextStyle(
-                        color: AppColors.yellow,
+                      style: TextStyle(
+                        color: context.colors.yellow,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),
@@ -85,9 +85,9 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
               IconButton(
                 onPressed: widget.onOpenSettings,
                 tooltip: context.l10n.settings,
-                icon: const Icon(Icons.settings, color: Colors.white),
+                icon: Icon(Icons.settings, color: context.colors.text),
                 style: IconButton.styleFrom(
-                  backgroundColor: AppColors.card,
+                  backgroundColor: context.colors.card,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -101,7 +101,7 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
               padding: EdgeInsets.only(bottom: 12),
               child: Text(
                 context.l10n.statsLoadError,
-                style: TextStyle(color: AppColors.yellow, fontSize: 12),
+                style: TextStyle(color: context.colors.yellow, fontSize: 12),
               ),
             ),
           Row(
@@ -110,7 +110,7 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
                 child: _StatTile(
                   value: state.isProfileLoading ? '…' : '${state.parties}',
                   label: context.l10n.statGames,
-                  color: Colors.white,
+                  color: context.colors.text,
                 ),
               ),
               const SizedBox(width: 12),
@@ -118,7 +118,7 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
                 child: _StatTile(
                   value: state.isProfileLoading ? '…' : '${state.victoires}',
                   label: context.l10n.statWins,
-                  color: AppColors.green,
+                  color: context.colors.green,
                 ),
               ),
               const SizedBox(width: 12),
@@ -126,7 +126,7 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
                 child: _StatTile(
                   value: state.isProfileLoading ? '…' : '${state.elo}',
                   label: context.l10n.statElo,
-                  color: AppColors.yellow,
+                  color: context.colors.yellow,
                 ),
               ),
             ],
@@ -135,7 +135,7 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
           Text(
             context.l10n.chooseMode,
             style: TextStyle(
-              color: Colors.white54,
+              color: context.colors.textMuted,
               fontSize: 12,
               fontWeight: FontWeight.bold,
               letterSpacing: 1.2,
@@ -144,7 +144,7 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
           const SizedBox(height: 12),
           _ModeCard(
             icon: Icons.lock,
-            color: AppColors.primary,
+            color: context.colors.primary,
             title: context.l10n.modeNormal,
             subtitle: context.l10n.modeNormalSubtitle,
             onTap: () => Navigator.of(context).push(
@@ -154,7 +154,7 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
           const SizedBox(height: 12),
           _ModeCard(
             icon: Icons.emoji_events,
-            color: AppColors.yellow,
+            color: context.colors.yellow,
             title: context.l10n.modeRanked,
             subtitle: context.l10n.modeRankedSubtitle,
             onTap: () =>
@@ -163,7 +163,7 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
           const SizedBox(height: 12),
           _ModeCard(
             icon: Icons.people,
-            color: AppColors.green,
+            color: context.colors.green,
             title: context.l10n.modeMultiplayer,
             subtitle: context.l10n.modeMultiplayerSubtitle,
             onTap: () => _openOnline(
@@ -183,7 +183,7 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
                 ? _ModeCard(
                     key: const ValueKey('face-a-face'),
                     icon: Icons.table_restaurant,
-                    color: AppColors.blue,
+                    color: context.colors.blue,
                     title: context.l10n.modeFaceToFace,
                     subtitle: context.l10n.modeFaceToFaceSubtitle,
                     onTap: () => Navigator.of(context).push(
@@ -201,7 +201,7 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
                       children: [
                         Icon(
                           Icons.table_restaurant,
-                          color: Colors.white38,
+                          color: context.colors.textFaint,
                           size: 16,
                         ),
                         SizedBox(width: 6),
@@ -209,7 +209,7 @@ class _GameHomeScreenState extends ConsumerState<GameHomeScreen> {
                           child: Text(
                             context.l10n.layFlatHint,
                             style: TextStyle(
-                              color: Colors.white38,
+                              color: context.colors.textFaint,
                               fontSize: 12,
                             ),
                           ),
@@ -258,9 +258,9 @@ class _StatTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: context.colors.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: context.colors.divider),
       ),
       child: Column(
         children: [
@@ -275,7 +275,7 @@ class _StatTile extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(color: Colors.white54, fontSize: 12),
+            style: TextStyle(color: context.colors.textMuted, fontSize: 12),
           ),
         ],
       ),
@@ -302,7 +302,7 @@ class _ModeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.card,
+      color: context.colors.card,
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
@@ -327,8 +327,8 @@ class _ModeCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: context.colors.text,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -336,15 +336,15 @@ class _ModeCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: const TextStyle(
-                        color: Colors.white54,
+                      style: TextStyle(
+                        color: context.colors.textMuted,
                         fontSize: 13,
                       ),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: Colors.white38),
+              Icon(Icons.chevron_right, color: context.colors.textFaint),
             ],
           ),
         ),

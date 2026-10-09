@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
+import '../theme/app_palette.dart';
 
 /// Bandeau d'information avec une action (ex. « Tu as une partie en cours —
 /// Reprendre »), partagé par les écrans Multi et Classé.
@@ -21,20 +21,20 @@ class ActionBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: context.colors.card,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.yellow.withValues(alpha: 0.5)),
+        border: Border.all(color: context.colors.yellow.withValues(alpha: 0.5)),
       ),
       child: Row(
         children: [
           Expanded(
-            child: Text(text, style: const TextStyle(color: Colors.white)),
+            child: Text(text, style: TextStyle(color: context.colors.text)),
           ),
           TextButton(
             onPressed: onAction,
             child: Text(
               actionLabel,
-              style: const TextStyle(color: AppColors.yellow),
+              style: TextStyle(color: context.colors.yellow),
             ),
           ),
         ],
