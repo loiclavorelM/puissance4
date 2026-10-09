@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
 import '../../../core/l10n/l10n.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../sensors/viewmodel/motion_sensors_provider.dart';
 import '../viewmodel/add_in_person_viewmodel.dart';
 import '../viewmodel/friends_viewmodel.dart';
@@ -82,15 +82,15 @@ class _AddFriendTabState extends ConsumerState<AddFriendTab> {
           child: TextField(
             controller: _query,
             onChanged: ref.read(friendSearchProvider.notifier).setQuery,
-            style: const TextStyle(color: Colors.white),
+            style: TextStyle(color: context.colors.text),
             textInputAction: TextInputAction.search,
             autocorrect: false,
             decoration: InputDecoration(
               hintText: context.l10n.friendSearchHint,
-              hintStyle: const TextStyle(color: Colors.white38),
-              prefixIcon: const Icon(Icons.search, color: Colors.white38),
+              hintStyle: TextStyle(color: context.colors.textFaint),
+              prefixIcon: Icon(Icons.search, color: context.colors.textFaint),
               filled: true,
-              fillColor: AppColors.fieldFill,
+              fillColor: context.colors.fieldFill,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide: BorderSide.none,
@@ -103,7 +103,7 @@ class _AddFriendTabState extends ConsumerState<AddFriendTab> {
           SliverToBoxAdapter(
             child: Text(
               context.l10n.friendSearchTooShort,
-              style: const TextStyle(color: Colors.white38, fontSize: 13),
+              style: TextStyle(color: context.colors.textFaint, fontSize: 13),
             ),
           ),
           ..._recentOpponents(context, ref),
@@ -118,7 +118,7 @@ class _AddFriendTabState extends ConsumerState<AddFriendTab> {
               SliverToBoxAdapter(
                 child: Text(
                   context.l10n.serverUnreachableLater,
-                  style: const TextStyle(color: AppColors.yellow, fontSize: 13),
+                  style: TextStyle(color: context.colors.yellow, fontSize: 13),
                 ),
               ),
             ],
@@ -127,7 +127,10 @@ class _AddFriendTabState extends ConsumerState<AddFriendTab> {
                 SliverToBoxAdapter(
                   child: Text(
                     context.l10n.friendSearchNoResult,
-                    style: const TextStyle(color: Colors.white38, fontSize: 13),
+                    style: TextStyle(
+                      color: context.colors.textFaint,
+                      fontSize: 13,
+                    ),
                   ),
                 )
               else
@@ -158,8 +161,8 @@ List<Widget> _recentOpponents(BuildContext context, WidgetRef ref) {
         padding: const EdgeInsets.only(bottom: 10),
         child: Text(
           context.l10n.recentOpponents,
-          style: const TextStyle(
-            color: Colors.white38,
+          style: TextStyle(
+            color: context.colors.textFaint,
             fontWeight: FontWeight.bold,
             fontSize: 12,
             letterSpacing: 1,
@@ -171,7 +174,7 @@ List<Widget> _recentOpponents(BuildContext context, WidgetRef ref) {
       SliverToBoxAdapter(
         child: Text(
           context.l10n.recentOpponentsEmpty,
-          style: const TextStyle(color: Colors.white38, fontSize: 13),
+          style: TextStyle(color: context.colors.textFaint, fontSize: 13),
         ),
       )
     else
@@ -199,12 +202,12 @@ class _InPersonButton extends StatelessWidget {
     return OutlinedButton.icon(
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.white,
-        side: const BorderSide(color: Colors.white24),
+        foregroundColor: context.colors.text,
+        side: BorderSide(color: context.colors.outline),
         padding: const EdgeInsets.symmetric(vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
-      icon: Icon(icon, color: AppColors.green),
+      icon: Icon(icon, color: context.colors.green),
       label: Text(label, overflow: TextOverflow.ellipsis),
     );
   }
@@ -224,9 +227,9 @@ class _MyFriendCode extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: context.colors.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.green.withValues(alpha: 0.4)),
+        border: Border.all(color: context.colors.green.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [
@@ -236,8 +239,8 @@ class _MyFriendCode extends ConsumerWidget {
               children: [
                 Text(
                   context.l10n.myFriendCode,
-                  style: const TextStyle(
-                    color: Colors.white38,
+                  style: TextStyle(
+                    color: context.colors.textFaint,
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
                     letterSpacing: 1,
@@ -246,8 +249,8 @@ class _MyFriendCode extends ConsumerWidget {
                 const SizedBox(height: 4),
                 Text(
                   display,
-                  style: const TextStyle(
-                    color: AppColors.green,
+                  style: TextStyle(
+                    color: context.colors.green,
                     fontWeight: FontWeight.bold,
                     fontSize: 24,
                     letterSpacing: 2,
@@ -256,7 +259,10 @@ class _MyFriendCode extends ConsumerWidget {
                 const SizedBox(height: 2),
                 Text(
                   context.l10n.friendCodeHint,
-                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  style: TextStyle(
+                    color: context.colors.textMuted,
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),
@@ -266,7 +272,7 @@ class _MyFriendCode extends ConsumerWidget {
             onPressed: code == null
                 ? null
                 : () => showFriendCodeQr(context, display),
-            icon: const Icon(Icons.qr_code_2, color: Colors.white70),
+            icon: Icon(Icons.qr_code_2, color: context.colors.textSecondary),
           ),
           IconButton(
             tooltip: context.l10n.friendCodeCopy,
@@ -281,7 +287,7 @@ class _MyFriendCode extends ConsumerWidget {
                       );
                     }
                   },
-            icon: const Icon(Icons.copy, color: Colors.white70),
+            icon: Icon(Icons.copy, color: context.colors.textSecondary),
           ),
         ],
       ),
@@ -319,12 +325,14 @@ class PlayerResultRow extends ConsumerWidget {
       trailing: switch (result.relation) {
         EnumFriendRelation.none => FilledButton(
           onPressed: busy ? null : send,
-          style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
+          style: FilledButton.styleFrom(
+            backgroundColor: context.colors.primary,
+          ),
           child: Text(context.l10n.friendAdd),
         ),
         EnumFriendRelation.requestReceived => FilledButton(
           onPressed: busy ? null : send,
-          style: FilledButton.styleFrom(backgroundColor: AppColors.green),
+          style: FilledButton.styleFrom(backgroundColor: context.colors.green),
           child: Text(context.l10n.friendAccept),
         ),
         EnumFriendRelation.requestSent => _RelationLabel(
@@ -349,7 +357,7 @@ class _RelationLabel extends StatelessWidget {
       padding: const EdgeInsets.only(right: 8),
       child: Text(
         text,
-        style: const TextStyle(color: Colors.white54, fontSize: 12),
+        style: TextStyle(color: context.colors.textMuted, fontSize: 12),
       ),
     );
   }

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/l10n.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../model/profile_photo.dart';
 import '../model/username_rules.dart';
 import '../viewmodel/edit_profile_viewmodel.dart';
@@ -54,7 +54,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final viewModel = ref.read(editProfileViewModelProvider.notifier);
     final action = await showModalBottomSheet<_PhotoAction>(
       context: context,
-      backgroundColor: AppColors.card,
+      backgroundColor: context.colors.card,
       builder: (context) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -103,10 +103,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final profile = ref.watch(myProfileProvider).valueOrNull;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
-        foregroundColor: Colors.white,
+        backgroundColor: context.colors.background,
+        foregroundColor: context.colors.text,
         title: Text(context.l10n.editProfileTitle),
       ),
       body: SafeArea(
@@ -129,9 +129,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         ),
                       ),
                       if (state.isUpdatingPhoto)
-                        const Positioned.fill(
+                        Positioned.fill(
                           child: CircularProgressIndicator(
-                            color: AppColors.primary,
+                            color: context.colors.primary,
                           ),
                         ),
                       Positioned(
@@ -149,15 +149,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                                   hasPhoto: profile.thumbnailUrl != null,
                                 ),
                           style: IconButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            disabledBackgroundColor: AppColors.card,
+                            backgroundColor: context.colors.primary,
+                            disabledBackgroundColor: context.colors.card,
                             minimumSize: const Size.square(34),
                             padding: EdgeInsets.zero,
                           ),
                           iconSize: 18,
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.photo_camera,
-                            color: Colors.white,
+                            color: context.colors.text,
                           ),
                         ),
                       ),
@@ -169,14 +169,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   Text(
                     state.photoError!,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: AppColors.yellow),
+                    style: TextStyle(color: context.colors.yellow),
                   ),
                 ],
                 const SizedBox(height: 32),
                 Text(
                   context.l10n.usernameLabel,
                   style: TextStyle(
-                    color: Colors.white60,
+                    color: context.colors.textSecondary,
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
                     letterSpacing: 0.8,
@@ -201,12 +201,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     UsernameProblem.invalidCharacters =>
                       context.l10n.usernameInvalidChars,
                   },
-                  style: const TextStyle(color: Colors.white),
-                  cursorColor: AppColors.primary,
+                  style: TextStyle(color: context.colors.text),
+                  cursorColor: context.colors.primary,
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: AppColors.fieldFill,
-                    counterStyle: const TextStyle(color: Colors.white38),
+                    fillColor: context.colors.fieldFill,
+                    counterStyle: TextStyle(color: context.colors.textFaint),
                     errorText: state.errorMessage,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -214,8 +214,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(
-                        color: AppColors.primary,
+                      borderSide: BorderSide(
+                        color: context.colors.primary,
                         width: 1.5,
                       ),
                     ),
@@ -225,7 +225,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 FilledButton(
                   onPressed: state.isSubmitting ? null : _submit,
                   style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: context.colors.primary,
                     foregroundColor: Colors.white,
                     minimumSize: const Size.fromHeight(52),
                     shape: RoundedRectangleBorder(
@@ -233,11 +233,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     ),
                   ),
                   child: state.isSubmitting
-                      ? const SizedBox.square(
+                      ? SizedBox.square(
                           dimension: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Colors.white,
+                            color: context.colors.text,
                           ),
                         )
                       : Text(
@@ -269,8 +269,8 @@ class _PhotoActionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListTile(
-    leading: Icon(icon, color: Colors.white),
-    title: Text(label, style: const TextStyle(color: Colors.white)),
+    leading: Icon(icon, color: context.colors.text),
+    title: Text(label, style: TextStyle(color: context.colors.text)),
     onTap: () => Navigator.of(context).pop(action),
   );
 }

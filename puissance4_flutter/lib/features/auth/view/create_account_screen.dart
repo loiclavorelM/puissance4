@@ -4,7 +4,7 @@ import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import '../../../client.dart';
 import '../../../core/l10n/l10n.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../profile/viewmodel/profile_provider.dart';
 import 'auth_form_theme.dart';
 
@@ -37,10 +37,10 @@ class CreateAccountScreen extends ConsumerWidget {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
-        foregroundColor: Colors.white,
+        backgroundColor: context.colors.background,
+        foregroundColor: context.colors.text,
         title: Text(l10n.createAccount),
       ),
       body: SafeArea(
@@ -55,14 +55,17 @@ class CreateAccountScreen extends ConsumerWidget {
                   Text(
                     l10n.createAccountIntro,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.white70, fontSize: 15),
+                    style: TextStyle(
+                      color: context.colors.textSecondary,
+                      fontSize: 15,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: AppColors.card,
+                      color: context.colors.card,
                       borderRadius: BorderRadius.circular(28),
                     ),
                     child: AuthFormTheme(

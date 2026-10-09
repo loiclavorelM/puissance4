@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
 import '../../../core/l10n/l10n.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../history/view/history_screen.dart';
 import '../../history/viewmodel/history_viewmodel.dart';
 import '../../multiplayer/view/multiplayer_screen.dart';
@@ -43,10 +43,10 @@ class RivalryScreen extends ConsumerWidget {
     ];
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
-        foregroundColor: Colors.white,
+        backgroundColor: context.colors.background,
+        foregroundColor: context.colors.text,
         title: Text(rivalry?.friend.username ?? ''),
       ),
       body: rivalry == null
@@ -66,7 +66,7 @@ class RivalryScreen extends ConsumerWidget {
                         )
                       : null,
                   style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.green,
+                    backgroundColor: context.colors.green,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                   icon: const Icon(Icons.sports_esports),
@@ -79,8 +79,8 @@ class RivalryScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
                 Text(
                   l10n.rivalryGames,
-                  style: const TextStyle(
-                    color: Colors.white38,
+                  style: TextStyle(
+                    color: context.colors.textFaint,
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
                     letterSpacing: 1,
@@ -90,7 +90,10 @@ class RivalryScreen extends ConsumerWidget {
                 if (games.isEmpty)
                   Text(
                     l10n.rivalryGamesEmpty,
-                    style: const TextStyle(color: Colors.white38, fontSize: 13),
+                    style: TextStyle(
+                      color: context.colors.textFaint,
+                      fontSize: 13,
+                    ),
                   )
                 else
                   for (final item in games) ...[
@@ -127,7 +130,7 @@ class _Scoreboard extends ConsumerWidget {
           label,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: Colors.white70, fontSize: 13),
+          style: TextStyle(color: context.colors.textSecondary, fontSize: 13),
         ),
       ],
     );
@@ -135,7 +138,7 @@ class _Scoreboard extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: context.colors.card,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -147,8 +150,8 @@ class _Scoreboard extends ConsumerWidget {
               ),
               Text(
                 '${rivalry.wins} – ${rivalry.losses}',
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: context.colors.text,
                   fontWeight: FontWeight.bold,
                   fontSize: 36,
                 ),
@@ -168,7 +171,7 @@ class _Scoreboard extends ConsumerWidget {
               l10n.rivalryDraws(rivalry.draws),
               ?streak,
             ].join(' · '),
-            style: const TextStyle(color: Colors.white54, fontSize: 13),
+            style: TextStyle(color: context.colors.textMuted, fontSize: 13),
           ),
         ],
       ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 import 'package:puissance4_rules/puissance4_rules.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_palette.dart';
 
 /// Plateau 7×6 dessiné à partir de la liste de coups : le dernier jeton
 /// tombe (animation), l'alignement gagnant est cerclé, et un appui sur une
@@ -26,11 +26,17 @@ class Connect4BoardView extends StatelessWidget {
   /// Case `(colonne, rangée)` et couleur d'un jeton fantôme.
   final (int, int, EnumColor)? hint;
 
+  /// Le plateau garde les couleurs du thème sombre dans les deux thèmes,
+  /// comme un vrai plateau : le jaune vif des jetons ne se verrait pas sur
+  /// un plateau blanc.
+  static const _board = AppPalette.dark;
+
+  /// Couleur d'un jeton (vive, quel que soit le thème).
   static Color colorOf(EnumColor color) =>
-      color == EnumColor.rouge ? AppColors.primary : AppColors.yellow;
+      color == EnumColor.rouge ? _board.primary : _board.yellow;
 
   static Color _discColor(Disc disc) =>
-      disc == Disc.rouge ? AppColors.primary : AppColors.yellow;
+      disc == Disc.rouge ? _board.primary : _board.yellow;
 
   @override
   Widget build(BuildContext context) {
@@ -44,9 +50,9 @@ class Connect4BoardView extends StatelessWidget {
         padding: const EdgeInsets.all(6),
         clipBehavior: Clip.hardEdge,
         decoration: BoxDecoration(
-          color: AppColors.card,
+          color: _board.card,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white10),
+          border: Border.all(color: _board.divider),
         ),
         child: Row(
           children: [
@@ -119,7 +125,9 @@ class _Cell extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: color,
-        border: highlighted ? Border.all(color: Colors.white, width: 3) : null,
+        border: highlighted
+            ? Border.all(color: Connect4BoardView._board.text, width: 3)
+            : null,
       ),
     );
 
@@ -128,10 +136,10 @@ class _Cell extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          const DecoratedBox(
+          DecoratedBox(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.background,
+              color: Connect4BoardView._board.background,
             ),
           ),
           if (hintColor case final hint?)

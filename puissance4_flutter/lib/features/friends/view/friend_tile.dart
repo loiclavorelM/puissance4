@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../profile/view/profile_avatar.dart';
 
 /// Ligne d'un joueur dans l'onglet Amis (liste, demandes, recherche) —
@@ -11,14 +11,16 @@ class FriendTile extends StatelessWidget {
     super.key,
     required this.player,
     this.subtitle,
-    this.subtitleColor = Colors.white54,
+    this.subtitleColor,
     this.presence,
     this.trailing,
   });
 
   final FriendUserDto player;
   final String? subtitle;
-  final Color subtitleColor;
+
+  /// `textMuted` du thème par défaut.
+  final Color? subtitleColor;
 
   /// Pastille sur l'avatar (amis seulement).
   final EnumFriendPresence? presence;
@@ -29,7 +31,7 @@ class FriendTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 10, 8, 10),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: context.colors.card,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -50,8 +52,8 @@ class FriendTile extends StatelessWidget {
                     height: 12,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: presenceColor(presence),
-                      border: Border.all(color: AppColors.card, width: 2),
+                      color: presenceColor(context.colors, presence),
+                      border: Border.all(color: context.colors.card, width: 2),
                     ),
                   ),
                 ),
@@ -69,8 +71,8 @@ class FriendTile extends StatelessWidget {
                         player.username,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: context.colors.text,
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
                         ),
@@ -79,8 +81,8 @@ class FriendTile extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(
                       '${player.elo}',
-                      style: const TextStyle(
-                        color: AppColors.yellow,
+                      style: TextStyle(
+                        color: context.colors.yellow,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),
@@ -92,7 +94,10 @@ class FriendTile extends StatelessWidget {
                     subtitle!,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: subtitleColor, fontSize: 12),
+                    style: TextStyle(
+                      color: subtitleColor ?? context.colors.textMuted,
+                      fontSize: 12,
+                    ),
                   ),
               ],
             ),
@@ -104,11 +109,12 @@ class FriendTile extends StatelessWidget {
   }
 }
 
-Color presenceColor(EnumFriendPresence presence) => switch (presence) {
-  EnumFriendPresence.online => AppColors.green,
-  EnumFriendPresence.playing => AppColors.yellow,
-  EnumFriendPresence.offline => Colors.white24,
-};
+Color presenceColor(AppPalette colors, EnumFriendPresence presence) =>
+    switch (presence) {
+      EnumFriendPresence.online => colors.green,
+      EnumFriendPresence.playing => colors.yellow,
+      EnumFriendPresence.offline => colors.outline,
+    };
 
 /// Message centré d'un onglet vide ou en erreur, avec une action facultative.
 class FriendsMessage extends StatelessWidget {
@@ -117,13 +123,15 @@ class FriendsMessage extends StatelessWidget {
     required this.text,
     this.actionLabel,
     this.onAction,
-    this.color = Colors.white54,
+    this.color,
   });
 
   final String text;
   final String? actionLabel;
   final VoidCallback? onAction;
-  final Color color;
+
+  /// `textMuted` du thème par défaut.
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -136,14 +144,17 @@ class FriendsMessage extends StatelessWidget {
             Text(
               text,
               textAlign: TextAlign.center,
-              style: TextStyle(color: color, fontSize: 13),
+              style: TextStyle(
+                color: color ?? context.colors.textMuted,
+                fontSize: 13,
+              ),
             ),
             if (actionLabel != null) ...[
               const SizedBox(height: 12),
               FilledButton(
                 onPressed: onAction,
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: context.colors.primary,
                 ),
                 child: Text(actionLabel!),
               ),

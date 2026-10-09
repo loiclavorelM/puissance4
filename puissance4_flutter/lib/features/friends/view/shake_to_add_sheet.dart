@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/l10n.dart';
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../sensors/viewmodel/shake_provider.dart';
 import '../viewmodel/add_in_person_viewmodel.dart';
 import 'add_friend_tab.dart';
@@ -12,7 +12,7 @@ import 'add_friend_tab.dart';
 Future<void> showShakeToAddSheet(BuildContext context) =>
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppColors.card,
+      backgroundColor: context.colors.card,
       showDragHandle: true,
       builder: (_) => const _ShakeToAddSheet(),
     );
@@ -40,8 +40,8 @@ class _ShakeToAddSheet extends ConsumerWidget {
               Icons.vibration,
               size: 48,
               color: state.phase == ShakePhase.matching
-                  ? AppColors.yellow
-                  : AppColors.green,
+                  ? context.colors.yellow
+                  : context.colors.green,
             ),
             const SizedBox(height: 12),
             Text(
@@ -52,8 +52,8 @@ class _ShakeToAddSheet extends ConsumerWidget {
                 ShakePhase.nobody => l10n.shakeToAddNobody,
               },
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: context.colors.text,
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
@@ -64,8 +64,8 @@ class _ShakeToAddSheet extends ConsumerWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: state.errorMessage == null
-                    ? Colors.white54
-                    : AppColors.yellow,
+                    ? context.colors.textMuted
+                    : context.colors.yellow,
                 fontSize: 13,
               ),
             ),

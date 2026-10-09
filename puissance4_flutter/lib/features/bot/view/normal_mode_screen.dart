@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../game/view/game_screen.dart';
 import '../viewmodel/normal_mode_viewmodel.dart';
 import '../../../core/l10n/l10n.dart';
@@ -21,10 +21,10 @@ class NormalModeScreen extends ConsumerWidget {
     final canPlay = ref.watch(canPlayNormalProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
-        foregroundColor: Colors.white,
+        backgroundColor: context.colors.background,
+        foregroundColor: context.colors.text,
         title: Text(context.l10n.modeNormal),
       ),
       body: SafeArea(
@@ -36,7 +36,7 @@ class NormalModeScreen extends ConsumerWidget {
               Text(
                 context.l10n.chooseOpponent,
                 style: TextStyle(
-                  color: Colors.white54,
+                  color: context.colors.textMuted,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.2,
@@ -53,7 +53,7 @@ class NormalModeScreen extends ConsumerWidget {
                       children: [
                         Text(
                           context.l10n.botsLoadError,
-                          style: TextStyle(color: Colors.white70),
+                          style: TextStyle(color: context.colors.textSecondary),
                         ),
                         TextButton(
                           onPressed: () => ref.invalidate(botsProvider),
@@ -81,7 +81,7 @@ class NormalModeScreen extends ConsumerWidget {
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Text(
                     state.errorMessage!,
-                    style: const TextStyle(color: AppColors.yellow),
+                    style: TextStyle(color: context.colors.yellow),
                   ),
                 ),
               if (!canPlay)
@@ -89,12 +89,15 @@ class NormalModeScreen extends ConsumerWidget {
                   padding: EdgeInsets.only(bottom: 8),
                   child: Text(
                     context.l10n.normalNeedsSession,
-                    style: TextStyle(color: Colors.white54, fontSize: 12),
+                    style: TextStyle(
+                      color: context.colors.textMuted,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: context.colors.primary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 onPressed:
@@ -141,11 +144,11 @@ class _BotCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.card,
+      color: context.colors.card,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(
-          color: isSelected ? AppColors.primary : Colors.white10,
+          color: isSelected ? context.colors.primary : context.colors.divider,
           width: isSelected ? 2 : 1,
         ),
       ),
@@ -160,10 +163,10 @@ class _BotCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.15),
+                  color: context.colors.primary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(Icons.smart_toy, color: AppColors.primary),
+                child: Icon(Icons.smart_toy, color: context.colors.primary),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -172,16 +175,16 @@ class _BotCard extends StatelessWidget {
                   children: [
                     Text(
                       localizedBotName(context.l10n, bot.botName),
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: context.colors.text,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
                     ),
                     Text(
                       context.l10n.eloLabel(bot.elo),
-                      style: const TextStyle(
-                        color: AppColors.yellow,
+                      style: TextStyle(
+                        color: context.colors.yellow,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),
@@ -189,8 +192,8 @@ class _BotCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       localizedBotDescription(context.l10n, bot),
-                      style: const TextStyle(
-                        color: Colors.white54,
+                      style: TextStyle(
+                        color: context.colors.textMuted,
                         fontSize: 13,
                       ),
                     ),
@@ -202,7 +205,7 @@ class _BotCard extends StatelessWidget {
               IconButton(
                 onPressed: () {},
                 tooltip: context.l10n.download,
-                icon: const Icon(Icons.download, color: Colors.white54),
+                icon: Icon(Icons.download, color: context.colors.textMuted),
               ),
             ],
           ),
