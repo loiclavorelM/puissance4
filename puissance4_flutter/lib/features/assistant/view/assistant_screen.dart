@@ -44,6 +44,7 @@ class AssistantScreen extends ConsumerWidget {
                   ? AssistantDashboardView(
                       dashboard: ref.watch(dashboardControllerProvider),
                       data: ref.watch(dataSourceClientProvider),
+                      chat: ref.watch(chatControllerProvider),
                     )
                   : Center(
                       child: Padding(

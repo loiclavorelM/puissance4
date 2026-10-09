@@ -56,6 +56,33 @@ import 'protocol.dart' as _il2as5qe;
 import 'sync_tables.dart' as _ii3f3u05;
 import 'package:puissance4_client/migrations/migration_registry.dart';
 
+/// L'assistant (E16) : une méthode en stream qui renvoie les événements de
+/// `contracts/assistant-events.schema.json`, un objet JSON par message. La
+/// clé du LLM ne quitte jamais le serveur.
+/// {@category Endpoint}
+class EndpointAssistant extends _isc.EndpointRef {
+  EndpointAssistant(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'assistant';
+
+  /// Envoie [inputJson] (`ChatInput` : texte, langue, mentions) dans
+  /// [conversationId], ou dans une nouvelle conversation si `null` — son id
+  /// arrive dans le premier événement (`started`).
+  _ida.Stream<String> chat(
+    String? conversationId,
+    String inputJson,
+  ) => caller.callStreamingServerEndpoint<_ida.Stream<String>, String>(
+    'assistant',
+    'chat',
+    {
+      'conversationId': conversationId,
+      'inputJson': inputJson,
+    },
+    {},
+  );
+}
+
 /// Le tableau de bord de l'assistant côté app (E16) : lecture, panneau
 /// « Modifier », « Épingler » un bloc du chat, annulation, filtres. Les
 /// écritures de l'assistant passent par les outils MCP ; les deux aboutissent
@@ -953,6 +980,7 @@ class Client extends _isc.ServerpodClientShared {
              disconnectStreamsOnLostInternetConnection,
          httpClientOverride: httpClientOverride,
        ) {
+    assistant = EndpointAssistant(this);
     dashboard = EndpointDashboard(this);
     data = EndpointData(this);
     anonymousIdp = EndpointAnonymousIdp(this);
@@ -972,6 +1000,8 @@ class Client extends _isc.ServerpodClientShared {
     review = EndpointReview(this);
     modules = Modules(this);
   }
+
+  late final EndpointAssistant assistant;
 
   late final EndpointDashboard dashboard;
 
@@ -1011,6 +1041,7 @@ class Client extends _isc.ServerpodClientShared {
 
   @override
   Map<String, _isc.EndpointRef> get endpointRefLookup => {
+    'assistant': assistant,
     'dashboard': dashboard,
     'data': data,
     'anonymousIdp': anonymousIdp,

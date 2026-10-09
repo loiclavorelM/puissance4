@@ -20,6 +20,7 @@ import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _iais;
 import 'package:serverpod_offline_sync_server/serverpod_offline_sync_server.dart'
     as _izehhkf5;
+import '../assistant/assistant_endpoint.dart' as _i1zejsgk;
 import '../assistant/dashboard_endpoint.dart' as _imdg5yo8;
 import '../assistant/data_endpoint.dart' as _ihk12ms4;
 import '../auth/anonymous_idp_endpoint.dart' as _in0zita6;
@@ -42,6 +43,12 @@ class Endpoints extends _is.EndpointDispatch {
   @override
   void initializeEndpoints(_is.Server server) {
     var endpoints = <String, _is.Endpoint>{
+      'assistant': _i1zejsgk.AssistantEndpoint()
+        ..initialize(
+          server,
+          'assistant',
+          null,
+        ),
       'dashboard': _imdg5yo8.DashboardEndpoint()
         ..initialize(
           server,
@@ -145,6 +152,39 @@ class Endpoints extends _is.EndpointDispatch {
           null,
         ),
     };
+    connectors['assistant'] = _is.EndpointConnector(
+      name: 'assistant',
+      endpoint: endpoints['assistant']!,
+      methodConnectors: {
+        'chat': _is.MethodStreamConnector(
+          name: 'chat',
+          params: {
+            'conversationId': _is.ParameterDescription(
+              name: 'conversationId',
+              type: _is.getType<String?>(),
+              nullable: true,
+            ),
+            'inputJson': _is.ParameterDescription(
+              name: 'inputJson',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          streamParams: {},
+          returnType: _is.MethodStreamReturnType.streamType,
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+                Map<String, Stream> streamParams,
+              ) => (endpoints['assistant'] as _i1zejsgk.AssistantEndpoint).chat(
+                session,
+                params['conversationId'],
+                params['inputJson'],
+              ),
+        ),
+      },
+    );
     connectors['dashboard'] = _is.EndpointConnector(
       name: 'dashboard',
       endpoint: endpoints['dashboard']!,

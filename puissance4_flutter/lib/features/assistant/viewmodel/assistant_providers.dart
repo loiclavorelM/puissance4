@@ -34,3 +34,12 @@ final dashboardControllerProvider =
       unawaited(controller.reload());
       return controller;
     });
+
+/// La conversation avec l'assistant, gardée tant que l'onglet vit.
+final chatControllerProvider =
+    ChangeNotifierProvider.autoDispose<ChatController>((
+      ref,
+    ) {
+      ref.watch(assistantAvailableProvider);
+      return ChatController(ServerpodAssistantClient());
+    });

@@ -1,8 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
 import 'package:serverpod/serverpod.dart';
+
+import '../assistant/orchestrator/chat_model.dart';
+import '../assistant/orchestrator/ollama_chat_model.dart';
 
 /// Réglages de la revue de partie par LLM (E14), en un seul endroit.
 ///
@@ -44,12 +45,13 @@ abstract interface class LlmClient {
   });
 }
 
-/// API chat d'Ollama cloud (`POST https://ollama.com/api/chat`).
+/// API chat d'Ollama cloud, par le même client que l'assistant (E16) :
+/// un seul code d'appel à Ollama dans le serveur.
 class OllamaCloudClient implements LlmClient {
-  OllamaCloudClient({Uri? endpoint})
-    : _endpoint = endpoint ?? Uri.parse('https://ollama.com/api/chat');
+  OllamaCloudClient({this.endpoint});
 
-  final Uri _endpoint;
+  /// `null` : Ollama Cloud.
+  final Uri? endpoint;
 
   @override
   Future<String> chat({
@@ -59,40 +61,17 @@ class OllamaCloudClient implements LlmClient {
     required String user,
     required Duration timeout,
   }) async {
-    final http = HttpClient()..connectionTimeout = timeout;
-    try {
-      final request = await http.postUrl(_endpoint);
-      request.headers
-        ..contentType = ContentType.json
-        ..set(HttpHeaders.authorizationHeader, 'Bearer $apiKey');
-      request.write(
-        jsonEncode({
-          'model': model,
-          'stream': false,
-          'messages': [
-            {'role': 'system', 'content': system},
-            {'role': 'user', 'content': user},
-          ],
-        }),
-      );
-      final response = await request.close().timeout(timeout);
-      final body = await response
-          .transform(utf8.decoder)
-          .join()
-          .timeout(timeout);
-      if (response.statusCode != HttpStatus.ok) {
-        throw HttpException('Ollama ${response.statusCode}: $body');
-      }
-      final content =
-          ((jsonDecode(body) as Map<String, dynamic>)['message']
-                  as Map<String, dynamic>?)?['content']
-              as String?;
-      if (content == null || content.trim().isEmpty) {
-        throw const FormatException('Empty Ollama answer');
-      }
-      return content.trim();
-    } finally {
-      http.close(force: true);
-    }
+    final response =
+        await OllamaChatModel(
+          apiKey: apiKey,
+          timeout: timeout,
+          endpoint: endpoint,
+        ).getResponse([
+          ChatMessage.system(system),
+          ChatMessage.user(user),
+        ], ChatOptions(model: model));
+    final content = response.message.content;
+    if (content.isEmpty) throw const FormatException('Empty Ollama answer');
+    return content;
   }
 }

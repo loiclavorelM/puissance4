@@ -1,3 +1,5 @@
+assistant:
+  - chat:
 dashboard:
   - get:
   - saveWidget:

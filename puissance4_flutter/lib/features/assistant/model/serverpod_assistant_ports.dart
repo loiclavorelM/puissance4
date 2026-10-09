@@ -77,3 +77,11 @@ class ServerpodDataSourceClient implements DataSourceClient {
       ),
   ];
 }
+
+class ServerpodAssistantClient implements AssistantClient {
+  @override
+  Stream<AssistantEvent> send(String? conversationId, ChatInput input) => client
+      .assistant
+      .chat(conversationId, jsonEncode(input.toJson()))
+      .map((json) => AssistantEvent.fromJson((jsonDecode(json) as Map).cast()));
+}

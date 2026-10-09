@@ -182,6 +182,8 @@ void withServerpod(
 }
 
 class TestEndpoints {
+  late final _AssistantEndpoint assistant;
+
   late final _DashboardEndpoint dashboard;
 
   late final _DataEndpoint data;
@@ -224,6 +226,10 @@ class _InternalTestEndpoints extends TestEndpoints
     _is.SerializationManager serializationManager,
     _is.EndpointDispatch endpoints,
   ) {
+    assistant = _AssistantEndpoint(
+      endpoints,
+      serializationManager,
+    );
     dashboard = _DashboardEndpoint(
       endpoints,
       serializationManager,
@@ -292,6 +298,53 @@ class _InternalTestEndpoints extends TestEndpoints
       endpoints,
       serializationManager,
     );
+  }
+}
+
+class _AssistantEndpoint {
+  _AssistantEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Stream<String> chat(
+    _ist.TestSessionBuilder sessionBuilder,
+    String? conversationId,
+    String inputJson,
+  ) {
+    var _localTestStreamManager = _ist.TestStreamManager<String>();
+    _ist.callStreamFunctionAndHandleExceptions(
+      () async {
+        var _localUniqueSession =
+            (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+              endpoint: 'assistant',
+              method: 'chat',
+            );
+        var _localCallContext = await _endpointDispatch
+            .getMethodStreamCallContext(
+              createSessionCallback: (_) => _localUniqueSession,
+              endpointPath: 'assistant',
+              methodName: 'chat',
+              arguments: {
+                'conversationId': conversationId,
+                'inputJson': inputJson,
+              },
+              requestedInputStreams: [],
+              serializationManager: _serializationManager,
+            );
+        await _localTestStreamManager.callStreamMethod(
+          _localCallContext,
+          _localUniqueSession,
+          {},
+        );
+      },
+      _localTestStreamManager.outputStreamController,
+    );
+    return _localTestStreamManager.outputStreamController.stream;
   }
 }
 
