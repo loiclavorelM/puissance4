@@ -56,6 +56,62 @@ import 'protocol.dart' as _il2as5qe;
 import 'sync_tables.dart' as _ii3f3u05;
 import 'package:puissance4_client/migrations/migration_registry.dart';
 
+/// Le tableau de bord de l'assistant côté app (E16) : lecture, panneau
+/// « Modifier », « Épingler » un bloc du chat, annulation, filtres. Les
+/// écritures de l'assistant passent par les outils MCP ; les deux aboutissent
+/// à [DashboardStore], donc aux mêmes versions annulables.
+///
+/// Entrées et sorties en JSON des contrats (`dashboard.schema.json`,
+/// `widget-definition.schema.json`). Les nouvelles versions sont signalées
+/// par `LiveEvent(dashboardChanged)`.
+/// {@category Endpoint}
+class EndpointDashboard extends _isc.EndpointRef {
+  EndpointDashboard(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'dashboard';
+
+  _ida.Future<String> get() => caller.callServerEndpoint<String>(
+    'dashboard',
+    'get',
+    {},
+  );
+
+  /// Ajoute [definitionJson] (sans id : « Épingler ») ou remplace le widget
+  /// de même id (panneau « Modifier »). Lève [AssistantException]
+  /// (`invalidWidget`, `notFound`).
+  _ida.Future<String> saveWidget(String definitionJson) =>
+      caller.callServerEndpoint<String>(
+        'dashboard',
+        'saveWidget',
+        {'definitionJson': definitionJson},
+      );
+
+  _ida.Future<String> removeWidget(String id) =>
+      caller.callServerEndpoint<String>(
+        'dashboard',
+        'removeWidget',
+        {'id': id},
+      );
+
+  /// Revient à la version précédente. Lève [AssistantException]
+  /// (`nothingToUndo`).
+  _ida.Future<String> undo() => caller.callServerEndpoint<String>(
+    'dashboard',
+    'undo',
+    {},
+  );
+
+  /// Remplace les filtres par [filtersJson] (`range`, `mode`, `opponent` en
+  /// référence `user:`/`bot:` ; absent = pas de filtre).
+  _ida.Future<String> setFilters(String filtersJson) =>
+      caller.callServerEndpoint<String>(
+        'dashboard',
+        'setFilters',
+        {'filtersJson': filtersJson},
+      );
+}
+
 /// Données des widgets du tableau de bord (E16) : l'app les charge elle-même,
 /// avec les vraies valeurs — elles ne passent jamais par le LLM.
 ///
@@ -897,6 +953,7 @@ class Client extends _isc.ServerpodClientShared {
              disconnectStreamsOnLostInternetConnection,
          httpClientOverride: httpClientOverride,
        ) {
+    dashboard = EndpointDashboard(this);
     data = EndpointData(this);
     anonymousIdp = EndpointAnonymousIdp(this);
     emailIdp = EndpointEmailIdp(this);
@@ -915,6 +972,8 @@ class Client extends _isc.ServerpodClientShared {
     review = EndpointReview(this);
     modules = Modules(this);
   }
+
+  late final EndpointDashboard dashboard;
 
   late final EndpointData data;
 
@@ -952,6 +1011,7 @@ class Client extends _isc.ServerpodClientShared {
 
   @override
   Map<String, _isc.EndpointRef> get endpointRefLookup => {
+    'dashboard': dashboard,
     'data': data,
     'anonymousIdp': anonymousIdp,
     'emailIdp': emailIdp,

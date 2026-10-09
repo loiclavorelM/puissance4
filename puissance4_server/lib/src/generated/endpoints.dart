@@ -20,6 +20,7 @@ import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _iais;
 import 'package:serverpod_offline_sync_server/serverpod_offline_sync_server.dart'
     as _izehhkf5;
+import '../assistant/dashboard_endpoint.dart' as _imdg5yo8;
 import '../assistant/data_endpoint.dart' as _ihk12ms4;
 import '../auth/anonymous_idp_endpoint.dart' as _in0zita6;
 import '../auth/email_idp_endpoint.dart' as _iuc1hd5t;
@@ -41,6 +42,12 @@ class Endpoints extends _is.EndpointDispatch {
   @override
   void initializeEndpoints(_is.Server server) {
     var endpoints = <String, _is.Endpoint>{
+      'dashboard': _imdg5yo8.DashboardEndpoint()
+        ..initialize(
+          server,
+          'dashboard',
+          null,
+        ),
       'data': _ihk12ms4.DataEndpoint()
         ..initialize(
           server,
@@ -138,6 +145,89 @@ class Endpoints extends _is.EndpointDispatch {
           null,
         ),
     };
+    connectors['dashboard'] = _is.EndpointConnector(
+      name: 'dashboard',
+      endpoint: endpoints['dashboard']!,
+      methodConnectors: {
+        'get': _is.MethodConnector(
+          name: 'get',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['dashboard'] as _imdg5yo8.DashboardEndpoint)
+                  .get(session),
+        ),
+        'saveWidget': _is.MethodConnector(
+          name: 'saveWidget',
+          params: {
+            'definitionJson': _is.ParameterDescription(
+              name: 'definitionJson',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['dashboard'] as _imdg5yo8.DashboardEndpoint)
+                  .saveWidget(
+                    session,
+                    params['definitionJson'],
+                  ),
+        ),
+        'removeWidget': _is.MethodConnector(
+          name: 'removeWidget',
+          params: {
+            'id': _is.ParameterDescription(
+              name: 'id',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['dashboard'] as _imdg5yo8.DashboardEndpoint)
+                  .removeWidget(
+                    session,
+                    params['id'],
+                  ),
+        ),
+        'undo': _is.MethodConnector(
+          name: 'undo',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['dashboard'] as _imdg5yo8.DashboardEndpoint)
+                  .undo(session),
+        ),
+        'setFilters': _is.MethodConnector(
+          name: 'setFilters',
+          params: {
+            'filtersJson': _is.ParameterDescription(
+              name: 'filtersJson',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['dashboard'] as _imdg5yo8.DashboardEndpoint)
+                  .setFilters(
+                    session,
+                    params['filtersJson'],
+                  ),
+        ),
+      },
+    );
     connectors['data'] = _is.EndpointConnector(
       name: 'data',
       endpoint: endpoints['data']!,

@@ -9,6 +9,7 @@ export 'src/chart_rules.dart';
 export 'src/chat_input.dart';
 export 'src/contracts.dart';
 export 'src/dashboard.dart';
+export 'src/dashboard_layout.dart';
 export 'src/json.dart';
 export 'src/relative_range.dart';
 export 'src/source_catalog.dart';

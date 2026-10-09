@@ -1,3 +1,9 @@
+dashboard:
+  - get:
+  - saveWidget:
+  - removeWidget:
+  - undo:
+  - setFilters:
 data:
   - query:
   - searchMentions:

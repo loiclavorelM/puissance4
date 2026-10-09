@@ -162,7 +162,9 @@ final class ChartRules {
       final allowed = rule.channels[channel];
       if (name == null) {
         if (allowed != null && channel != ChartChannel.color) {
-          errors.add('A ${chart.mark.name} chart needs ${channel.name}.');
+          errors.add(
+            _missingError(chart.mark, channel, allowed, source, catalog),
+          );
         }
         continue;
       }
@@ -212,6 +214,25 @@ final class ChartRules {
     final kinds = allowed.map((t) => t.name).join(' or ');
     return 'A ${mark.name} chart needs a $kinds ${channel.name}, '
         'but $field is ${type.name}: $suggestion.';
+  }
+
+  String _missingError(
+    ChartMark mark,
+    ChartChannel channel,
+    Set<FieldType> allowed,
+    SourceSpec source,
+    SourceCatalog catalog,
+  ) {
+    final kinds = allowed.map((t) => t.name).join(' or ');
+    final fitting = allowedFields(mark, channel, source, catalog);
+    if (fitting.isNotEmpty) {
+      return 'A ${mark.name} chart needs a $kinds ${channel.name}: '
+          'use ${fitting.map((f) => f.name).join(' or ')}.';
+    }
+    final instead = source.defaultChart?.mark;
+    return 'A ${mark.name} chart needs a $kinds ${channel.name} and '
+        '${source.key} has none: '
+        '${instead == null ? 'use a table' : 'use a $instead chart'}.';
   }
 
   /// Erreurs qui dépendent des données (nombre de catégories, de séries).
