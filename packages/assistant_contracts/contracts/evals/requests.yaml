@@ -13,18 +13,20 @@
   expect:
     - tool: propose_widget
       args: { type: chart, source: games.byDay }
+# La source empile déjà par résultat par défaut : `stack` peut manquer.
 - request: "Ajoute mes parties par jour, empilées par résultat"
   expect:
     - tool: add_widget
-      args: { type: chart, source: games.byDay, stack: true }
+      args: { type: chart, source: games.byDay }
 - request: "Mets la carte des cases où je joue à droite, sur mes 30 dernières parties"
   expect:
     - tool: add_widget
       args: { type: chart, source: moves.byCell, lastGames: 30, who: me }
+# games.summary ou games.byDay répondent tous deux : seule la période compte.
 - request: "Combien de parties j'ai gagnées cette semaine ?"
   expect:
     - tool: query_data
-      args: { source: games.summary, range: "this:week" }
+      args: { range: "this:week" }
 - request: "Ajoute la courbe de mon Elo sur le dernier mois"
   expect:
     - tool: add_widget
@@ -42,3 +44,9 @@
   expect:
     - tool: set_dashboard_filters
       args: { mode: classe }
+# Bonus (lot 6) : le gameId vient de games.recent.
+- request: "Analyse ma dernière partie : où est-ce que ça a basculé ?"
+  expect:
+    - tool: query_data
+      args: { source: games.recent }
+    - tool: analyze_game

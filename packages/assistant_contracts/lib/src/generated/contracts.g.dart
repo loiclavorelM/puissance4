@@ -6,175 +6,465 @@ const sourcesJson = r'''
   "params": {
     "range": {
       "type": "enum",
-      "values": ["last:24h", "last:7d", "last:30d", "last:90d", "this:week", "this:month", "this:year", "all"],
+      "values": [
+        "last:24h",
+        "last:7d",
+        "last:30d",
+        "last:90d",
+        "this:week",
+        "this:month",
+        "this:year",
+        "all"
+      ],
       "description": "Relative period of the games. Never an absolute date.",
-      "label": { "fr": "Période", "en": "Period" }
+      "label": {
+        "fr": "Période",
+        "en": "Period"
+      }
     },
     "lastGames": {
       "type": "integer",
       "min": 1,
       "max": 200,
       "description": "Only the N most recent games. Use instead of range when the player counts games.",
-      "label": { "fr": "Dernières parties", "en": "Last games" }
+      "label": {
+        "fr": "Dernières parties",
+        "en": "Last games"
+      }
     },
     "mode": {
       "type": "enum",
-      "values": ["normal", "classe", "multi"],
+      "values": [
+        "normal",
+        "classe",
+        "multi"
+      ],
       "description": "Game mode: normal (vs on-device bot), classe (ranked vs server bot, Elo), multi (online vs a human). Omit for all modes.",
-      "label": { "fr": "Mode", "en": "Mode" }
+      "label": {
+        "fr": "Mode",
+        "en": "Mode"
+      }
     },
     "opponent": {
       "type": "opponent",
       "description": "One opponent, copied verbatim as it appears in data or in the request (a token such as [Player:1], or a bot name such as Expert).",
-      "label": { "fr": "Adversaire", "en": "Opponent" }
+      "label": {
+        "fr": "Adversaire",
+        "en": "Opponent"
+      }
     },
     "who": {
       "type": "enum",
-      "values": ["me", "opponent"],
+      "values": [
+        "me",
+        "opponent"
+      ],
       "description": "Whose discs to count.",
-      "label": { "fr": "Pions de", "en": "Discs of" }
+      "label": {
+        "fr": "Pions de",
+        "en": "Discs of"
+      }
     },
     "only": {
       "type": "enum",
-      "values": ["all", "winning"],
+      "values": [
+        "all",
+        "winning"
+      ],
       "description": "all = every disc played, winning = only discs of winning four-in-a-row lines.",
-      "label": { "fr": "Pions", "en": "Discs" }
+      "label": {
+        "fr": "Pions",
+        "en": "Discs"
+      }
     },
     "limit": {
       "type": "integer",
       "min": 1,
       "max": 20,
-      "description": "Number of rows.",
-      "label": { "fr": "Nombre", "en": "Count" }
+      "description": "Only for games.recent: number of rows. Other sources have no limit (query_data already truncates to 20 rows).",
+      "label": {
+        "fr": "Nombre",
+        "en": "Count"
+      }
     }
   },
-  "dashboardParams": ["range", "mode", "opponent"],
+  "dashboardParams": [
+    "range",
+    "mode",
+    "opponent"
+  ],
   "fields": {
-    "day": { "type": "temporal", "label": { "fr": "Jour", "en": "Day" } },
-    "playedAt": { "type": "temporal", "label": { "fr": "Date", "en": "Date" } },
+    "day": {
+      "type": "temporal",
+      "label": {
+        "fr": "Jour",
+        "en": "Day"
+      }
+    },
+    "playedAt": {
+      "type": "temporal",
+      "label": {
+        "fr": "Date",
+        "en": "Date"
+      }
+    },
     "result": {
       "type": "category",
-      "label": { "fr": "Résultat", "en": "Result" },
-      "values": {
-        "win": { "fr": "Victoire", "en": "Win" },
-        "loss": { "fr": "Défaite", "en": "Loss" },
-        "draw": { "fr": "Nul", "en": "Draw" }
+      "label": {
+        "fr": "Résultat",
+        "en": "Result"
       },
-      "colors": { "win": "success", "loss": "danger", "draw": "neutral" }
+      "values": {
+        "win": {
+          "fr": "Victoire",
+          "en": "Win"
+        },
+        "loss": {
+          "fr": "Défaite",
+          "en": "Loss"
+        },
+        "draw": {
+          "fr": "Nul",
+          "en": "Draw"
+        }
+      },
+      "colors": {
+        "win": "success",
+        "loss": "danger",
+        "draw": "neutral"
+      }
     },
     "mode": {
       "type": "category",
-      "label": { "fr": "Mode", "en": "Mode" },
+      "label": {
+        "fr": "Mode",
+        "en": "Mode"
+      },
       "values": {
-        "normal": { "fr": "Normal", "en": "Normal" },
-        "classe": { "fr": "Classé", "en": "Ranked" },
-        "multi": { "fr": "Multijoueur", "en": "Multiplayer" }
+        "normal": {
+          "fr": "Normal",
+          "en": "Normal"
+        },
+        "classe": {
+          "fr": "Classé",
+          "en": "Ranked"
+        },
+        "multi": {
+          "fr": "Multijoueur",
+          "en": "Multiplayer"
+        }
       }
     },
-    "opponent": { "type": "category", "label": { "fr": "Adversaire", "en": "Opponent" } },
+    "opponent": {
+      "type": "category",
+      "label": {
+        "fr": "Adversaire",
+        "en": "Opponent"
+      }
+    },
     "opponentKind": {
       "type": "category",
-      "label": { "fr": "Type d'adversaire", "en": "Opponent type" },
+      "label": {
+        "fr": "Type d'adversaire",
+        "en": "Opponent type"
+      },
       "values": {
-        "bot": { "fr": "Bot", "en": "Bot" },
-        "human": { "fr": "Joueur", "en": "Player" }
+        "bot": {
+          "fr": "Bot",
+          "en": "Bot"
+        },
+        "human": {
+          "fr": "Joueur",
+          "en": "Player"
+        }
       }
     },
-    "opponentRef": { "type": "category", "label": { "fr": "Réf. adversaire", "en": "Opponent ref" }, "internal": true },
-    "count": { "type": "number", "label": { "fr": "Parties", "en": "Games" } },
-    "discs": { "type": "number", "label": { "fr": "Pions", "en": "Discs" } },
-    "moves": { "type": "category", "label": { "fr": "Coups", "en": "Moves" } },
-    "moveCount": { "type": "number", "label": { "fr": "Coups", "en": "Moves" } },
-    "column": { "type": "category", "label": { "fr": "Colonne", "en": "Column" } },
-    "row": { "type": "category", "label": { "fr": "Rangée", "en": "Row" } },
-    "elo": { "type": "number", "label": { "fr": "Elo", "en": "Elo" } },
-    "eloDelta": { "type": "number", "label": { "fr": "Variation d'Elo", "en": "Elo change" } },
-    "gameId": { "type": "category", "label": { "fr": "Partie", "en": "Game" }, "internal": true }
+    "opponentRef": {
+      "type": "category",
+      "label": {
+        "fr": "Réf. adversaire",
+        "en": "Opponent ref"
+      },
+      "internal": true
+    },
+    "count": {
+      "type": "number",
+      "label": {
+        "fr": "Parties",
+        "en": "Games"
+      }
+    },
+    "discs": {
+      "type": "number",
+      "label": {
+        "fr": "Pions",
+        "en": "Discs"
+      }
+    },
+    "moves": {
+      "type": "category",
+      "label": {
+        "fr": "Coups",
+        "en": "Moves"
+      }
+    },
+    "moveCount": {
+      "type": "number",
+      "label": {
+        "fr": "Coups",
+        "en": "Moves"
+      }
+    },
+    "column": {
+      "type": "category",
+      "label": {
+        "fr": "Colonne",
+        "en": "Column"
+      }
+    },
+    "row": {
+      "type": "category",
+      "label": {
+        "fr": "Rangée",
+        "en": "Row"
+      }
+    },
+    "elo": {
+      "type": "number",
+      "label": {
+        "fr": "Elo",
+        "en": "Elo"
+      }
+    },
+    "eloDelta": {
+      "type": "number",
+      "label": {
+        "fr": "Variation d'Elo",
+        "en": "Elo change"
+      }
+    },
+    "gameId": {
+      "type": "category",
+      "label": {
+        "fr": "Partie",
+        "en": "Game"
+      },
+      "internal": true
+    }
   },
   "sources": [
     {
       "key": "games.summary",
       "kind": "kpi",
-      "label": { "fr": "Taux de victoire", "en": "Win rate" },
+      "label": {
+        "fr": "Taux de victoire",
+        "en": "Win rate"
+      },
       "description": "Win rate in %, number of games as secondary value; delta = change vs the previous period of the same length (only with range).",
-      "params": ["range", "lastGames", "mode", "opponent"],
+      "params": [
+        "range",
+        "lastGames",
+        "mode",
+        "opponent"
+      ],
       "live": true
     },
     {
       "key": "games.byDay",
       "kind": "rows",
-      "label": { "fr": "Parties par jour", "en": "Games per day" },
+      "label": {
+        "fr": "Parties par jour",
+        "en": "Games per day"
+      },
       "description": "Games per day and result.",
-      "fields": ["day", "result", "count"],
-      "params": ["range", "mode", "opponent"],
-      "defaultChart": { "mark": "bar", "x": "day", "y": "count", "color": "result", "stack": true },
+      "fields": [
+        "day",
+        "result",
+        "count"
+      ],
+      "params": [
+        "range",
+        "mode",
+        "opponent"
+      ],
+      "defaultChart": {
+        "mark": "bar",
+        "x": "day",
+        "y": "count",
+        "color": "result",
+        "stack": true
+      },
       "live": true
     },
     {
       "key": "games.length",
       "kind": "rows",
-      "label": { "fr": "Durée des parties", "en": "Game length" },
+      "label": {
+        "fr": "Durée des parties",
+        "en": "Game length"
+      },
       "description": "Histogram of the number of moves per game.",
-      "fields": ["moves", "count"],
-      "params": ["range", "lastGames", "mode", "opponent"],
-      "defaultChart": { "mark": "bar", "x": "moves", "y": "count" },
+      "fields": [
+        "moves",
+        "count"
+      ],
+      "params": [
+        "range",
+        "lastGames",
+        "mode",
+        "opponent"
+      ],
+      "defaultChart": {
+        "mark": "bar",
+        "x": "moves",
+        "y": "count"
+      },
       "live": true
     },
     {
       "key": "moves.firstColumn",
       "kind": "rows",
-      "label": { "fr": "Première colonne jouée", "en": "First column played" },
+      "label": {
+        "fr": "Première colonne jouée",
+        "en": "First column played"
+      },
       "description": "Column (1 = left, 7 = right) of the player's first disc in each game.",
-      "fields": ["column", "count"],
-      "params": ["range", "lastGames", "mode", "opponent"],
-      "defaultChart": { "mark": "bar", "x": "column", "y": "count" },
+      "fields": [
+        "column",
+        "count"
+      ],
+      "params": [
+        "range",
+        "lastGames",
+        "mode",
+        "opponent"
+      ],
+      "defaultChart": {
+        "mark": "bar",
+        "x": "column",
+        "y": "count"
+      },
       "live": true
     },
     {
       "key": "moves.byCell",
       "kind": "rows",
-      "label": { "fr": "Cases jouées", "en": "Cells played" },
+      "label": {
+        "fr": "Cases jouées",
+        "en": "Cells played"
+      },
       "description": "Discs per board cell: column 1-7 (left to right), row 1-6 (bottom to top). Always 42 rows.",
-      "fields": ["row", "column", "discs"],
-      "params": ["range", "lastGames", "mode", "opponent", "who", "only"],
-      "defaultChart": { "mark": "heatmap", "x": "column", "y": "row", "value": "discs" },
+      "fields": [
+        "row",
+        "column",
+        "discs"
+      ],
+      "params": [
+        "range",
+        "lastGames",
+        "mode",
+        "opponent",
+        "who",
+        "only"
+      ],
+      "defaultChart": {
+        "mark": "heatmap",
+        "x": "column",
+        "y": "row",
+        "value": "discs"
+      },
       "live": true
     },
     {
       "key": "results.byOpponent",
       "kind": "rows",
-      "label": { "fr": "Résultats par adversaire", "en": "Results by opponent" },
+      "label": {
+        "fr": "Résultats par adversaire",
+        "en": "Results by opponent"
+      },
       "description": "Games per opponent and result. opponentKind tells bots from human players.",
-      "fields": ["opponent", "opponentKind", "result", "count", "opponentRef"],
-      "params": ["range", "lastGames", "mode"],
-      "defaultChart": { "mark": "bar", "x": "opponent", "y": "count", "color": "result", "stack": true, "horizontal": true },
+      "fields": [
+        "opponent",
+        "opponentKind",
+        "result",
+        "count",
+        "opponentRef"
+      ],
+      "params": [
+        "range",
+        "lastGames",
+        "mode"
+      ],
+      "defaultChart": {
+        "mark": "bar",
+        "x": "opponent",
+        "y": "count",
+        "color": "result",
+        "stack": true,
+        "horizontal": true
+      },
       "live": true
     },
     {
       "key": "games.recent",
       "kind": "rows",
-      "label": { "fr": "Dernières parties", "en": "Recent games" },
+      "label": {
+        "fr": "Dernières parties",
+        "en": "Recent games"
+      },
       "description": "Most recent finished games, newest first. gameId can be passed to analyze_game.",
-      "fields": ["playedAt", "mode", "opponent", "opponentKind", "result", "moveCount", "eloDelta", "gameId", "opponentRef"],
-      "params": ["limit", "mode", "opponent"],
+      "fields": [
+        "playedAt",
+        "mode",
+        "opponent",
+        "opponentKind",
+        "result",
+        "moveCount",
+        "eloDelta",
+        "gameId",
+        "opponentRef"
+      ],
+      "params": [
+        "limit",
+        "mode",
+        "opponent"
+      ],
       "live": true
     },
     {
       "key": "elo.history",
       "kind": "rows",
-      "label": { "fr": "Évolution de l'Elo", "en": "Elo over time" },
+      "label": {
+        "fr": "Évolution de l'Elo",
+        "en": "Elo over time"
+      },
       "description": "Elo at the end of each day with ranked games (classe mode only).",
-      "fields": ["day", "elo"],
-      "params": ["range"],
-      "defaultChart": { "mark": "line", "x": "day", "y": "elo" },
+      "fields": [
+        "day",
+        "elo"
+      ],
+      "params": [
+        "range"
+      ],
+      "defaultChart": {
+        "mark": "line",
+        "x": "day",
+        "y": "elo"
+      },
       "live": true
     },
     {
       "key": "streaks",
       "kind": "kpi",
-      "label": { "fr": "Série de victoires", "en": "Win streak" },
+      "label": {
+        "fr": "Série de victoires",
+        "en": "Win streak"
+      },
       "description": "Current win streak, best streak as secondary value.",
-      "params": ["mode", "opponent"],
+      "params": [
+        "mode",
+        "opponent"
+      ],
       "live": true
     }
   ]
@@ -282,18 +572,20 @@ const evalsYaml = r'''
   expect:
     - tool: propose_widget
       args: { type: chart, source: games.byDay }
+# La source empile déjà par résultat par défaut : `stack` peut manquer.
 - request: "Ajoute mes parties par jour, empilées par résultat"
   expect:
     - tool: add_widget
-      args: { type: chart, source: games.byDay, stack: true }
+      args: { type: chart, source: games.byDay }
 - request: "Mets la carte des cases où je joue à droite, sur mes 30 dernières parties"
   expect:
     - tool: add_widget
       args: { type: chart, source: moves.byCell, lastGames: 30, who: me }
+# games.summary ou games.byDay répondent tous deux : seule la période compte.
 - request: "Combien de parties j'ai gagnées cette semaine ?"
   expect:
     - tool: query_data
-      args: { source: games.summary, range: "this:week" }
+      args: { range: "this:week" }
 - request: "Ajoute la courbe de mon Elo sur le dernier mois"
   expect:
     - tool: add_widget
@@ -311,6 +603,12 @@ const evalsYaml = r'''
   expect:
     - tool: set_dashboard_filters
       args: { mode: classe }
+# Bonus (lot 6) : le gameId vient de games.recent.
+- request: "Analyse ma dernière partie : où est-ce que ça a basculé ?"
+  expect:
+    - tool: query_data
+      args: { source: games.recent }
+    - tool: analyze_game
 ''';
 
 /// Outils MCP, par nom.
@@ -409,7 +707,7 @@ const toolsJson = <String, String>{
         ]
       },
       "limit": {
-        "description": "Number of rows.",
+        "description": "Only for games.recent: number of rows. Other sources have no limit (query_data already truncates to 20 rows).",
         "type": "integer",
         "minimum": 1,
         "maximum": 20
@@ -812,7 +1110,7 @@ const toolsJson = <String, String>{
         ]
       },
       "limit": {
-        "description": "Number of rows.",
+        "description": "Only for games.recent: number of rows. Other sources have no limit (query_data already truncates to 20 rows).",
         "type": "integer",
         "minimum": 1,
         "maximum": 20
@@ -1052,7 +1350,7 @@ const toolsJson = <String, String>{
         ]
       },
       "limit": {
-        "description": "Number of rows.",
+        "description": "Only for games.recent: number of rows. Other sources have no limit (query_data already truncates to 20 rows).",
         "type": "integer",
         "minimum": 1,
         "maximum": 20
@@ -1247,7 +1545,7 @@ const toolsJson = <String, String>{
         ]
       },
       "limit": {
-        "description": "Number of rows.",
+        "description": "Only for games.recent: number of rows. Other sources have no limit (query_data already truncates to 20 rows).",
         "type": "integer",
         "minimum": 1,
         "maximum": 20

@@ -76,7 +76,7 @@
         ]
       },
       "limit": {
-        "description": "Number of rows.",
+        "description": "Only for games.recent: number of rows. Other sources have no limit (query_data already truncates to 20 rows).",
         "type": "integer",
         "minimum": 1,
         "maximum": 20

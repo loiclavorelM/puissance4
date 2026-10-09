@@ -27,7 +27,8 @@ abstract final class AssistantConfig {
 
   static String? apiKey(Session session) => ReviewConfig.apiKey(session);
 
-  static String model(Session session) =>
+  /// Remplaçable (comparaison de modèles dans les évals).
+  static String Function(Session session) model = (session) =>
       session.passwords[modelPassword] ?? ReviewConfig.model(session);
 
   /// Remplacé dans les tests (date du contexte).

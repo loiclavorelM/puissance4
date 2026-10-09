@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:assistant_contracts/assistant_contracts.dart';
 import 'package:puissance4_server/src/assistant/assistant_config.dart';
 import 'package:puissance4_server/src/assistant/orchestrator/chat_model.dart';
+import 'package:puissance4_server/src/assistant/orchestrator/orchestrator.dart';
 import 'package:puissance4_server/src/generated/protocol.dart';
 import 'package:puissance4_server/src/review/review_config.dart';
 import 'package:test/test.dart';
@@ -127,7 +128,7 @@ void main() {
         // Contexte variable dans le message du joueur, prompt système stable.
         expect(
           model.requests.first.first.content,
-          AssistantContracts.systemPrompt,
+          AssistantOrchestrator.systemPrompt,
         );
         expect(model.requests.first[1].content, contains('Friday 2026-10-09'));
       },

@@ -22,7 +22,7 @@ Cinq points du document d'origine sont à corriger : l'un est un vrai conflit (p
 | Parties Normal lisibles par le serveur | `OfflineMatchResult.spaceId` → `offline_sync_spaces.id`, et l'espace personnel a `uuidSpaceId == authUserId` (`OfflineSyncSpace`, serverpod_offline_sync 0.0.8) | Lisibles par une jointure, mais seulement une fois synchronisées. À confirmer par un test d'intégration. |
 | Signal « des données ont changé » | `LiveEndpoint.watchUpdates` + `LiveEvent` sans payload, canal par joueur (`live_notifier.dart`), déjà `historyChanged` | Inutile de créer `DataEndpoint.watch()` et un stream dans `DashboardEndpoint` : on ajoute `dashboardChanged` à `EnumLiveEventType`. |
 | Analyse de partie (`analyze_game`) | `MoveAnalysis.of(moves, index)` et `HeuristicBot.scoreColumns` (`puissance4_rules`) | Le bonus devient quasi gratuit. |
-| Cases jouées (`moves.byCell`) | `Connect4Rules.stacks(moves)` donne la ligne de chaque pion | À ajouter : `Connect4Rules.winningLine(moves)` pour `only: winning`. |
+| Cases jouées (`moves.byCell`) | `Connect4Rules.stacks(moves)` donne la ligne de chaque pion, `Connect4Rules.winningCells(moves)` l'alignement gagnant | Rien à ajouter aux règles. |
 | Aperçus de widgets | Aperçus Flutter (`*_previews.dart`, par ex. `app_palette_previews.dart`) | On les utilise à la place de Widgetbook : une dépendance de moins, et la même pratique que le reste de l'app. |
 | Tests serveur sans Docker | `serverpod_test`, base embarquée, `test/integration/*` | Les outils MCP et les sources se testent comme les endpoints existants. |
 
@@ -46,7 +46,7 @@ Ajustements plus petits :
 - **Les bots ne sont pas des personnes.** Leur nom est public et utile au LLM (« tu perds surtout contre Expert »). La règle `opponent` pseudonymise donc les humains et laisse les noms de bots en clair.
 - **Mode de jeu** : on ajoute un paramètre `mode` (`normal`, `classe`, `multi`) aux sources. Le Face à face n'est pas enregistré, il n'apparaît donc nulle part. Les parties `abandoned` sont exclues, comme dans l'Historique.
 - **Elo** : on ajoute la source `elo.history`. C'est la courbe la plus naturelle de l'app, et `EloHistory` existe déjà.
-- **Normal pas encore synchronisé** : le serveur ne voit pas une partie Normal jouée hors ligne avant sa synchronisation. Il faut le dire dans le prompt système (« les parties hors ligne apparaissent après synchronisation »). Il faut aussi émettre `historyChanged` à la fusion (`onMergeSuccess`), ce que le serveur ne fait pas aujourd'hui.
+- **Normal pas encore synchronisé** : le serveur ne voit pas une partie Normal jouée hors ligne avant sa synchronisation. Il faut le dire dans le prompt système (« les parties hors ligne apparaissent après synchronisation »). Pour rafraîchir les widgets, c'est l'app qui émet le signal à la fin d'une partie Normal, après sa synchronisation : le hook `onMergeSuccess` n'est pas accessible, car l'endpoint de synchro appartient au module.
 - **Contrats JSON** : un dossier `contracts/` à la racine n'est lisible ni par l'app Flutter (les assets doivent être dans un package) ni par le serveur déployé (seul `puissance4_server` est envoyé). Ils vont donc dans un package `assistant_contracts`, qui les embarque en constantes Dart générées (section 5).
 - **Règles du dépôt (`AGENTS.md`)** : `packages/assistant_ui` est volontairement hors de `features/`, puisqu'il doit être transposable. Il respecte quand même l'esprit des règles : textes dans ses propres ARB (fr, en), aucune couleur en dur, jetons de thème fournis par l'app à partir d'`AppPalette`. Le branchement côté app vit dans `features/assistant/{model,view,viewmodel}` avec Riverpod, comme les autres features.
 - **Streaming token par token** : on l'abandonne dans la première version. `ChatModel.getResponse` suffit, et `getStreamingResponse` reste dans l'interface pour plus tard.
@@ -407,7 +407,7 @@ Il produit des `GameRecord { id, mode, playedAt, result, playedAs, moves, oppone
 | `streaks` | kpi : série en cours et record | `mode` |
 
 - Colonnes affichées de 1 à 7 et lignes de 1 à 6 (bas = 1), comme dans `MovePrompt`.
-- `moves.byCell` utilise `Connect4Rules.stacks`, et `only: winning` le nouveau `Connect4Rules.winningLine` (dans `puissance4_rules`, avec ses tests).
+- `moves.byCell` utilise les coups et `Connect4Rules.winningCells` (déjà dans `puissance4_rules`).
 - `DataEndpoint.query(source, paramsJson) → String` (JSON de `data.schema.json`). Même code que `query_data`, mais sans troncature et sans filtre de confidentialité.
 
 ### 9. Backend Serverpod
@@ -441,7 +441,7 @@ Modèles (`.spy.yaml`) : le JSON des contrats est stocké en `String` pour reste
 
 Les tables de correspondance sont en base, pas en mémoire : un autre nœud du cluster peut poursuivre la conversation. Le merge invité → compte (`guest_upgrade.dart`) rattache `Dashboard` et `AssistantConversation` au compte conservé.
 
-`EnumLiveEventType` reçoit `dashboardChanged`. Le `onMergeSuccess` de la synchro hors ligne publie `historyChanged`.
+`EnumLiveEventType` reçoit `dashboardChanged`. Pour les parties Normal, l'app émet elle-même le signal « données changées » après la synchronisation de fin de partie (`NormalGameRecorder.onFinished`).
 
 #### Orchestrateur
 
@@ -528,14 +528,44 @@ Celle du document d'origine, avec ces lignes modifiées :
 | Lot | Contenu | Critère de sortie |
 |---|---|---|
 | **0. Spike** (½ jour) — **fait le 9 octobre 2026** | Appel Ollama avec un outil bidon sur `gpt-oss:120b` ; `McpServer` et `McpClient` en mémoire ; serveur HTTP de dev sans état, authentifié par jeton Serverpod, vu depuis Claude Code (`headersHelper`) ; lecture d'un `OfflineMatchResult` via l'espace personnel | Les quatre fonctionnent |
-| **1. Contrats et sources** | `assistant_contracts`, `GameRecordRepository`, les 9 sources, `DataEndpoint`, `winningLine` | Tests d'intégration des sources (base embarquée), sans LLM |
+| **1. Contrats et sources** | `assistant_contracts`, `GameRecordRepository`, les 9 sources, `DataEndpoint` | Tests d'intégration des sources (base embarquée), sans LLM |
 | **2. Tableau de bord et MCP** | Modèles et migration, `DashboardStore` (versions, annulation), validation, outils, `dashboardChanged`, transport de dev | Tous les outils pilotables depuis Claude Code (`claude mcp add --transport http p4 http://127.0.0.1:8095/mcp`) |
 | **3. `assistant_ui`** | KPI, tableau, 5 moteurs de rendu, grille, `WidgetFrame`, panneau « Modifier », aperçus et goldens ; branchement dans `features/assistant` | Tableau de bord composé à la main dans l'app, sans LLM |
 | **4. Orchestrateur et confidentialité** | `ChatModel`, `OllamaChatModel` (fusion avec `review/`), boucle, filtre, journal, limite par heure, chat avec blocs épinglables | Tests de la boucle avec un faux `ChatModel` ; test « aucune valeur sensible dans les requêtes sortantes » |
-| **5. Finitions** | Mentions et autocomplétion, filtres du tableau de bord, drilldown, `live`, `evals/` (script hors `dart test`) | Évals passées sur deux modèles, avec tokens et durées notés |
+| **5. Finitions** | Mentions et autocomplétion, filtres du tableau de bord, drilldown, `live`, `evals/` (`dart test -t eval --run-skipped`, hors suite normale) | Évals passées sur deux modèles, avec tokens et durées notés |
 | **6. Bonus** | `analyze_game` | — |
 
 Chaque lot se termine par la check-list d'`AGENTS.md` (analyse, formatage, migration, tests, logs) et une mise à jour du backlog (E16).
+
+#### État au 9 octobre 2026 : lots 0 à 6 faits
+
+| Lot | Commit | Tests |
+|---|---|---|
+| 0 | `542ff85` | spikes (supprimés), résultats ci-dessus |
+| 1 | `9003bcd` | `assistant_contracts` (19), sources et `DataEndpoint` (12, base embarquée) |
+| 2 | `cb8a2f4` | outils via client MCP en mémoire (9), serveur MCP de dev avec vrai JWT (3), `DashboardEndpoint` (6) |
+| 3 | `f1a8c27` | `assistant_ui` (23 : séries, widgets, chat, panneau « Modifier », 8 goldens, transposabilité) |
+| 4 | `ca1e051` | filtre de confidentialité (10), orchestrateur avec faux LLM (8) |
+| 5 et 6 | ce lot | évals sur le vrai modèle (10 cas) |
+
+Écarts par rapport à la spec :
+
+- **Le modèle de domaine est dans `assistant_contracts`** (définitions, données, règles, arguments à plat, placement), en pur Dart, et pas dans `assistant_ui`. Le serveur et l'app partagent ainsi le même code de validation, comme `puissance4_rules` pour les règles du jeu.
+- **Le catalogue des sources est dans le prompt système**, qui reste constant (voir les évals ci-dessous). `list_data_sources` reste disponible.
+- **Outil `propose_widget`** : en plus des 10 outils d'origine, il montre un widget dans le chat sans l'ajouter (`block`), et le joueur l'épingle.
+- **Événement `started`** : premier événement du stream, il porte l'id de la conversation créée.
+
+#### Évals sur `gpt-oss:120b` (`dart test -t eval --run-skipped`)
+
+| Passage | Réussite | Tokens d'entrée (demande simple) | Durée |
+|---|---|---|---|
+| Catalogue derrière `list_data_sources` | 7/9 (2 attentes trop étroites) | ~10 600 | 1,3 à 9,5 s |
+| Catalogue dans le prompt système | 9/9 | ~7 600 | 1,6 à 3,3 s |
+| Plus : description de `limit` précisée | 9/9, + `analyze_game` | ~7 900 | 1,6 à 3,6 s |
+
+- **La confidentialité tient** sur tous les passages : « Kevin42 » et « kevin 42 » n'apparaissent dans aucune requête envoyée au modèle.
+- **Le modèle se corrige en un tour** quand un outil refuse ses arguments (`type` manquant, paramètre absent de la source, `range` hors liste).
+- **Pour comparer un autre modèle** : `ASSISTANT_EVAL_MODEL=<modèle> dart test -t eval --run-skipped`.
 
 ### 14. Outils utiles
 

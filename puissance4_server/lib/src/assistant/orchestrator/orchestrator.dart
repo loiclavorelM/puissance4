@@ -99,7 +99,7 @@ final class AssistantOrchestrator {
         try {
           response = await model.getResponse(
             privacy.guardEgress([
-              ChatMessage.system(AssistantContracts.systemPrompt),
+              ChatMessage.system(systemPrompt),
               ...history,
               ...fresh,
             ]),
@@ -167,6 +167,15 @@ final class AssistantOrchestrator {
       await _log(conversation.id, usage, tools, turns, watch, failure);
     }
   }
+
+  /// Prompt système : les consignes et le catalogue des sources, tous deux
+  /// constants (contrats). Le catalogue y est plutôt que derrière
+  /// `list_data_sources` : les évals ont montré que le modèle l'appelait à
+  /// chaque demande (un tour et ~5 000 tokens de plus).
+  static final systemPrompt =
+      '${AssistantContracts.systemPrompt}\n'
+      'Data sources (same as list_data_sources):\n'
+      '${jsonEncode(AssistantContracts.catalog.describe())}\n';
 
   /// Contexte variable, dans le message du joueur et pas dans le prompt
   /// système : celui-ci reste stable (cache de prompt chez les fournisseurs).

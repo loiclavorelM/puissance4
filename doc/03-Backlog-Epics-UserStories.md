@@ -516,9 +516,44 @@ Tickets :
 
 ---
 
+## E16 — Assistant et tableau de bord modulable `[hors cahier des charges]`
+`area:backend` `area:frontend` `priority:optional`
+
+Prototype personnel, ajouté après coup pour tester une technique
+transposable dans un projet pro : un assistant LLM (Ollama Cloud) qui
+compose le tableau de bord du joueur via un serveur MCP, avec
+pseudonymisation des noms des adversaires avant tout envoi au LLM. Spec,
+analyse et résultats : `doc/06-assistant-mcp.md`. Nouvel onglet « Stats ».
+Réservé aux sessions serveur (comptes email et invités anonymes).
+
+### US16.1 — En tant que joueur, je veux un tableau de bord de mes statistiques que je compose moi-même, afin de suivre ce qui m'intéresse.
+Critères d'acceptation :
+- Widgets chiffre clé, tableau et graphiques (barres, courbe, aires, donut, carte de chaleur du plateau) sur une grille de 12 colonnes, empilés sur téléphone.
+- Ajouter, modifier (panneau qui ne propose que des choix valides), renommer, retirer, annuler ; filtres communs période, mode et adversaire.
+- Données en direct : les widgets se rechargent à la fin d'une partie, Normal compris (après synchronisation).
+
+Tickets :
+- [x] T16.1.1 — `packages/assistant_contracts` : contrats JSON et modèle de domaine partagé — `area:backend` `area:frontend`
+- [x] T16.1.2 — 9 sources de données (`GameRecordRepository`, `DataEndpoint`) — `area:backend`
+- [x] T16.1.3 — `DashboardStore` versionné, `DashboardEndpoint`, `dashboardChanged` — `area:backend`
+- [x] T16.1.4 — `packages/assistant_ui` et onglet « Stats » — `area:frontend`
+
+### US16.2 — En tant que joueur, je veux demander à un assistant d'ajouter un graphique ou de répondre à une question sur mes parties, afin de ne pas tout configurer à la main.
+Critères d'acceptation :
+- L'assistant ajoute, modifie, range ou retire des widgets ; il peut aussi proposer un graphique dans le chat, que j'épingle.
+- Il répond en texte à partir des seules données des outils ; les erreurs arrivent sous forme de codes traduits.
+- Les noms des autres joueurs n'atteignent jamais le LLM (jetons), et la réponse affichée les rétablit.
+
+Tickets :
+- [x] T16.2.1 — Outils MCP et serveur MCP lié au joueur (en mémoire et HTTP de dev) — `area:backend`
+- [x] T16.2.2 — Orchestrateur (`ChatModel`, `OllamaChatModel`), journal, limite par heure — `area:backend`
+- [x] T16.2.3 — Filtre de confidentialité (`ai-exposure.json`, dictionnaire, formats, mentions) — `area:backend`
+- [x] T16.2.4 — Chat avec mentions et blocs épinglables — `area:frontend`
+- [x] T16.2.5 — Évals sur le vrai modèle (`dart test -t eval --run-skipped`) — `area:backend`
+
 ## Récapitulatif
-16 epics, 36 user stories (dont US7.3 et US15.8 abandonnées), 99 tickets. E15 (amis)
-a été ajoutée hors cahier des charges. Tout le
+17 epics, 38 user stories (dont US7.3 et US15.8 abandonnées), 108 tickets. E15 (amis)
+et E16 (assistant et tableau de bord) ont été ajoutées hors cahier des charges. Tout le
 système d'Elo est porté par E6 (mode Classé contre un bot joué par le
 serveur) ; le Multijoueur (E7) ne modifie pas l'Elo. E0 (mode invité local),
 E7 (multijoueur en ligne) et E14 (revue de partie post-match avec IA) sont
