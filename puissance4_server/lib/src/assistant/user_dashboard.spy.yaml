@@ -1,0 +1,16 @@
+# Tableau de bord de l'assistant (E16) : une ligne par joueur, sa version
+# courante en JSON (contrat `dashboard.schema.json`, sans `opponentLabel`).
+# Le JSON du contrat plutôt que des classes Serverpod : c'est lui qui se
+# transpose tel quel.
+class: UserDashboard
+table: user_dashboard
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  userId: UuidValue, relation(parent=user, onDelete=Cascade)
+  version: int
+  definitionJson: String
+  updatedAt: DateTime, default=now
+indexes:
+  user_dashboard_user_unique_idx:
+    fields: userId
+    unique: true

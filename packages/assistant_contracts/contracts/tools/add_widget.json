@@ -1,0 +1,276 @@
+{
+  "name": "add_widget",
+  "title": "Add widget",
+  "description": "Adds a widget to the player's dashboard (applied at once, undoable). Returns its id, the new version and statistics on its data (row count, distinct values per field) to check the chart fits, never the data itself. Choosing a chart: time is shown as a line or bars; comparing categories as horizontal bars sorted by value; part of a whole as a donut, only with 6 parts or fewer; two dimensions (such as board cells) as a heatmap. Source params left out follow the dashboard filters (period, mode, opponent). Without col/row the widget goes to the first free place.",
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+  },
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "type": {
+        "type": "string",
+        "enum": [
+          "kpi",
+          "table",
+          "chart"
+        ],
+        "description": "kpi for a kpi source (one number); table or chart for a rows source."
+      },
+      "title": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 60,
+        "description": "Short title, in the player's language."
+      },
+      "source": {
+        "type": "string",
+        "enum": [
+          "games.summary",
+          "games.byDay",
+          "games.length",
+          "moves.firstColumn",
+          "moves.byCell",
+          "results.byOpponent",
+          "games.recent",
+          "elo.history",
+          "streaks"
+        ],
+        "description": "Data source, see list_data_sources."
+      },
+      "range": {
+        "description": "Relative period of the games. Never an absolute date.",
+        "type": "string",
+        "enum": [
+          "last:24h",
+          "last:7d",
+          "last:30d",
+          "last:90d",
+          "this:week",
+          "this:month",
+          "this:year",
+          "all"
+        ]
+      },
+      "lastGames": {
+        "description": "Only the N most recent games. Use instead of range when the player counts games.",
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 200
+      },
+      "mode": {
+        "description": "Game mode: normal (vs on-device bot), classe (ranked vs server bot, Elo), multi (online vs a human). Omit for all modes.",
+        "type": "string",
+        "enum": [
+          "normal",
+          "classe",
+          "multi"
+        ]
+      },
+      "opponent": {
+        "description": "One opponent, copied verbatim as it appears in data or in the request (a token such as [Player:1], or a bot name such as Expert).",
+        "type": "string"
+      },
+      "who": {
+        "description": "Whose discs to count.",
+        "type": "string",
+        "enum": [
+          "me",
+          "opponent"
+        ]
+      },
+      "only": {
+        "description": "all = every disc played, winning = only discs of winning four-in-a-row lines.",
+        "type": "string",
+        "enum": [
+          "all",
+          "winning"
+        ]
+      },
+      "limit": {
+        "description": "Number of rows.",
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 20
+      },
+      "mark": {
+        "type": "string",
+        "enum": [
+          "bar",
+          "line",
+          "area",
+          "donut",
+          "heatmap"
+        ],
+        "description": "Chart type (type=chart only). Omit to use the source default chart."
+      },
+      "x": {
+        "type": "string",
+        "enum": [
+          "column",
+          "count",
+          "day",
+          "discs",
+          "elo",
+          "eloDelta",
+          "mode",
+          "moveCount",
+          "moves",
+          "opponent",
+          "opponentKind",
+          "playedAt",
+          "result",
+          "row"
+        ],
+        "description": "Field on the x axis (category or day). Omit to use the source default."
+      },
+      "y": {
+        "type": "string",
+        "enum": [
+          "column",
+          "count",
+          "day",
+          "discs",
+          "elo",
+          "eloDelta",
+          "mode",
+          "moveCount",
+          "moves",
+          "opponent",
+          "opponentKind",
+          "playedAt",
+          "result",
+          "row"
+        ],
+        "description": "Number field on the y axis. Omit to use the source default."
+      },
+      "value": {
+        "type": "string",
+        "enum": [
+          "column",
+          "count",
+          "day",
+          "discs",
+          "elo",
+          "eloDelta",
+          "mode",
+          "moveCount",
+          "moves",
+          "opponent",
+          "opponentKind",
+          "playedAt",
+          "result",
+          "row"
+        ],
+        "description": "Number field coloring heatmap cells."
+      },
+      "aggregate": {
+        "type": "string",
+        "enum": [
+          "sum",
+          "avg",
+          "min",
+          "max",
+          "count"
+        ],
+        "description": "How rows sharing the same x are combined (default sum)."
+      },
+      "color": {
+        "type": "string",
+        "enum": [
+          "column",
+          "count",
+          "day",
+          "discs",
+          "elo",
+          "eloDelta",
+          "mode",
+          "moveCount",
+          "moves",
+          "opponent",
+          "opponentKind",
+          "playedAt",
+          "result",
+          "row"
+        ],
+        "description": "Category field that splits the chart into series (bar, line, area)."
+      },
+      "colorLimit": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 10,
+        "description": "Keep the top N series, the rest is grouped as Others."
+      },
+      "stack": {
+        "type": "boolean",
+        "description": "Stack the series (bar, area)."
+      },
+      "horizontal": {
+        "type": "boolean",
+        "description": "Horizontal bars, best to compare categories."
+      },
+      "displayColor": {
+        "type": "string",
+        "enum": [
+          "accent",
+          "success",
+          "warn",
+          "danger",
+          "neutral",
+          "rouge",
+          "jaune"
+        ],
+        "description": "Theme color of a single series or a heatmap."
+      },
+      "cellShape": {
+        "type": "string",
+        "enum": [
+          "square",
+          "circle"
+        ],
+        "description": "Heatmap cells; circle draws the board like the game."
+      },
+      "refresh": {
+        "type": "string",
+        "enum": [
+          "live",
+          "interval",
+          "manual"
+        ],
+        "description": "live (default) reloads when a game ends."
+      },
+      "col": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 11,
+        "description": "Grid column (12-column grid, 0 = left)."
+      },
+      "row": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Grid row (0 = top)."
+      },
+      "width": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 12,
+        "description": "Width in grid columns (12 = full width, 6 = half)."
+      },
+      "height": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 8,
+        "description": "Height in grid rows."
+      }
+    },
+    "required": [
+      "type",
+      "title",
+      "source"
+    ],
+    "additionalProperties": false
+  }
+}

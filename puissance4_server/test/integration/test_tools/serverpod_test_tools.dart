@@ -182,6 +182,8 @@ void withServerpod(
 }
 
 class TestEndpoints {
+  late final _DataEndpoint data;
+
   late final _AnonymousIdpEndpoint anonymousIdp;
 
   late final _EmailIdpEndpoint emailIdp;
@@ -220,6 +222,10 @@ class _InternalTestEndpoints extends TestEndpoints
     _is.SerializationManager serializationManager,
     _is.EndpointDispatch endpoints,
   ) {
+    data = _DataEndpoint(
+      endpoints,
+      serializationManager,
+    );
     anonymousIdp = _AnonymousIdpEndpoint(
       endpoints,
       serializationManager,
@@ -280,6 +286,83 @@ class _InternalTestEndpoints extends TestEndpoints
       endpoints,
       serializationManager,
     );
+  }
+}
+
+class _DataEndpoint {
+  _DataEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _is.EndpointDispatch _endpointDispatch;
+
+  final _is.SerializationManager _serializationManager;
+
+  _ida.Future<String> query(
+    _ist.TestSessionBuilder sessionBuilder,
+    String source,
+    String paramsJson,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'data',
+            method: 'query',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'data',
+          methodName: 'query',
+          parameters: _ist.testObjectToJson({
+            'source': source,
+            'paramsJson': paramsJson,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<String>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _ida.Future<String> searchMentions(
+    _ist.TestSessionBuilder sessionBuilder,
+    String text,
+  ) async {
+    return _ist.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _ist.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'data',
+            method: 'searchMentions',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'data',
+          methodName: 'searchMentions',
+          parameters: _ist.testObjectToJson({'text': text}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _ida.Future<String>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
   }
 }
 

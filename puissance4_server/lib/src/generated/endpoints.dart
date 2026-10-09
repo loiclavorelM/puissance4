@@ -20,6 +20,7 @@ import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _iais;
 import 'package:serverpod_offline_sync_server/serverpod_offline_sync_server.dart'
     as _izehhkf5;
+import '../assistant/data_endpoint.dart' as _ihk12ms4;
 import '../auth/anonymous_idp_endpoint.dart' as _in0zita6;
 import '../auth/email_idp_endpoint.dart' as _iuc1hd5t;
 import '../auth/jwt_refresh_endpoint.dart' as _inwq3ztq;
@@ -40,6 +41,12 @@ class Endpoints extends _is.EndpointDispatch {
   @override
   void initializeEndpoints(_is.Server server) {
     var endpoints = <String, _is.Endpoint>{
+      'data': _ihk12ms4.DataEndpoint()
+        ..initialize(
+          server,
+          'data',
+          null,
+        ),
       'anonymousIdp': _in0zita6.AnonymousIdpEndpoint()
         ..initialize(
           server,
@@ -131,6 +138,55 @@ class Endpoints extends _is.EndpointDispatch {
           null,
         ),
     };
+    connectors['data'] = _is.EndpointConnector(
+      name: 'data',
+      endpoint: endpoints['data']!,
+      methodConnectors: {
+        'query': _is.MethodConnector(
+          name: 'query',
+          params: {
+            'source': _is.ParameterDescription(
+              name: 'source',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'paramsJson': _is.ParameterDescription(
+              name: 'paramsJson',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['data'] as _ihk12ms4.DataEndpoint).query(
+                session,
+                params['source'],
+                params['paramsJson'],
+              ),
+        ),
+        'searchMentions': _is.MethodConnector(
+          name: 'searchMentions',
+          params: {
+            'text': _is.ParameterDescription(
+              name: 'text',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['data'] as _ihk12ms4.DataEndpoint).searchMentions(
+                    session,
+                    params['text'],
+                  ),
+        ),
+      },
+    );
     connectors['anonymousIdp'] = _is.EndpointConnector(
       name: 'anonymousIdp',
       endpoint: endpoints['anonymousIdp']!,

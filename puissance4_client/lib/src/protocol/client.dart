@@ -56,6 +56,46 @@ import 'protocol.dart' as _il2as5qe;
 import 'sync_tables.dart' as _ii3f3u05;
 import 'package:puissance4_client/migrations/migration_registry.dart';
 
+/// Données des widgets du tableau de bord (E16) : l'app les charge elle-même,
+/// avec les vraies valeurs — elles ne passent jamais par le LLM.
+///
+/// Entrées et sorties en JSON des contrats (`data.schema.json`) plutôt qu'en
+/// classes Serverpod, pour rester transposables.
+/// {@category Endpoint}
+class EndpointData extends _isc.EndpointRef {
+  EndpointData(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'data';
+
+  /// Interroge [source] avec [paramsJson] (objet JSON, `$dashboard.xxx` déjà
+  /// résolus par l'app). Renvoie un `SourceData` en JSON.
+  ///
+  /// Lève [AssistantException] (`invalidQuery`) si la source ou les
+  /// paramètres sont invalides.
+  _ida.Future<String> query(
+    String source,
+    String paramsJson,
+  ) => caller.callServerEndpoint<String>(
+    'data',
+    'query',
+    {
+      'source': source,
+      'paramsJson': paramsJson,
+    },
+  );
+
+  /// Autocomplétion des mentions du chat : les adversaires du joueur dont le
+  /// nom contient [text] (8 au plus). Renvoie une liste de `Mention` en JSON
+  /// (`ref`, `label`) avec `kind` (`bot` ou `human`).
+  _ida.Future<String> searchMentions(String text) =>
+      caller.callServerEndpoint<String>(
+        'data',
+        'searchMentions',
+        {'text': text},
+      );
+}
+
 /// By extending [AnonymousIdpBaseEndpoint], the anonymous identity provider
 /// endpoint is made available on the server and enables the corresponding
 /// sign-in widget on the client.
@@ -857,6 +897,7 @@ class Client extends _isc.ServerpodClientShared {
              disconnectStreamsOnLostInternetConnection,
          httpClientOverride: httpClientOverride,
        ) {
+    data = EndpointData(this);
     anonymousIdp = EndpointAnonymousIdp(this);
     emailIdp = EndpointEmailIdp(this);
     jwtRefresh = EndpointJwtRefresh(this);
@@ -874,6 +915,8 @@ class Client extends _isc.ServerpodClientShared {
     review = EndpointReview(this);
     modules = Modules(this);
   }
+
+  late final EndpointData data;
 
   late final EndpointAnonymousIdp anonymousIdp;
 
@@ -909,6 +952,7 @@ class Client extends _isc.ServerpodClientShared {
 
   @override
   Map<String, _isc.EndpointRef> get endpointRefLookup => {
+    'data': data,
     'anonymousIdp': anonymousIdp,
     'emailIdp': emailIdp,
     'jwtRefresh': jwtRefresh,

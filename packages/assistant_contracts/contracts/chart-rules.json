@@ -1,0 +1,26 @@
+{
+  "marks": {
+    "bar": {
+      "x": ["temporal", "category"],
+      "y": ["number"],
+      "color": ["category"],
+      "maxCategories": 30,
+      "options": ["stack", "horizontal"]
+    },
+    "line": { "x": ["temporal"], "y": ["number"], "color": ["category"], "maxSeries": 6 },
+    "area": { "x": ["temporal"], "y": ["number"], "color": ["category"], "maxSeries": 6, "options": ["stack"] },
+    "donut": { "x": ["category"], "y": ["number"], "maxCategories": 6 },
+    "heatmap": { "x": ["category"], "y": ["category"], "value": ["number"] }
+  },
+  "aggregates": ["sum", "avg", "min", "max", "count"],
+  "colorLimit": { "min": 1, "max": 10 },
+  "grid": { "columns": 12, "maxHeight": 8 },
+  "defaultSize": {
+    "kpi": { "w": 4, "h": 2 },
+    "table": { "w": 12, "h": 4 },
+    "chart": { "w": 6, "h": 4 }
+  },
+  "displayColors": ["accent", "success", "warn", "danger", "neutral", "rouge", "jaune"],
+  "refreshModes": ["live", "interval", "manual"],
+  "minRefreshSeconds": 5
+}

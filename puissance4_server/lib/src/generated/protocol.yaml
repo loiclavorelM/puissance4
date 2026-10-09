@@ -1,3 +1,6 @@
+data:
+  - query:
+  - searchMentions:
 anonymousIdp:
   - login:
 emailIdp:

@@ -1,0 +1,270 @@
+import 'package:assistant_contracts/assistant_contracts.dart';
+import 'package:test/test.dart';
+
+void main() {
+  final catalog = AssistantContracts.catalog;
+  final rules = AssistantContracts.chartRules;
+  final args = WidgetArgs(catalog, rules);
+
+  WidgetDefinition build(Json json) => args.build(json).$1;
+
+  group('Given the embedded contracts', () {
+    test('then every source field and param is declared', () {
+      for (final source in catalog.sources.values) {
+        for (final field in source.fields) {
+          expect(catalog.fields, contains(field), reason: source.key);
+        }
+        for (final param in source.params) {
+          expect(catalog.params, contains(param), reason: source.key);
+        }
+      }
+    });
+
+    test('then every tool has the four annotations and a closed schema', () {
+      expect(
+        AssistantContracts.tools.map((t) => t.name).toSet(),
+        hasLength(11),
+      );
+      for (final tool in AssistantContracts.tools) {
+        expect(
+          tool.annotations.keys,
+          unorderedEquals([
+            'readOnlyHint',
+            'destructiveHint',
+            'idempotentHint',
+            'openWorldHint',
+          ]),
+          reason: tool.name,
+        );
+        expect(
+          tool.inputSchema['additionalProperties'],
+          isFalse,
+          reason: tool.name,
+        );
+      }
+    });
+
+    test(
+      'then the fixture dashboard is valid and its data matches the sources',
+      () {
+        final dashboard = Dashboard.fromJson(
+          AssistantContracts.fixture('dashboard'),
+        );
+        for (final widget in dashboard.widgets) {
+          expect(rules.validate(widget, catalog), isEmpty, reason: widget.id);
+        }
+        for (final source in catalog.sources.values) {
+          final data = SourceData.fromJson(
+            AssistantContracts.fixture('data.${source.key}'),
+          );
+          switch (data) {
+            case KpiData():
+              expect(source.kind, SourceKind.kpi);
+            case DataSet(:final fields):
+              expect(
+                fields.map((f) => f.name),
+                source.fields,
+                reason: source.key,
+              );
+          }
+        }
+      },
+    );
+  });
+
+  group('Given ChartRules.validate', () {
+    test('when a line has a category x then the error names the fix', () {
+      final errors = rules.validate(
+        build({
+          'type': 'chart',
+          'title': 'Mauvaise courbe',
+          'source': 'results.byOpponent',
+          'mark': 'line',
+          'x': 'opponent',
+        }),
+        catalog,
+      );
+      expect(errors.join(), contains('needs a temporal x'));
+    });
+
+    test('when a kpi uses a rows source then a kpi source is suggested', () {
+      final errors = rules.validate(
+        build({'type': 'kpi', 'title': 'X', 'source': 'games.byDay'}),
+        catalog,
+      );
+      expect(errors.single, contains('games.summary'));
+    });
+
+    test('when a param does not exist then the valid ones are listed', () {
+      final errors = rules.validate(
+        build({
+          'type': 'chart',
+          'title': 'X',
+          'source': 'elo.history',
+          'who': 'me',
+        }),
+        catalog,
+      );
+      expect(errors.single, contains('parameters: range'));
+    });
+
+    test('when a donut gets 7 categories then bars are suggested', () {
+      final chart = build({
+        'type': 'chart',
+        'title': 'X',
+        'source': 'moves.firstColumn',
+        'mark': 'donut',
+      }).chart!;
+      final data =
+          SourceData.fromJson(
+                AssistantContracts.fixture('data.moves.firstColumn'),
+              )
+              as DataSet;
+      expect(
+        rules.validateData(chart, data).single,
+        contains('horizontal bars'),
+      );
+    });
+  });
+
+  group('Given WidgetArgs', () {
+    test(
+      'when only type, title and source are given then the source defaults apply',
+      () {
+        final widget = build({
+          'type': 'chart',
+          'title': 'Parties par jour',
+          'source': 'games.byDay',
+        });
+        expect(widget.chart!.toJson(), {
+          'mark': 'bar',
+          'x': {'field': 'day'},
+          'y': {'field': 'count'},
+          'color': {'field': 'result'},
+          'stack': true,
+        });
+        expect(widget.query.params, {
+          'range': r'$dashboard.range',
+          'mode': r'$dashboard.mode',
+          'opponent': r'$dashboard.opponent',
+        });
+        expect(rules.validate(widget, catalog), isEmpty);
+      },
+    );
+
+    test('when lastGames is given then the dashboard range is not added', () {
+      final widget = build({
+        'type': 'chart',
+        'title': 'Cases',
+        'source': 'moves.byCell',
+        'lastGames': 30,
+        'who': 'me',
+      });
+      expect(widget.query.params, containsPair('lastGames', 30));
+      expect(widget.query.params, isNot(contains('range')));
+      expect(widget.display.cell, 'circle');
+    });
+
+    test('when the mark changes then the axes are recomputed', () {
+      final base = build({
+        'type': 'chart',
+        'title': 'Parties par jour',
+        'source': 'games.byDay',
+      });
+      final (updated, _) = args.update(base, {'mark': 'line'});
+      expect(updated.chart!.mark, ChartMark.line);
+      expect(updated.chart!.x!.field, 'day');
+      expect(updated.chart!.color, isNull);
+      expect(updated.chart!.stack, isFalse);
+      expect(rules.validate(updated, catalog), isEmpty);
+    });
+
+    test(
+      'when an explicit param is cleared then it follows the dashboard again',
+      () {
+        final base = build({
+          'type': 'kpi',
+          'title': 'Classé',
+          'source': 'games.summary',
+          'mode': 'classe',
+        });
+        final (updated, _) = args.update(base, {}, clear: ['mode']);
+        expect(updated.query.params['mode'], r'$dashboard.mode');
+      },
+    );
+  });
+
+  group('Given a Dashboard', () {
+    test('when resolving params then empty filters drop the param', () {
+      const filters = DashboardFilters(range: 'last:7d');
+      expect(
+        filters.resolve({
+          'range': r'$dashboard.range',
+          'mode': r'$dashboard.mode',
+          'lastGames': 10,
+        }),
+        {'range': 'last:7d', 'lastGames': 10},
+      );
+    });
+
+    test('when looking for a free slot then widgets do not overlap', () {
+      final dashboard = Dashboard.fromJson(
+        AssistantContracts.fixture('dashboard'),
+      );
+      final slot = dashboard.firstFreeSlot(4, 2);
+      for (final widget in dashboard.widgets) {
+        expect(slot.overlaps(widget.layout!), isFalse, reason: widget.id);
+      }
+      expect(
+        Dashboard.empty.firstFreeSlot(6, 4),
+        const WidgetLayout(x: 0, y: 0, w: 6, h: 4),
+      );
+    });
+
+    test('when serializing then it round-trips', () {
+      final json = AssistantContracts.fixture('dashboard');
+      expect(Dashboard.fromJson(json).toJson(), json);
+    });
+  });
+
+  group('Given RelativeRange', () {
+    final now = DateTime(2026, 10, 9, 15); // un vendredi
+
+    test('then periods start where expected', () {
+      expect(
+        RelativeRange.tryParse('last:7d')!.start(now),
+        DateTime(2026, 10, 3),
+      );
+      expect(
+        RelativeRange.tryParse('this:week')!.start(now),
+        DateTime(2026, 10, 5),
+      );
+      expect(
+        RelativeRange.tryParse('this:month')!.start(now),
+        DateTime(2026, 10),
+      );
+      expect(RelativeRange.all.start(now), isNull);
+      expect(RelativeRange.tryParse('2026-10-01'), isNull);
+    });
+
+    test('then the previous period has the same length', () {
+      final (start, end) = RelativeRange.tryParse('last:7d')!.previous(now)!;
+      expect(end, DateTime(2026, 10, 3));
+      expect(end.difference(start), now.difference(end));
+    });
+  });
+
+  test('assistant events round-trip through JSON', () {
+    final events = <AssistantEvent>[
+      const StartedEvent('c1'),
+      const ToolStatusEvent('add_widget', ToolState.done),
+      const DashboardChangedEvent(3),
+      const TextEvent('ok'),
+      const DoneEvent(inputTokens: 10, outputTokens: 2),
+      const ErrorEvent(AssistantErrorCode.rateLimited),
+    ];
+    for (final event in events) {
+      expect(AssistantEvent.fromJson(event.toJson()).toJson(), event.toJson());
+    }
+  });
+}

@@ -1,0 +1,44 @@
+# Jeu d'évaluation des modèles (lancé à la main, hors `dart test` : il coûte
+# des appels Ollama). Chaque cas part d'une conversation vide.
+#
+# - expect : appels d'outils attendus, dans l'ordre. args est comparé
+#   partiellement (seules les clés données doivent correspondre).
+# - llm_input_must_not_contain : valeurs qui ne doivent apparaître dans
+#   aucune requête envoyée au LLM (contrôle du filtre de confidentialité).
+- request: "Ajoute mon taux de victoire en haut à gauche"
+  expect:
+    - tool: add_widget
+      args: { type: kpi, source: games.summary }
+- request: "Montre mes parties par jour sur 10 jours, empilées par résultat"
+  expect:
+    - tool: propose_widget
+      args: { type: chart, source: games.byDay }
+- request: "Ajoute mes parties par jour, empilées par résultat"
+  expect:
+    - tool: add_widget
+      args: { type: chart, source: games.byDay, stack: true }
+- request: "Mets la carte des cases où je joue à droite, sur mes 30 dernières parties"
+  expect:
+    - tool: add_widget
+      args: { type: chart, source: moves.byCell, lastGames: 30, who: me }
+- request: "Combien de parties j'ai gagnées cette semaine ?"
+  expect:
+    - tool: query_data
+      args: { source: games.summary, range: "this:week" }
+- request: "Ajoute la courbe de mon Elo sur le dernier mois"
+  expect:
+    - tool: add_widget
+      args: { type: chart, source: elo.history, range: "last:30d" }
+- request: "Contre quel bot je perds le plus ?"
+  expect:
+    - tool: query_data
+      args: { source: results.byOpponent }
+- request: "Est-ce que j'ai déjà battu {opponent} ce mois-ci ?"
+  llm_input_must_not_contain: ["{opponent}"]
+  expect:
+    - tool: query_data
+      args: { source: results.byOpponent, range: "this:month" }
+- request: "Filtre tout le tableau de bord sur le mode classé"
+  expect:
+    - tool: set_dashboard_filters
+      args: { mode: classe }
