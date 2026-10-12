@@ -15,7 +15,11 @@ import 'package:serverpod/serverpod.dart' as _is;
 enum EnumLiveEventType implements _is.SerializableModel {
   profileChanged,
   historyChanged,
-  leaderboardChanged;
+  leaderboardChanged,
+  lobbyChanged,
+  friendsChanged,
+  challengesChanged,
+  dashboardChanged;
 
   static EnumLiveEventType fromJson(String name) {
     switch (name) {
@@ -25,6 +29,14 @@ enum EnumLiveEventType implements _is.SerializableModel {
         return EnumLiveEventType.historyChanged;
       case 'leaderboardChanged':
         return EnumLiveEventType.leaderboardChanged;
+      case 'lobbyChanged':
+        return EnumLiveEventType.lobbyChanged;
+      case 'friendsChanged':
+        return EnumLiveEventType.friendsChanged;
+      case 'challengesChanged':
+        return EnumLiveEventType.challengesChanged;
+      case 'dashboardChanged':
+        return EnumLiveEventType.dashboardChanged;
       default:
         throw ArgumentError(
           'Value "$name" cannot be converted to "EnumLiveEventType"',

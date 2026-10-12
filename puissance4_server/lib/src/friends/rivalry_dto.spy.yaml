@@ -1,0 +1,14 @@
+# Bilan tête-à-tête avec un ami (E15, US15.7) : parties Multi terminées entre
+# les deux, vues du joueur courant.
+class: RivalryDto
+fields:
+  friend: FriendUserDto
+  wins: int
+  losses: int
+  draws: int
+  # Série en cours : > 0 victoires d'affilée, < 0 défaites d'affilée, 0 si
+  # la dernière partie est un nul (ou aucune partie).
+  streak: int
+  lastPlayedAt: DateTime?
+  # Parties communes, plus récentes d'abord (à rejouer depuis l'historique).
+  partieIds: List<UuidValue>

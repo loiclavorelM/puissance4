@@ -1,0 +1,144 @@
+{
+  "name": "query_data",
+  "title": "Query data",
+  "description": "Reads a data source to answer in text. Results are truncated to 20 rows; prefer a narrower source or parameters to reading everything.",
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "source": {
+        "type": "string",
+        "enum": [
+          "games.summary",
+          "games.byDay",
+          "games.length",
+          "moves.firstColumn",
+          "moves.byCell",
+          "results.byOpponent",
+          "games.recent",
+          "elo.history",
+          "streaks",
+          "games.pivot"
+        ],
+        "description": "Data source, see list_data_sources."
+      },
+      "range": {
+        "description": "Relative period of the games. Never an absolute date.",
+        "type": "string",
+        "enum": [
+          "last:24h",
+          "last:7d",
+          "last:30d",
+          "last:90d",
+          "this:week",
+          "this:month",
+          "this:year",
+          "all"
+        ]
+      },
+      "lastGames": {
+        "description": "Only the N most recent games. Use instead of range when the player counts games.",
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 200
+      },
+      "mode": {
+        "description": "Game mode: normal (vs on-device bot), classe (ranked vs server bot, Elo), multi (online vs a human). Omit for all modes.",
+        "type": "string",
+        "enum": [
+          "normal",
+          "classe",
+          "multi"
+        ]
+      },
+      "opponent": {
+        "description": "One opponent, copied verbatim as it appears in data or in the request (a token such as [Player:1], or a bot name such as Expert).",
+        "type": "string"
+      },
+      "who": {
+        "description": "Whose discs to count.",
+        "type": "string",
+        "enum": [
+          "me",
+          "opponent"
+        ]
+      },
+      "only": {
+        "description": "all = every disc played, winning = only discs of winning four-in-a-row lines.",
+        "type": "string",
+        "enum": [
+          "all",
+          "winning"
+        ]
+      },
+      "limit": {
+        "description": "Only for games.recent: number of rows. Other sources have no limit (query_data already truncates to 20 rows).",
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 20
+      },
+      "starter": {
+        "description": "Only for games.pivot: keep only the games where this side played first.",
+        "type": "string",
+        "enum": [
+          "me",
+          "opponent"
+        ]
+      },
+      "groupBy": {
+        "description": "Only for games.pivot: dimension of the rows (one row or bar per value). column = column of the player's first disc, moves = game length, starter = who played first, week/month = calendar period.",
+        "type": "string",
+        "enum": [
+          "mode",
+          "opponent",
+          "opponentKind",
+          "result",
+          "starter",
+          "day",
+          "week",
+          "month",
+          "column",
+          "moves"
+        ]
+      },
+      "splitBy": {
+        "description": "Only for games.pivot: optional second dimension, one series per value (chart color). Must differ from groupBy.",
+        "type": "string",
+        "enum": [
+          "mode",
+          "opponent",
+          "opponentKind",
+          "result",
+          "starter",
+          "day",
+          "week",
+          "month",
+          "column",
+          "moves"
+        ]
+      },
+      "measure": {
+        "description": "Only for games.pivot: value computed for each group. winRate in %, avgMoves = average number of moves, eloDelta = sum of Elo changes (ranked only).",
+        "type": "string",
+        "enum": [
+          "count",
+          "wins",
+          "losses",
+          "draws",
+          "winRate",
+          "avgMoves",
+          "eloDelta"
+        ]
+      }
+    },
+    "required": [
+      "source"
+    ],
+    "additionalProperties": false
+  }
+}

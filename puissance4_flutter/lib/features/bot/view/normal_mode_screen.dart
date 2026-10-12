@@ -1,29 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:puissance4_client/puissance4_client.dart';
+import 'package:puissance4_rules/puissance4_rules.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../game/view/game_screen.dart';
 import '../viewmodel/normal_mode_viewmodel.dart';
+import '../../../core/l10n/l10n.dart';
+import 'bot_labels.dart';
 
-/// Mode Normal — choix du bot parmi ceux renvoyés par le serveur, puis
-/// lancement d'une partie hors-ligne.
+/// Mode Normal — choix du niveau parmi les bots embarqués ([BotLevel]),
+/// puis lancement d'une partie hors-ligne.
 class NormalModeScreen extends ConsumerWidget {
   const NormalModeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final botsAsync = ref.watch(botsProvider);
     final state = ref.watch(normalModeViewModelProvider);
     final viewModel = ref.read(normalModeViewModelProvider.notifier);
     final canPlay = ref.watch(canPlayNormalProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
-        foregroundColor: Colors.white,
-        title: const Text('Normal'),
+        backgroundColor: context.colors.background,
+        foregroundColor: context.colors.text,
+        title: Text(context.l10n.modeNormal),
       ),
       body: SafeArea(
         child: Padding(
@@ -31,10 +32,10 @@ class NormalModeScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                'CHOISIS TON ADVERSAIRE',
+              Text(
+                context.l10n.chooseOpponent,
                 style: TextStyle(
-                  color: Colors.white54,
+                  color: context.colors.textMuted,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.2,
@@ -42,36 +43,17 @@ class NormalModeScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               Expanded(
-                child: botsAsync.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (_, _) => Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          'Impossible de charger les bots.',
-                          style: TextStyle(color: Colors.white70),
-                        ),
-                        TextButton(
-                          onPressed: () => ref.invalidate(botsProvider),
-                          child: const Text('Réessayer'),
-                        ),
-                      ],
-                    ),
-                  ),
-                  data: (bots) => ListView.separated(
-                    itemCount: bots.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 12),
-                    itemBuilder: (_, index) {
-                      final bot = bots[index];
-                      return _BotCard(
-                        bot: bot,
-                        isSelected: state.selectedBot?.id == bot.id,
-                        onTap: () => viewModel.select(bot),
-                      );
-                    },
-                  ),
+                child: ListView.separated(
+                  itemCount: BotLevel.values.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 12),
+                  itemBuilder: (_, index) {
+                    final bot = BotLevel.values[index];
+                    return _BotCard(
+                      bot: bot,
+                      isSelected: state.selectedBot == bot,
+                      onTap: () => viewModel.select(bot),
+                    );
+                  },
                 ),
               ),
               if (state.errorMessage != null)
@@ -79,20 +61,23 @@ class NormalModeScreen extends ConsumerWidget {
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Text(
                     state.errorMessage!,
-                    style: const TextStyle(color: AppColors.yellow),
+                    style: TextStyle(color: context.colors.yellow),
                   ),
                 ),
               if (!canPlay)
-                const Padding(
+                Padding(
                   padding: EdgeInsets.only(bottom: 8),
                   child: Text(
-                    'Connecte-toi (même en invité, en ligne) pour jouer.',
-                    style: TextStyle(color: Colors.white54, fontSize: 12),
+                    context.l10n.normalNeedsSession,
+                    style: TextStyle(
+                      color: context.colors.textMuted,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: context.colors.primary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 onPressed:
@@ -104,7 +89,7 @@ class NormalModeScreen extends ConsumerWidget {
                         dimension: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('Démarrer'),
+                    : Text(context.l10n.start),
               ),
             ],
           ),
@@ -132,18 +117,18 @@ class _BotCard extends StatelessWidget {
     required this.onTap,
   });
 
-  final Bot bot;
+  final BotLevel bot;
   final bool isSelected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.card,
+      color: context.colors.card,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(
-          color: isSelected ? AppColors.primary : Colors.white10,
+          color: isSelected ? context.colors.primary : context.colors.divider,
           width: isSelected ? 2 : 1,
         ),
       ),
@@ -151,17 +136,17 @@ class _BotCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 8, 16),
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               Container(
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.15),
+                  color: context.colors.primary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(Icons.smart_toy, color: AppColors.primary),
+                child: Icon(Icons.smart_toy, color: context.colors.primary),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -169,38 +154,31 @@ class _BotCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      bot.botName,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      localizedBotName(context.l10n, bot.name),
+                      style: TextStyle(
+                        color: context.colors.text,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
                     ),
                     Text(
-                      'ELO ${bot.elo}',
-                      style: const TextStyle(
-                        color: AppColors.yellow,
+                      context.l10n.eloLabel(bot.elo),
+                      style: TextStyle(
+                        color: context.colors.yellow,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      bot.description,
-                      style: const TextStyle(
-                        color: Colors.white54,
+                      localizedBotDescription(context.l10n, bot),
+                      style: TextStyle(
+                        color: context.colors.textMuted,
                         fontSize: 13,
                       ),
                     ),
                   ],
                 ),
-              ),
-              // Téléchargement du modèle du bot (T5.3.2) — pas encore
-              // branché.
-              IconButton(
-                onPressed: () {},
-                tooltip: 'Télécharger',
-                icon: const Icon(Icons.download, color: Colors.white54),
               ),
             ],
           ),

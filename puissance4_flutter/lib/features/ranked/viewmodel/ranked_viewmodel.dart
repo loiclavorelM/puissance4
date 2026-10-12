@@ -2,12 +2,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 import 'package:puissance4_rules/puissance4_rules.dart';
 
-import '../../bot/viewmodel/normal_mode_viewmodel.dart';
 import '../../game/model/game_launch.dart';
 import '../../game/model/server_game_engine.dart';
 import '../../game/viewmodel/game_home_viewmodel.dart';
 import '../../game/viewmodel/game_viewmodel.dart';
 import '../model/ranked_repository.dart';
+import '../../settings/viewmodel/locale_provider.dart';
 
 class RankedState {
   const RankedState({
@@ -28,17 +28,11 @@ final rankedRepositoryProvider = Provider<RankedRepository>(
   (ref) => RankedRepository(),
 );
 
-/// Bot que le serveur choisira d'après l'Elo du joueur — mêmes seuils que
-/// `RankedEndpoint` (`BotStrength.fromElo`), pour l'annoncer avant de jouer.
-final rankedOpponentProvider = Provider<Bot?>((ref) {
-  final elo = ref.watch(gameHomeViewModelProvider).elo;
-  final bots = ref.watch(botsProvider).valueOrNull ?? const <Bot>[];
-  final strength = BotStrength.fromElo(elo);
-  for (final bot in bots) {
-    if (BotStrength.fromElo(bot.elo) == strength) return bot;
-  }
-  return null;
-});
+/// Bot que le serveur choisira d'après l'Elo du joueur — même règle que
+/// `RankedEndpoint` (`BotLevel.forElo`), pour l'annoncer avant de jouer.
+final rankedOpponentProvider = Provider<BotLevel>(
+  (ref) => BotLevel.forElo(ref.watch(gameHomeViewModelProvider).elo),
+);
 
 final rankedViewModelProvider =
     NotifierProvider.autoDispose<RankedViewModel, RankedState>(
@@ -66,12 +60,12 @@ class RankedViewModel extends AutoDisposeNotifier<RankedState> {
             ? error.partieId
             : null,
         errorMessage: error.reason == EnumGameError.alreadyInGame
-            ? 'Tu as déjà une partie en cours.'
-            : 'Impossible de lancer la partie.',
+            ? ref.read(l10nProvider).alreadyInGame
+            : ref.read(l10nProvider).startGameFailed,
       );
     } catch (_) {
-      state = const RankedState(
-        errorMessage: 'Impossible de joindre le serveur. Réessaie.',
+      state = RankedState(
+        errorMessage: ref.read(l10nProvider).serverUnreachableRetry,
       );
     }
     return null;
@@ -80,7 +74,7 @@ class RankedViewModel extends AutoDisposeNotifier<RankedState> {
   GameLaunch resume(UuidValue partieId) {
     final repository = ref.read(serverGameRepositoryProvider);
     return GameLaunch(
-      title: 'Classé',
+      title: (l10n) => l10n.modeRanked,
       createEngine: (_) => ServerGameEngine.watch(repository, partieId),
     );
   }

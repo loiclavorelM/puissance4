@@ -1,0 +1,7 @@
+class: PlayerSearchResultDto
+fields:
+  player: FriendUserDto
+  relation: EnumFriendRelation
+  # Id de la `Friendship` liée, s'il y en a une (accepter/annuler depuis la
+  # recherche).
+  friendshipId: UuidValue?

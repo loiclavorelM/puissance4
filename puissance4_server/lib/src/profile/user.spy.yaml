@@ -8,12 +8,20 @@ fields:
   username: String
   thumbnailPath: String?
   elo: int, default=1000
+  # Code ami (E15, `P4-XXXXXX` sans le préfixe) : attribué au premier
+  # affichage de l'onglet Amis (`FriendsEndpoint`), jamais pour un invité.
+  friendCode: String?
+  # Dernière déconnexion du temps réel (E15, « vu il y a… » chez ses amis).
+  lastSeenAt: DateTime?
   createdAt: DateTime, default=now
   updatedAt: DateTime?
 
 indexes:
   user_auth_user_id_unique_idx:
     fields: authUserId
+    unique: true
+  user_friend_code_unique_idx:
+    fields: friendCode
     unique: true
   # Filet contre les écritures concurrentes ; l'unicité insensible à la
   # casse est vérifiée dans ProfileEndpoint.updateUsername.

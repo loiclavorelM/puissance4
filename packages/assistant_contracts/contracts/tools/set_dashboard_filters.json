@@ -1,0 +1,46 @@
+{
+  "name": "set_dashboard_filters",
+  "title": "Set dashboard filters",
+  "description": "Sets the dashboard filters followed by every widget that does not set its own value. Use 'all' to clear a filter.",
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+  },
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "range": {
+        "type": "string",
+        "enum": [
+          "last:24h",
+          "last:7d",
+          "last:30d",
+          "last:90d",
+          "this:week",
+          "this:month",
+          "this:year",
+          "all"
+        ],
+        "description": "Relative period of the games. Never an absolute date."
+      },
+      "mode": {
+        "type": "string",
+        "enum": [
+          "normal",
+          "classe",
+          "multi",
+          "all"
+        ],
+        "description": "Game mode, or all."
+      },
+      "opponent": {
+        "type": "string",
+        "description": "One opponent, copied verbatim as it appears in data or in the request (a token such as [Player:1], or a bot name such as Expert). Or all."
+      }
+    },
+    "required": [],
+    "additionalProperties": false
+  }
+}

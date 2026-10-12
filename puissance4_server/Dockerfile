@@ -48,6 +48,8 @@ COPY --from=build /app/puissance4_server/build/bundle/ ./
 COPY --from=build /app/puissance4_server/config/ config/
 COPY --from=build /app/puissance4_server/web/ web/
 COPY --from=build /app/puissance4_server/migrations/ migrations/
+# Modèles des bots RL du Classé (`BotNetworks`).
+COPY --from=build /app/puissance4_server/assets/ assets/
 
 # This file is required to enable the endpoint log filter in Insights.
 COPY --from=build /app/puissance4_server/lib/src/generated/protocol.yaml lib/src/generated/protocol.yaml

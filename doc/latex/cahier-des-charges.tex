@@ -153,10 +153,18 @@ ne conditionnent pas la validation du cours si le temps venait à manquer.
 
 \subsection{Profil utilisateur --- Caméra}
 \begin{itemize}[leftmargin=1.5em]
-  \item Prise de photo de profil via la caméra du téléphone, à l'inscription ou
-        depuis les paramètres.
-  \item Stockage de l'image côté Serverpod (fichiers), affichée dans le profil et le
-        classement.
+  \item Prise de photo de profil via la caméra du téléphone (ou choix dans la
+        galerie, seule option sur le web), depuis \og Modifier le profil \fg{}.
+  \item L'application recadre la photo au centre en un carré de
+        256$\times$256~px (JPEG, quelques dizaines de Ko) avant l'envoi. Le
+        serveur ne lui fait pas confiance : il la vérifie (JPEG ou PNG,
+        512~Ko et 1024~px au plus) et la réencode, ce qui retire aussi les
+        métadonnées (position GPS).
+  \item Stockage de l'image côté Serverpod (stockage de fichiers \og public \fg{},
+        sous un nom neuf à chaque envoi), exposée par une URL publique et
+        affichée dans le profil, l'écran d'accueil, le classement et le
+        lobby Multijoueur ; les initiales du pseudo la remplacent si elle
+        manque.
 \end{itemize}
 
 \subsection{Mode de jeu --- 1 vs 1 contre un bot IA}
@@ -204,15 +212,27 @@ ne conditionnent pas la validation du cours si le temps venait à manquer.
         réinitialise la partie en cours. Actif uniquement en mode Normal (partie
         non classée contre un bot) ; désactivé en Classé et en Multijoueur pour ne
         pas permettre d'annuler une partie qui affecte l'Elo ou implique un autre
-        joueur réel.
-  \item \textbf{Détection ``posé à plat''} (accéléromètre / gyroscope) : lorsque le
-        téléphone est posé à plat pendant une partie, l'application la met
-        automatiquement \textbf{en pause}. Actif uniquement en mode \textbf{Normal}
-        --- \textbf{pas de pause en Classé ni en Multijoueur} : ces parties sont
-        jouées par le serveur, qui impose un délai par coup (pas de mécanisme de
-        pause côté serveur). C'est ce comportement
-        réactif, sans action explicite de l'utilisateur, qui rend l'application
-        \textit{context-aware}.
+        joueur réel. Une secousse demande plusieurs mouvements brusques en
+        moins d'une seconde (un simple choc ne suffit pas). Si le joueur a
+        déjà joué, il confirme d'abord, et la partie interrompue compte comme
+        un abandon --- même règle que le bouton \og Abandonner \fg{}, pour
+        qu'on ne puisse pas effacer une défaite en secouant le téléphone ;
+        sinon elle est simplement annulée.
+  \item \textbf{Détection ``posé à plat''} (accéléromètre) : lorsque le
+        téléphone est posé à plat sur une table, l'écran d'accueil fait
+        apparaître un mode supplémentaire, \textbf{Face à face} : deux joueurs
+        assis autour de la table jouent à tour de rôle sur le même téléphone
+        (règles sur l'appareil, sans réseau, sans enregistrement ni Elo). Le
+        mode disparaît quand on relève le téléphone ; une partie commencée
+        continue. L'inclinaison doit rester sous 10° pendant 0,7~s pour
+        compter comme \og à plat \fg{}, et dépasser 20° pour ne plus l'être,
+        afin que le mode n'apparaisse pas quand on tient simplement le
+        téléphone à l'horizontale. Sans accéléromètre (version web,
+        ordinateur), Face à face est toujours proposé, et l'indication de
+        secousse n'est affichée que sur téléphone. C'est ce comportement réactif, sans action
+        explicite de l'utilisateur, qui rend l'application
+        \textit{context-aware}. \textit{(Remplace la mise en pause automatique
+        envisagée initialement.)}
 \end{itemize}
 
 \subsection{Classement --- Leaderboard}
@@ -236,19 +256,29 @@ parties en direct.
 \subsection{Revue de partie post-match avec IA --- optionnel}
 \label{sec:revue}
 \begin{itemize}[leftmargin=1.5em]
-  \item En plus du replay coup par coup (section précédente), le joueur peut voir,
-        pour chaque coup, celui que recommanderait le modèle \textbf{Expert}
-        (le modèle RL le plus fort, déjà embarqué localement pour le mode Bot, cf.
-        section~\ref{sec:archi}) --- le modèle est réexécuté \textbf{localement} sur
-        l'appareil pour cette recommandation, sans nouvel endpoint serveur.
-  \item Une \textbf{explication en langage naturel} de la recommandation peut être
-        demandée : elle est générée par un LLM via \textbf{Ollama cloud}, appelé
-        \textbf{depuis le serveur Serverpod} (clé API côté serveur uniquement, jamais
-        côté client). Les explications déjà générées sont mises en cache côté
-        serveur (par partie + index de coup) pour limiter les coûts d'appel au LLM.
-  \item Cette fonctionnalité nécessite une connexion réseau (appel au serveur pour
-        l'explication) ; elle est donc \textbf{indisponible en mode invité local /
-        hors-ligne} (section~\ref{sec:invite}).
+  \item Pendant le replay coup par coup (section précédente), chaque coup est
+        analysé par le bot \textbf{Expert}, \textbf{localement} sur l'appareil
+        (sans réseau) : l'écran indique s'il s'agit du meilleur coup, d'un coup
+        perdant, ou quelle colonne l'Expert aurait jouée --- un jeton fantôme
+        la montre sur le plateau. En attendant les modèles RL, l'Expert est la
+        recherche du \texttt{HeuristicBot} (\texttt{MoveAnalysis}, paquet
+        partagé \texttt{puissance4\_rules}) ; le modèle RL Expert le remplacera
+        derrière la même interface (\texttt{MoveAdvisor}).
+  \item Un bouton \og Expliquer ce coup \fg{} demande une \textbf{explication en
+        langage naturel}, générée par un LLM via \textbf{Ollama cloud}, appelé
+        \textbf{depuis le serveur Serverpod} (clé API dans les mots de passe du
+        serveur, jamais côté client). Le serveur recalcule lui-même la
+        recommandation avec le même code que l'app et transmet au LLM les faits
+        vérifiés (victoire immédiate, menace à bloquer, coup qui offre la
+        victoire) : le LLM ne fait que les mettre en mots.
+  \item Les explications sont mises en cache côté serveur \textbf{par position}
+        (coups jusqu'au coup expliqué) et par langue, plutôt que par partie : une
+        même position, dans n'importe quelle partie et n'importe quel mode, n'est
+        expliquée qu'une fois. Les générations sont limitées à 30 par joueur et
+        par heure (maîtrise des coûts).
+  \item L'explication nécessite une connexion réseau ; en cas d'absence de réseau,
+        de service Ollama indisponible ou de limite atteinte, un message clair
+        s'affiche sans bloquer le replay ni l'analyse locale.
   \item Prérequis (réalisé) : la séquence complète des coups de chaque partie est
         enregistrée, pour tous les modes.
 \end{itemize}
@@ -553,7 +583,7 @@ implémenté est commun à tous les modes et au replay.}
         l'écran de complétion de profil (choix du username).
   \item Photo de profil (caméra + stockage Serverpod).
   \item Leaderboard et écran d'historique (consommation des endpoints Serverpod).
-  \item Détection ``posé à plat'' $\rightarrow$ mise en pause automatique.
+  \item Détection ``posé à plat'' $\rightarrow$ mode Face à face.
   \item Pipeline CI/CD (lint, tests, build APK, déploiement du serveur Serverpod).
 \end{itemize}
 
@@ -576,8 +606,8 @@ implémenté est commun à tous les modes et au replay.}
 
 \begin{itemize}[leftmargin=1.5em]
   \item \textbf{Context-aware / capteurs} : caméra (photo de profil) + accéléromètre
-        (reset par secousse, détection ``posé à plat'' $\rightarrow$ pause
-        automatique) --- au moins deux capteurs, dont un comportement réellement
+        (secousse pour arrêter ou relancer une partie, détection ``posé à
+        plat'' $\rightarrow$ mode Face à face) --- au moins deux capteurs, dont un comportement réellement
         adaptatif au contexte physique.
   \item \textbf{Originalité} : modèle de RL entraîné hors-app et exécuté en
         inférence embarquée (edge AI), matchmaking Elo adaptatif avec bot joué par

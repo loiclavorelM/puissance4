@@ -1,0 +1,243 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "widget-definition.schema.json",
+  "title": "WidgetDefinition",
+  "description": "Un widget du tableau de bord ou un bloc du chat : une définition, jamais des données. L'app charge les données de query via DataEndpoint.",
+  "type": "object",
+  "required": [
+    "type",
+    "title",
+    "query"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^w_[a-z0-9]{8}$",
+      "description": "Attribué par le serveur."
+    },
+    "type": {
+      "enum": [
+        "kpi",
+        "table",
+        "chart"
+      ]
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 60
+    },
+    "query": {
+      "$ref": "#/$defs/query"
+    },
+    "chart": {
+      "$ref": "#/$defs/chart"
+    },
+    "refresh": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "live",
+            "interval",
+            "manual"
+          ]
+        },
+        "minIntervalSeconds": {
+          "type": "integer",
+          "minimum": 5
+        }
+      }
+    },
+    "drilldown": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "filterField"
+      ],
+      "properties": {
+        "source": {
+          "type": "string"
+        },
+        "filterField": {
+          "type": "string",
+          "description": "Champ cliqué, recopié comme paramètre de la source cible."
+        }
+      }
+    },
+    "display": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cell": {
+          "enum": [
+            "square",
+            "circle"
+          ]
+        },
+        "color": {
+          "enum": [
+            "accent",
+            "success",
+            "warn",
+            "danger",
+            "neutral",
+            "rouge",
+            "jaune"
+          ]
+        },
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y",
+        "w",
+        "h"
+      ],
+      "properties": {
+        "x": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 11
+        },
+        "y": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "w": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "h": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        }
+      }
+    }
+  },
+  "$defs": {
+    "query": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "description": "Clé d'une source de sources.json."
+        },
+        "params": {
+          "type": "object",
+          "description": "Paramètres de la source (sources.json). Une valeur \"$dashboard.<nom>\" reprend le filtre du tableau de bord.",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "integer"
+            ]
+          }
+        }
+      }
+    },
+    "encoding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "field"
+      ],
+      "properties": {
+        "field": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "temporal",
+            "category",
+            "number"
+          ]
+        },
+        "aggregate": {
+          "enum": [
+            "sum",
+            "avg",
+            "min",
+            "max",
+            "count"
+          ]
+        }
+      }
+    },
+    "chart": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mark"
+      ],
+      "properties": {
+        "mark": {
+          "enum": [
+            "bar",
+            "line",
+            "area",
+            "donut",
+            "heatmap"
+          ]
+        },
+        "x": {
+          "$ref": "#/$defs/encoding"
+        },
+        "y": {
+          "$ref": "#/$defs/encoding"
+        },
+        "value": {
+          "$ref": "#/$defs/encoding"
+        },
+        "color": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "field"
+          ],
+          "properties": {
+            "field": {
+              "type": "string"
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10
+            },
+            "others": {
+              "type": "boolean",
+              "description": "Regrouper ce qui dépasse limit dans « Autres » (défaut true)."
+            }
+          }
+        },
+        "stack": {
+          "type": "boolean"
+        },
+        "horizontal": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

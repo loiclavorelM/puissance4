@@ -1,0 +1,50 @@
+[
+  {
+    "id": "intro",
+    "vo": "This is Connect Four, powered by AI. Every bot is a neural network we trained ourselves, AlphaZero style, and its inference runs on the phone, on the web, and on the server. An LLM coaches you and builds your stats. Built with Flutter and Serverpod."
+  },
+  {
+    "id": "guest",
+    "vo": "Jump straight in as a guest. When you're ready, create an account with Serverpod's native email sign-in, and every game and every Elo point comes with you."
+  },
+  {
+    "id": "profile",
+    "vo": "Make it yours: snap a profile photo with the camera, and it's uploaded to Serverpod cloud storage, for your friends and the leaderboard to see."
+  },
+  {
+    "id": "normal",
+    "vo": "Normal mode has five bots: five snapshots of our own training run, from almost random to Expert. The Expert thinks eight hundred moves ahead, with TensorFlow Lite running right on the phone."
+  },
+  {
+    "id": "offline",
+    "vo": "So it even works on a plane. Offline games are stored with Serverpod's database sync, and merged into Postgres the moment you're back online."
+  },
+  {
+    "id": "ranked",
+    "vo": "Ranked games are played by the server. It picks the bot closest to your Elo, checks every single move, and runs the same network in pure Dart. No way to cheat."
+  },
+  {
+    "id": "multi",
+    "vo": "Challenge a friend in real time over Serverpod streams. Share a six-letter code, or add friends with a QR code, or by shaking both phones at once."
+  },
+  {
+    "id": "review",
+    "vo": "Lost a game? Replay it move by move, see what the Expert would have played, and let an LLM explain why."
+  },
+  {
+    "id": "assistant",
+    "vo": "Or just ask: “Show my win rate by mode and by month, only when I start.” The assistant calls MCP tools inside Serverpod and builds your dashboard: crossed tables, charts, heatmaps. Any widget exports to PDF."
+  },
+  {
+    "id": "flat",
+    "vo": "Lay the phone flat on the table, and it becomes a board for two."
+  },
+  {
+    "id": "themes",
+    "vo": "In English or French, dark or light."
+  },
+  {
+    "id": "outro",
+    "vo": "Connect Four. Trained by us, played by you. Try it on the web, or grab the APK."
+  }
+]

@@ -14,6 +14,8 @@ class Room {
     required this.hostAuthUserId,
     required this.hostUserId,
     required this.expiresAt,
+    this.listedAs,
+    this.invitedAuthUserId,
   });
 
   final String code;
@@ -22,6 +24,38 @@ class Room {
   /// `User.id` (profil de jeu) de l'hôte.
   final UuidValue hostUserId;
   final DateTime expiresAt;
+
+  /// Non nul pour une salle publique : l'hôte tel qu'affiché dans le lobby
+  /// (lu une fois, à l'ouverture). Une salle privée ne se rejoint que par
+  /// son code.
+  final RoomHost? listedAs;
+
+  bool get isPublic => listedAs != null;
+
+  /// Défi d'un ami (E15) : seul ce joueur peut rejoindre la salle, qui n'est
+  /// jamais publique.
+  final UuidValue? invitedAuthUserId;
+
+  LobbyRoom toLobbyRoom() => LobbyRoom(
+    code: code,
+    hostUsername: listedAs!.username,
+    hostElo: listedAs!.elo,
+    hostThumbnailUrl: listedAs!.thumbnailUrl,
+    expiresAt: expiresAt,
+  );
+}
+
+/// L'hôte d'une salle publique, tel qu'affiché dans le lobby.
+class RoomHost {
+  const RoomHost({
+    required this.username,
+    required this.elo,
+    this.thumbnailUrl,
+  });
+
+  final String username;
+  final int elo;
+  final String? thumbnailUrl;
 }
 
 /// Stockage des salles d'attente. Seule pièce du Multi à dépendre du nombre
@@ -33,17 +67,32 @@ class Room {
 abstract interface class RoomStore {
   /// Ouvre une salle pour cet hôte. Une salle déjà ouverte par le même hôte
   /// est fermée et renvoyée dans `replaced`, pour que l'appelant prévienne
-  /// son ancien stream.
+  /// son ancien stream. Avec [listedAs], la salle est publique (lobby) ; avec
+  /// [invitedAuthUserId], elle est réservée à ce joueur (défi d'un ami).
   Future<({Room room, Room? replaced})> create({
     required UuidValue hostAuthUserId,
     required UuidValue hostUserId,
     required Duration lifetime,
+    RoomHost? listedAs,
+    UuidValue? invitedAuthUserId,
   });
+
+  /// Salles qui défient [authUserId] (E15), encore ouvertes.
+  Future<List<Room>> listInvitations(UuidValue authUserId);
+
+  /// L'invité [invitedAuthUserId] refuse le défi [code] : la salle est
+  /// retirée et renvoyée, ou `null` si elle ne le défie pas (ou plus).
+  Future<Room?> decline(String code, UuidValue invitedAuthUserId);
+
+  /// Salles publiques encore ouvertes, les plus récentes d'abord, sauf
+  /// celle de [exceptHost] (on ne rejoint pas sa propre salle).
+  Future<List<Room>> listPublic({UuidValue? exceptHost});
 
   /// Retire la salle [code] pour [guestAuthUserId] et la renvoie, ou `null`
   /// si elle n'existe pas ou plus. Atomique : de deux joueurs qui tapent le
   /// même code, un seul obtient la salle. Lève `GameException(ownRoom)` —
-  /// sans retirer la salle — si l'invité en est l'hôte.
+  /// sans retirer la salle — si l'invité en est l'hôte. Une salle de défi
+  /// n'est donnée qu'au joueur défié.
   Future<Room?> claim(String code, {required UuidValue guestAuthUserId});
 
   /// Ferme la salle [code] si elle appartient encore à [hostAuthUserId] (le
@@ -76,6 +125,8 @@ class InMemoryRoomStore implements RoomStore {
     required UuidValue hostAuthUserId,
     required UuidValue hostUserId,
     required Duration lifetime,
+    RoomHost? listedAs,
+    UuidValue? invitedAuthUserId,
   }) async {
     _purgeExpired();
     final previousCode = _codeByHost.remove(hostAuthUserId);
@@ -94,10 +145,40 @@ class InMemoryRoomStore implements RoomStore {
       hostAuthUserId: hostAuthUserId,
       hostUserId: hostUserId,
       expiresAt: DateTime.now().toUtc().add(lifetime),
+      listedAs: invitedAuthUserId == null ? listedAs : null,
+      invitedAuthUserId: invitedAuthUserId,
     );
     _byCode[code] = room;
     _codeByHost[hostAuthUserId] = code;
     return (room: room, replaced: replaced);
+  }
+
+  @override
+  Future<List<Room>> listPublic({UuidValue? exceptHost}) async {
+    _purgeExpired();
+    return _byCode.values
+        .where((room) => room.isPublic && room.hostAuthUserId != exceptHost)
+        .toList()
+      ..sort((a, b) => b.expiresAt.compareTo(a.expiresAt));
+  }
+
+  @override
+  Future<List<Room>> listInvitations(UuidValue authUserId) async {
+    _purgeExpired();
+    return _byCode.values
+        .where((room) => room.invitedAuthUserId == authUserId)
+        .toList();
+  }
+
+  @override
+  Future<Room?> decline(String code, UuidValue invitedAuthUserId) async {
+    final room = _byCode[code];
+    if (room == null || room.invitedAuthUserId != invitedAuthUserId) {
+      return null;
+    }
+    _byCode.remove(code);
+    _codeByHost.remove(room.hostAuthUserId);
+    return room;
   }
 
   @override
@@ -112,6 +193,8 @@ class InMemoryRoomStore implements RoomStore {
     if (room.hostAuthUserId == guestAuthUserId) {
       throw GameException(reason: EnumGameError.ownRoom);
     }
+    final invited = room.invitedAuthUserId;
+    if (invited != null && invited != guestAuthUserId) return null;
     _byCode.remove(normalized);
     _codeByHost.remove(room.hostAuthUserId);
     return room;

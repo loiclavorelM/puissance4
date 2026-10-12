@@ -1,0 +1,15 @@
+# Une ligne `Friendship` vue du joueur courant : [other] est l'autre joueur,
+# [incoming] vaut true pour une demande qu'il a reçue.
+class: FriendshipDto
+fields:
+  id: UuidValue
+  other: FriendUserDto
+  status: EnumFriendshipStatus
+  incoming: bool
+  createdAt: DateTime
+  respondedAt: DateTime?
+  # Amis seulement (null pour une demande) : en ligne, en partie ou absent.
+  presence: EnumFriendPresence?
+  # En partie : Multi ou Classé.
+  playing: EnumType?
+  lastSeenAt: DateTime?

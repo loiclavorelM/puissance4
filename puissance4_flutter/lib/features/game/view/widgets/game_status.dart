@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/l10n/l10n.dart';
+import '../../../../core/theme/app_palette.dart';
 import '../../model/game_participant.dart';
 import '../../model/game_snapshot.dart';
+import '../participant_name.dart';
 import 'countdown.dart';
 
 /// Ligne d'état sous les joueurs : résultat, position du replay, trait,
@@ -15,61 +17,59 @@ class GameStatus extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final replay = snapshot.replay;
     if (snapshot.isOver) {
-      final (text, color) = resultLabel(snapshot);
+      final (text, color) = resultLabel(l10n, context.colors, snapshot);
       return _Line(text: text, color: color, big: true);
     }
     if (replay != null) {
       return _Line(
-        text: 'Coup ${replay.cursor} / ${replay.total}',
-        color: Colors.white70,
+        text: l10n.replayMove(replay.cursor, replay.total),
+        color: context.colors.textSecondary,
       );
     }
     if (snapshot.isConnecting) {
-      return const _Line(text: 'Connexion à la partie…', color: Colors.white54);
+      return _Line(text: l10n.gameConnecting, color: context.colors.textMuted);
     }
     if (snapshot.isReconnecting) {
-      return const _Line(
-        text: 'Connexion perdue — reconnexion…',
-        color: AppColors.yellow,
-      );
+      return _Line(text: l10n.gameReconnecting, color: context.colors.yellow);
     }
 
     final toPlay = snapshot.participant(snapshot.colorToPlay);
     final myTurn =
         snapshot.myColor == null || snapshot.colorToPlay == snapshot.myColor;
     final text = snapshot.myColor == null
-        ? 'À ${toPlay.displayName} de jouer'
+        ? l10n.turnOf(participantName(l10n, toPlay))
         : myTurn
-        ? 'À toi de jouer'
+        ? l10n.yourTurn
         : toPlay is BotParticipant
-        ? '${toPlay.displayName} réfléchit…'
-        : "Tour de l'adversaire";
+        ? l10n.botThinking(participantName(l10n, toPlay))
+        : l10n.opponentTurn;
     final deadline = snapshot.turnDeadline;
 
     return Column(
       children: [
-        _Line(text: text, color: Colors.white, big: true),
+        _Line(text: text, color: context.colors.text, big: true),
         if (deadline != null)
           Countdown(
             deadline: deadline,
             builder: (remaining) => Text(
-              '${remaining.inSeconds} s',
+              l10n.secondsLeft(remaining.inSeconds),
               style: TextStyle(
                 color: remaining.inSeconds <= 10
-                    ? AppColors.primary
-                    : Colors.white54,
+                    ? context.colors.primary
+                    : context.colors.textMuted,
               ),
             ),
           ),
         if (!snapshot.opponentConnected)
-          const Padding(
-            padding: EdgeInsets.only(top: 4),
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
             child: Text(
-              "Adversaire déconnecté — victoire s'il ne revient pas.",
+              l10n.opponentDisconnected,
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.yellow, fontSize: 12),
+              style: TextStyle(color: context.colors.yellow, fontSize: 12),
             ),
           ),
       ],
@@ -77,12 +77,17 @@ class GameStatus extends StatelessWidget {
   }
 
   /// Texte et couleur du résultat, du point de vue du joueur de l'appareil.
-  static (String, Color) resultLabel(GameSnapshot snapshot) {
+  static (String, Color) resultLabel(
+    AppLocalizations l10n,
+    AppPalette colors,
+    GameSnapshot snapshot,
+  ) {
     final result = snapshot.result!;
     final winner = result.winner;
-    if (winner == null) return ('Partie annulée', Colors.white70);
+    final elo = _elo(l10n, result);
+    if (winner == null) return (l10n.gameCancelled, colors.textSecondary);
     if (winner == EnumOutcome.draw) {
-      return ('Match nul${_elo(result)}', Colors.white70);
+      return ('${l10n.gameDraw}$elo', colors.textSecondary);
     }
     final winnerColor = winner == EnumOutcome.rouge
         ? EnumColor.rouge
@@ -90,25 +95,29 @@ class GameStatus extends StatelessWidget {
     final myColor = snapshot.myColor;
     if (myColor == null) {
       return (
-        '${snapshot.participant(winnerColor).displayName} gagne !',
-        AppColors.green,
+        l10n.playerWins(
+          participantName(l10n, snapshot.participant(winnerColor)),
+        ),
+        colors.green,
       );
     }
-    final reason = switch (result.endReason) {
-      EnumGameEndReason.forfeit => ' par abandon',
-      EnumGameEndReason.disconnect => ' (déconnexion)',
-      EnumGameEndReason.timeout => ' au temps',
-      _ => '',
+    final won = winnerColor == myColor;
+    final label = switch (result.endReason) {
+      EnumGameEndReason.forfeit =>
+        won ? l10n.gameWonByForfeit : l10n.gameLostByForfeit,
+      EnumGameEndReason.disconnect =>
+        won ? l10n.gameWonByDisconnect : l10n.gameLostByDisconnect,
+      EnumGameEndReason.timeout =>
+        won ? l10n.gameWonOnTime : l10n.gameLostOnTime,
+      _ => won ? l10n.gameWon : l10n.gameLost,
     };
-    return winnerColor == myColor
-        ? ('Victoire$reason !${_elo(result)}', AppColors.green)
-        : ('Défaite$reason${_elo(result)}', AppColors.primary);
+    return ('$label$elo', won ? colors.green : colors.primary);
   }
 
-  static String _elo(GameResult result) {
+  static String _elo(AppLocalizations l10n, GameResult result) {
     final variation = result.eloVariation;
     if (variation == null) return '';
-    return ' (${variation >= 0 ? '+' : ''}$variation Elo)';
+    return l10n.eloVariation('${variation >= 0 ? '+' : ''}$variation');
   }
 }
 

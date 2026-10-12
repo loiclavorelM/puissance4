@@ -1,0 +1,28 @@
+{
+  "$comment": "Niveau d'exposition au LLM de chaque champ de données. visible = tel quel, pseudonymized = remplacé par un jeton [Kind:n], hidden = retiré (le LLM ne sait pas qu'il existe). Lu par le filtre de confidentialité de l'orchestrateur, jamais par les outils.",
+  "fields": {
+    "opponent": {
+      "exposure": "pseudonymized",
+      "kind": "Player",
+      "unless": { "field": "opponentKind", "equals": "bot" }
+    },
+    "opponentRef": { "exposure": "hidden" },
+    "moveList": { "exposure": "hidden" },
+    "username": { "exposure": "pseudonymized", "kind": "Player" },
+    "friendCode": { "exposure": "pseudonymized", "kind": "FriendCode" },
+    "thumbnailPath": { "exposure": "hidden" },
+    "email": { "exposure": "hidden" },
+    "roomCode": { "exposure": "hidden" }
+  },
+  "dictionary": {
+    "$comment": "Valeurs connues remplacées partout dans le texte libre (question, historique, contrôle final).",
+    "kinds": ["Player"],
+    "minLength": 3,
+    "commonWords": ["max", "bot", "moi", "toi", "lui", "elle", "jeu", "partie", "parties", "joueur", "player", "game", "games", "win", "loss", "expert", "normal", "classe", "multi", "rouge", "jaune", "red", "yellow"]
+  },
+  "formats": {
+    "FriendCode": "\\bP4-[A-Z0-9]{6}\\b",
+    "RoomCode": "\\b(?=[A-Z0-9]*[0-9])[A-Z0-9]{6}\\b"
+  },
+  "self": "[Me]"
+}

@@ -1,0 +1,338 @@
+{
+  "name": "update_widget",
+  "title": "Update widget",
+  "description": "Changes a widget of the dashboard: only the given arguments change. clear lists arguments to drop (for example ['opponent'] to follow the dashboard filter again). Returns the new version and data statistics.",
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+  },
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Widget id, from get_dashboard or add_widget."
+      },
+      "title": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 60,
+        "description": "Short title, in the player's language."
+      },
+      "source": {
+        "type": "string",
+        "enum": [
+          "games.summary",
+          "games.byDay",
+          "games.length",
+          "moves.firstColumn",
+          "moves.byCell",
+          "results.byOpponent",
+          "games.recent",
+          "elo.history",
+          "streaks",
+          "games.pivot"
+        ],
+        "description": "Data source, see list_data_sources."
+      },
+      "range": {
+        "description": "Relative period of the games. Never an absolute date.",
+        "type": "string",
+        "enum": [
+          "last:24h",
+          "last:7d",
+          "last:30d",
+          "last:90d",
+          "this:week",
+          "this:month",
+          "this:year",
+          "all"
+        ]
+      },
+      "lastGames": {
+        "description": "Only the N most recent games. Use instead of range when the player counts games.",
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 200
+      },
+      "mode": {
+        "description": "Game mode: normal (vs on-device bot), classe (ranked vs server bot, Elo), multi (online vs a human). Omit for all modes.",
+        "type": "string",
+        "enum": [
+          "normal",
+          "classe",
+          "multi"
+        ]
+      },
+      "opponent": {
+        "description": "One opponent, copied verbatim as it appears in data or in the request (a token such as [Player:1], or a bot name such as Expert).",
+        "type": "string"
+      },
+      "who": {
+        "description": "Whose discs to count.",
+        "type": "string",
+        "enum": [
+          "me",
+          "opponent"
+        ]
+      },
+      "only": {
+        "description": "all = every disc played, winning = only discs of winning four-in-a-row lines.",
+        "type": "string",
+        "enum": [
+          "all",
+          "winning"
+        ]
+      },
+      "limit": {
+        "description": "Only for games.recent: number of rows. Other sources have no limit (query_data already truncates to 20 rows).",
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 20
+      },
+      "starter": {
+        "description": "Only for games.pivot: keep only the games where this side played first.",
+        "type": "string",
+        "enum": [
+          "me",
+          "opponent"
+        ]
+      },
+      "groupBy": {
+        "description": "Only for games.pivot: dimension of the rows (one row or bar per value). column = column of the player's first disc, moves = game length, starter = who played first, week/month = calendar period.",
+        "type": "string",
+        "enum": [
+          "mode",
+          "opponent",
+          "opponentKind",
+          "result",
+          "starter",
+          "day",
+          "week",
+          "month",
+          "column",
+          "moves"
+        ]
+      },
+      "splitBy": {
+        "description": "Only for games.pivot: optional second dimension, one series per value (chart color). Must differ from groupBy.",
+        "type": "string",
+        "enum": [
+          "mode",
+          "opponent",
+          "opponentKind",
+          "result",
+          "starter",
+          "day",
+          "week",
+          "month",
+          "column",
+          "moves"
+        ]
+      },
+      "measure": {
+        "description": "Only for games.pivot: value computed for each group. winRate in %, avgMoves = average number of moves, eloDelta = sum of Elo changes (ranked only).",
+        "type": "string",
+        "enum": [
+          "count",
+          "wins",
+          "losses",
+          "draws",
+          "winRate",
+          "avgMoves",
+          "eloDelta"
+        ]
+      },
+      "mark": {
+        "type": "string",
+        "enum": [
+          "bar",
+          "line",
+          "area",
+          "donut",
+          "heatmap"
+        ],
+        "description": "Chart type (type=chart only). Omit to use the source default chart."
+      },
+      "x": {
+        "type": "string",
+        "enum": [
+          "column",
+          "count",
+          "day",
+          "discs",
+          "elo",
+          "eloDelta",
+          "mode",
+          "moveCount",
+          "moves",
+          "opponent",
+          "opponentKind",
+          "playedAt",
+          "result",
+          "row"
+        ],
+        "description": "Field on the x axis (category or day). Omit to use the source default."
+      },
+      "y": {
+        "type": "string",
+        "enum": [
+          "column",
+          "count",
+          "day",
+          "discs",
+          "elo",
+          "eloDelta",
+          "mode",
+          "moveCount",
+          "moves",
+          "opponent",
+          "opponentKind",
+          "playedAt",
+          "result",
+          "row"
+        ],
+        "description": "Number field on the y axis. Omit to use the source default."
+      },
+      "value": {
+        "type": "string",
+        "enum": [
+          "column",
+          "count",
+          "day",
+          "discs",
+          "elo",
+          "eloDelta",
+          "mode",
+          "moveCount",
+          "moves",
+          "opponent",
+          "opponentKind",
+          "playedAt",
+          "result",
+          "row"
+        ],
+        "description": "Number field coloring heatmap cells."
+      },
+      "aggregate": {
+        "type": "string",
+        "enum": [
+          "sum",
+          "avg",
+          "min",
+          "max",
+          "count"
+        ],
+        "description": "How rows sharing the same x are combined (default sum)."
+      },
+      "color": {
+        "type": "string",
+        "enum": [
+          "column",
+          "count",
+          "day",
+          "discs",
+          "elo",
+          "eloDelta",
+          "mode",
+          "moveCount",
+          "moves",
+          "opponent",
+          "opponentKind",
+          "playedAt",
+          "result",
+          "row"
+        ],
+        "description": "Category field that splits the chart into series (bar, line, area)."
+      },
+      "colorLimit": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 10,
+        "description": "Keep the top N series, the rest is grouped as Others."
+      },
+      "stack": {
+        "type": "boolean",
+        "description": "Stack the series (bar, area)."
+      },
+      "horizontal": {
+        "type": "boolean",
+        "description": "Horizontal bars, best to compare categories."
+      },
+      "displayColor": {
+        "type": "string",
+        "enum": [
+          "accent",
+          "success",
+          "warn",
+          "danger",
+          "neutral",
+          "rouge",
+          "jaune"
+        ],
+        "description": "Theme color of a single series or a heatmap."
+      },
+      "cellShape": {
+        "type": "string",
+        "enum": [
+          "square",
+          "circle"
+        ],
+        "description": "Heatmap cells; circle draws the board like the game."
+      },
+      "columns": {
+        "description": "Only for type table: the columns to show, in this order (field names of the source, see list_data_sources). Omit to show every column.",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "minItems": 1
+      },
+      "refresh": {
+        "type": "string",
+        "enum": [
+          "live",
+          "interval",
+          "manual"
+        ],
+        "description": "live (default) reloads when a game ends."
+      },
+      "col": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 11,
+        "description": "Grid column (12-column grid, 0 = left)."
+      },
+      "row": {
+        "type": "integer",
+        "minimum": 0,
+        "description": "Grid row (0 = top)."
+      },
+      "width": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 12,
+        "description": "Width in grid columns (12 = full width, 6 = half)."
+      },
+      "height": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 8,
+        "description": "Height in grid rows."
+      },
+      "clear": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Arguments to drop."
+      }
+    },
+    "required": [
+      "id"
+    ],
+    "additionalProperties": false
+  }
+}

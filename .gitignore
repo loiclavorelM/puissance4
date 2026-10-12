@@ -2,6 +2,9 @@
 .dart_tool/
 .packages
 
+# `flutter pub get` at the workspace root writes build/.last_build_id
+build/
+
 # Pubspec overrides
 pubspec_overrides.yaml
 
@@ -20,3 +23,5 @@ pubspec_overrides.yaml
 
 # Env
 .vscode/
+
+rl_training/export/

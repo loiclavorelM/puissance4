@@ -1,5 +1,9 @@
-# Raison d'un refus de ProfileEndpoint.updateUsername (cf. ProfileUpdateException).
+# Raison d'un refus de ProfileEndpoint (cf. ProfileUpdateException).
 enum: EnumProfileUpdateError
 values:
   - invalidUsername
   - usernameTaken
+  # Photo de profil (uploadProfilePhoto) : fichier trop lourd ou image trop
+  # grande, ou fichier qui n'est pas une image lisible.
+  - photoTooLarge
+  - invalidPhoto

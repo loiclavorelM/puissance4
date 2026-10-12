@@ -1,0 +1,5 @@
+# Levée par ReviewEndpoint.explainMove — le client affiche un message selon
+# `reason` (l10n côté Flutter).
+exception: ReviewException
+fields:
+  reason: EnumReviewError

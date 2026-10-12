@@ -1,0 +1,134 @@
+{
+  "@@locale": "fr",
+  "dashboardEmptyTitle": "Ton tableau de bord est vide",
+  "dashboardEmptyBody": "Demande à l'assistant d'ajouter un graphique, ou ajoute-le toi-même.",
+  "widgetLoadError": "Impossible de charger ces données.",
+  "retry": "Réessayer",
+  "widgetNoData": "Pas encore de partie à montrer.",
+  "widgetEdit": "Modifier",
+  "widgetRename": "Renommer",
+  "widgetRemove": "Retirer",
+  "widgetPin": "Épingler",
+  "widgetPinned": "Épinglé au tableau de bord",
+  "cancel": "Annuler",
+  "save": "Enregistrer",
+  "renameTitle": "Renommer le widget",
+  "others": "Autres",
+  "kpiGames": "{count, plural, =0{aucune partie} =1{1 partie} other{{count} parties}}",
+  "@kpiGames": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "kpiBest": "record : {best}",
+  "@kpiBest": {
+    "placeholders": {
+      "best": {
+        "type": "int"
+      }
+    }
+  },
+  "kpiDelta": "{delta} pts",
+  "@kpiDelta": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      }
+    }
+  },
+  "filterAllPeriods": "Toujours",
+  "filterAllModes": "Tous les modes",
+  "filterAllOpponents": "Tous les adversaires",
+  "filterClearOpponent": "Retirer le filtre adversaire",
+  "editorTitle": "Modifier le widget",
+  "editorNewTitle": "Nouveau widget",
+  "editorSource": "Données",
+  "editorType": "Affichage",
+  "editorMark": "Graphique",
+  "editorX": "Axe X",
+  "editorY": "Mesure",
+  "editorValue": "Valeur",
+  "editorAggregate": "Agrégation",
+  "editorColor": "Séries",
+  "editorColorNone": "Aucune",
+  "editorTopN": "Top N",
+  "editorStack": "Empiler",
+  "editorHorizontal": "Barres horizontales",
+  "editorPeriod": "Période",
+  "editorFollowDashboard": "Comme le tableau de bord",
+  "editorTitleField": "Titre",
+  "typeKpi": "Chiffre clé",
+  "typeTable": "Tableau",
+  "typeChart": "Graphique",
+  "markBar": "Barres",
+  "markLine": "Courbe",
+  "markArea": "Aires",
+  "markDonut": "Donut",
+  "markHeatmap": "Carte de chaleur",
+  "aggSum": "Somme",
+  "aggAvg": "Moyenne",
+  "aggMin": "Minimum",
+  "aggMax": "Maximum",
+  "aggCount": "Nombre",
+  "range_last24h": "24 h",
+  "range_last7d": "7 jours",
+  "range_last30d": "30 jours",
+  "range_last90d": "90 jours",
+  "range_thisWeek": "Cette semaine",
+  "range_thisMonth": "Ce mois-ci",
+  "range_thisYear": "Cette année",
+  "range_all": "Toujours",
+  "chatTitle": "Assistant",
+  "chatHint": "Demande un graphique ou pose une question…",
+  "chatSend": "Envoyer",
+  "chatEmpty": "Par exemple : « Ajoute mon taux de victoire, et à côté la carte des cases où je joue sur mes 30 dernières parties. »",
+  "chatNewConversation": "Nouvelle conversation",
+  "chatThinking": "L'assistant réfléchit…",
+  "chatTool_list_data_sources": "Regarde les données disponibles",
+  "chatTool_get_dashboard": "Lit ton tableau de bord",
+  "chatTool_add_widget": "Ajoute un widget",
+  "chatTool_propose_widget": "Prépare un graphique",
+  "chatTool_update_widget": "Modifie un widget",
+  "chatTool_remove_widget": "Retire un widget",
+  "chatTool_arrange_widgets": "Réorganise le tableau de bord",
+  "chatTool_undo_dashboard": "Annule la dernière modification",
+  "chatTool_set_dashboard_filters": "Change les filtres",
+  "chatTool_query_data": "Consulte tes statistiques",
+  "chatTool_analyze_game": "Analyse la partie",
+  "chatError_notConfigured": "L'assistant n'est pas disponible sur ce serveur.",
+  "chatError_unavailable": "L'assistant ne répond pas. Réessaie dans un instant.",
+  "chatError_rateLimited": "Trop de demandes pour l'instant. Réessaie plus tard.",
+  "chatError_tooManySteps": "Demande trop compliquée : reformule-la plus simplement.",
+  "chatError_invalidInput": "Message invalide.",
+  "undo": "Annuler la dernière modification",
+  "addWidget": "Ajouter un widget",
+  "openAssistant": "Ouvrir l'assistant",
+  "exportFailed": "L'export a échoué.",
+  "editorColumns": "Colonnes",
+  "widgetExportPdf": "Exporter en PDF",
+  "widgetExportCsv": "Exporter en CSV",
+  "exportIndicator": "Indicateur",
+  "exportValue": "Valeur",
+  "exportDelta": "Variation",
+  "exportGames": "Parties",
+  "exportDeltaCaption": "par rapport à la période précédente",
+  "exportData": "Données",
+  "exportFooter": "Exporté le {date} depuis Puissance 4",
+  "exportLastGames": "{count} dernières parties",
+  "@exportFooter": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "@exportLastGames": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
+}

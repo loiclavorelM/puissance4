@@ -10,6 +10,7 @@
 // ignore_for_file: invalid_use_of_internal_member
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'dart:typed_data' as _idt;
 import 'package:puissance4_server/src/generated/game/enum_type.dart'
     as _ijl03sjm;
 import 'package:serverpod/serverpod.dart' as _is;
@@ -19,11 +20,14 @@ import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _iais;
 import 'package:serverpod_offline_sync_server/serverpod_offline_sync_server.dart'
     as _izehhkf5;
+import '../assistant/assistant_endpoint.dart' as _i1zejsgk;
+import '../assistant/dashboard_endpoint.dart' as _imdg5yo8;
+import '../assistant/data_endpoint.dart' as _ihk12ms4;
 import '../auth/anonymous_idp_endpoint.dart' as _in0zita6;
 import '../auth/email_idp_endpoint.dart' as _iuc1hd5t;
 import '../auth/jwt_refresh_endpoint.dart' as _inwq3ztq;
-import '../bot/bot_endpoint.dart' as _i8l8pxdo;
 import '../connection/connection_endpoint.dart' as _in8dx5ef;
+import '../friends/friends_endpoint.dart' as _ikhcdsyv;
 import '../game/game_endpoint.dart' as _im5t12sm;
 import '../greetings/greeting_endpoint.dart' as _il624ik7;
 import '../history/history_endpoint.dart' as _iqb2o93i;
@@ -32,11 +36,30 @@ import '../live/live_endpoint.dart' as _i4k4ewet;
 import '../multiplayer/multiplayer_endpoint.dart' as _iznver3h;
 import '../profile/profile_endpoint.dart' as _i6ky944g;
 import '../ranked/ranked_endpoint.dart' as _iipq9d8b;
+import '../review/review_endpoint.dart' as _iypg8dvf;
 
 class Endpoints extends _is.EndpointDispatch {
   @override
   void initializeEndpoints(_is.Server server) {
     var endpoints = <String, _is.Endpoint>{
+      'assistant': _i1zejsgk.AssistantEndpoint()
+        ..initialize(
+          server,
+          'assistant',
+          null,
+        ),
+      'dashboard': _imdg5yo8.DashboardEndpoint()
+        ..initialize(
+          server,
+          'dashboard',
+          null,
+        ),
+      'data': _ihk12ms4.DataEndpoint()
+        ..initialize(
+          server,
+          'data',
+          null,
+        ),
       'anonymousIdp': _in0zita6.AnonymousIdpEndpoint()
         ..initialize(
           server,
@@ -55,16 +78,16 @@ class Endpoints extends _is.EndpointDispatch {
           'jwtRefresh',
           null,
         ),
-      'bot': _i8l8pxdo.BotEndpoint()
-        ..initialize(
-          server,
-          'bot',
-          null,
-        ),
       'connection': _in8dx5ef.ConnectionEndpoint()
         ..initialize(
           server,
           'connection',
+          null,
+        ),
+      'friends': _ikhcdsyv.FriendsEndpoint()
+        ..initialize(
+          server,
+          'friends',
           null,
         ),
       'game': _im5t12sm.GameEndpoint()
@@ -115,7 +138,178 @@ class Endpoints extends _is.EndpointDispatch {
           'ranked',
           null,
         ),
+      'review': _iypg8dvf.ReviewEndpoint()
+        ..initialize(
+          server,
+          'review',
+          null,
+        ),
     };
+    connectors['assistant'] = _is.EndpointConnector(
+      name: 'assistant',
+      endpoint: endpoints['assistant']!,
+      methodConnectors: {
+        'chat': _is.MethodStreamConnector(
+          name: 'chat',
+          params: {
+            'conversationId': _is.ParameterDescription(
+              name: 'conversationId',
+              type: _is.getType<String?>(),
+              nullable: true,
+            ),
+            'inputJson': _is.ParameterDescription(
+              name: 'inputJson',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          streamParams: {},
+          returnType: _is.MethodStreamReturnType.streamType,
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+                Map<String, Stream> streamParams,
+              ) => (endpoints['assistant'] as _i1zejsgk.AssistantEndpoint).chat(
+                session,
+                params['conversationId'],
+                params['inputJson'],
+              ),
+        ),
+      },
+    );
+    connectors['dashboard'] = _is.EndpointConnector(
+      name: 'dashboard',
+      endpoint: endpoints['dashboard']!,
+      methodConnectors: {
+        'get': _is.MethodConnector(
+          name: 'get',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['dashboard'] as _imdg5yo8.DashboardEndpoint)
+                  .get(session),
+        ),
+        'saveWidget': _is.MethodConnector(
+          name: 'saveWidget',
+          params: {
+            'definitionJson': _is.ParameterDescription(
+              name: 'definitionJson',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['dashboard'] as _imdg5yo8.DashboardEndpoint)
+                  .saveWidget(
+                    session,
+                    params['definitionJson'],
+                  ),
+        ),
+        'removeWidget': _is.MethodConnector(
+          name: 'removeWidget',
+          params: {
+            'id': _is.ParameterDescription(
+              name: 'id',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['dashboard'] as _imdg5yo8.DashboardEndpoint)
+                  .removeWidget(
+                    session,
+                    params['id'],
+                  ),
+        ),
+        'undo': _is.MethodConnector(
+          name: 'undo',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['dashboard'] as _imdg5yo8.DashboardEndpoint)
+                  .undo(session),
+        ),
+        'setFilters': _is.MethodConnector(
+          name: 'setFilters',
+          params: {
+            'filtersJson': _is.ParameterDescription(
+              name: 'filtersJson',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['dashboard'] as _imdg5yo8.DashboardEndpoint)
+                  .setFilters(
+                    session,
+                    params['filtersJson'],
+                  ),
+        ),
+      },
+    );
+    connectors['data'] = _is.EndpointConnector(
+      name: 'data',
+      endpoint: endpoints['data']!,
+      methodConnectors: {
+        'query': _is.MethodConnector(
+          name: 'query',
+          params: {
+            'source': _is.ParameterDescription(
+              name: 'source',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'paramsJson': _is.ParameterDescription(
+              name: 'paramsJson',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['data'] as _ihk12ms4.DataEndpoint).query(
+                session,
+                params['source'],
+                params['paramsJson'],
+              ),
+        ),
+        'searchMentions': _is.MethodConnector(
+          name: 'searchMentions',
+          params: {
+            'text': _is.ParameterDescription(
+              name: 'text',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['data'] as _ihk12ms4.DataEndpoint).searchMentions(
+                    session,
+                    params['text'],
+                  ),
+        ),
+      },
+    );
     connectors['anonymousIdp'] = _is.EndpointConnector(
       name: 'anonymousIdp',
       endpoint: endpoints['anonymousIdp']!,
@@ -146,6 +340,31 @@ class Endpoints extends _is.EndpointDispatch {
       name: 'emailIdp',
       endpoint: endpoints['emailIdp']!,
       methodConnectors: {
+        'finishRegistration': _is.MethodConnector(
+          name: 'finishRegistration',
+          params: {
+            'registrationToken': _is.ParameterDescription(
+              name: 'registrationToken',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'password': _is.ParameterDescription(
+              name: 'password',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['emailIdp'] as _iuc1hd5t.EmailIdpEndpoint)
+                  .finishRegistration(
+                    session,
+                    registrationToken: params['registrationToken'],
+                    password: params['password'],
+                  ),
+        ),
         'login': _is.MethodConnector(
           name: 'login',
           params: {
@@ -213,31 +432,6 @@ class Endpoints extends _is.EndpointDispatch {
                     session,
                     accountRequestId: params['accountRequestId'],
                     verificationCode: params['verificationCode'],
-                  ),
-        ),
-        'finishRegistration': _is.MethodConnector(
-          name: 'finishRegistration',
-          params: {
-            'registrationToken': _is.ParameterDescription(
-              name: 'registrationToken',
-              type: _is.getType<String>(),
-              nullable: false,
-            ),
-            'password': _is.ParameterDescription(
-              name: 'password',
-              type: _is.getType<String>(),
-              nullable: false,
-            ),
-          },
-          call:
-              (
-                _is.Session session,
-                Map<String, dynamic> params,
-              ) async => (endpoints['emailIdp'] as _iuc1hd5t.EmailIdpEndpoint)
-                  .finishRegistration(
-                    session,
-                    registrationToken: params['registrationToken'],
-                    password: params['password'],
                   ),
         ),
         'startPasswordReset': _is.MethodConnector(
@@ -348,22 +542,6 @@ class Endpoints extends _is.EndpointDispatch {
         ),
       },
     );
-    connectors['bot'] = _is.EndpointConnector(
-      name: 'bot',
-      endpoint: endpoints['bot']!,
-      methodConnectors: {
-        'getBots': _is.MethodConnector(
-          name: 'getBots',
-          params: {},
-          call:
-              (
-                _is.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['bot'] as _i8l8pxdo.BotEndpoint).getBots(session),
-        ),
-      },
-    );
     connectors['connection'] = _is.EndpointConnector(
       name: 'connection',
       endpoint: endpoints['connection']!,
@@ -378,6 +556,205 @@ class Endpoints extends _is.EndpointDispatch {
               ) async =>
                   (endpoints['connection'] as _in8dx5ef.ConnectionEndpoint)
                       .ping(session),
+        ),
+      },
+    );
+    connectors['friends'] = _is.EndpointConnector(
+      name: 'friends',
+      endpoint: endpoints['friends']!,
+      methodConnectors: {
+        'getOverview': _is.MethodConnector(
+          name: 'getOverview',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .getOverview(session),
+        ),
+        'searchPlayers': _is.MethodConnector(
+          name: 'searchPlayers',
+          params: {
+            'query': _is.ParameterDescription(
+              name: 'query',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .searchPlayers(
+                    session,
+                    params['query'],
+                  ),
+        ),
+        'recentOpponents': _is.MethodConnector(
+          name: 'recentOpponents',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .recentOpponents(session),
+        ),
+        'getRivalries': _is.MethodConnector(
+          name: 'getRivalries',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .getRivalries(session),
+        ),
+        'getFriendsActivity': _is.MethodConnector(
+          name: 'getFriendsActivity',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .getFriendsActivity(session),
+        ),
+        'shakeToAdd': _is.MethodConnector(
+          name: 'shakeToAdd',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .shakeToAdd(session),
+        ),
+        'getChallenges': _is.MethodConnector(
+          name: 'getChallenges',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .getChallenges(session),
+        ),
+        'declineChallenge': _is.MethodConnector(
+          name: 'declineChallenge',
+          params: {
+            'code': _is.ParameterDescription(
+              name: 'code',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .declineChallenge(
+                    session,
+                    params['code'],
+                  ),
+        ),
+        'sendRequest': _is.MethodConnector(
+          name: 'sendRequest',
+          params: {
+            'userId': _is.ParameterDescription(
+              name: 'userId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .sendRequest(
+                    session,
+                    params['userId'],
+                  ),
+        ),
+        'acceptRequest': _is.MethodConnector(
+          name: 'acceptRequest',
+          params: {
+            'friendshipId': _is.ParameterDescription(
+              name: 'friendshipId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .acceptRequest(
+                    session,
+                    params['friendshipId'],
+                  ),
+        ),
+        'declineRequest': _is.MethodConnector(
+          name: 'declineRequest',
+          params: {
+            'friendshipId': _is.ParameterDescription(
+              name: 'friendshipId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .declineRequest(
+                    session,
+                    params['friendshipId'],
+                  ),
+        ),
+        'cancelRequest': _is.MethodConnector(
+          name: 'cancelRequest',
+          params: {
+            'friendshipId': _is.ParameterDescription(
+              name: 'friendshipId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .cancelRequest(
+                    session,
+                    params['friendshipId'],
+                  ),
+        ),
+        'removeFriend': _is.MethodConnector(
+          name: 'removeFriend',
+          params: {
+            'userId': _is.ParameterDescription(
+              name: 'userId',
+              type: _is.getType<_is.UuidValue>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['friends'] as _ikhcdsyv.FriendsEndpoint)
+                  .removeFriend(
+                    session,
+                    params['userId'],
+                  ),
         ),
       },
     );
@@ -629,6 +1006,34 @@ class Endpoints extends _is.EndpointDispatch {
       methodConnectors: {
         'hostRoom': _is.MethodStreamConnector(
           name: 'hostRoom',
+          params: {
+            'isPublic': _is.ParameterDescription(
+              name: 'isPublic',
+              type: _is.getType<bool>(),
+              nullable: false,
+            ),
+            'challengeUserId': _is.ParameterDescription(
+              name: 'challengeUserId',
+              type: _is.getType<_is.UuidValue?>(),
+              nullable: true,
+            ),
+          },
+          streamParams: {},
+          returnType: _is.MethodStreamReturnType.streamType,
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+                Map<String, Stream> streamParams,
+              ) => (endpoints['multiplayer'] as _iznver3h.MultiplayerEndpoint)
+                  .hostRoom(
+                    session,
+                    params['isPublic'],
+                    challengeUserId: params['challengeUserId'],
+                  ),
+        ),
+        'watchLobby': _is.MethodStreamConnector(
+          name: 'watchLobby',
           params: {},
           streamParams: {},
           returnType: _is.MethodStreamReturnType.streamType,
@@ -638,7 +1043,7 @@ class Endpoints extends _is.EndpointDispatch {
                 Map<String, dynamic> params,
                 Map<String, Stream> streamParams,
               ) => (endpoints['multiplayer'] as _iznver3h.MultiplayerEndpoint)
-                  .hostRoom(session),
+                  .watchLobby(session),
         ),
         'joinRoom': _is.MethodStreamConnector(
           name: 'joinRoom',
@@ -697,6 +1102,35 @@ class Endpoints extends _is.EndpointDispatch {
                     params['username'],
                   ),
         ),
+        'uploadProfilePhoto': _is.MethodConnector(
+          name: 'uploadProfilePhoto',
+          params: {
+            'photo': _is.ParameterDescription(
+              name: 'photo',
+              type: _is.getType<_idt.ByteData>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6ky944g.ProfileEndpoint)
+                  .uploadProfilePhoto(
+                    session,
+                    params['photo'],
+                  ),
+        ),
+        'removeProfilePhoto': _is.MethodConnector(
+          name: 'removeProfilePhoto',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['profile'] as _i6ky944g.ProfileEndpoint)
+                  .removeProfilePhoto(session),
+        ),
       },
     );
     connectors['ranked'] = _is.EndpointConnector(
@@ -712,6 +1146,43 @@ class Endpoints extends _is.EndpointDispatch {
                 Map<String, dynamic> params,
               ) async => (endpoints['ranked'] as _iipq9d8b.RankedEndpoint)
                   .startRanked(session),
+        ),
+      },
+    );
+    connectors['review'] = _is.EndpointConnector(
+      name: 'review',
+      endpoint: endpoints['review']!,
+      methodConnectors: {
+        'explainMove': _is.MethodConnector(
+          name: 'explainMove',
+          params: {
+            'moves': _is.ParameterDescription(
+              name: 'moves',
+              type: _is.getType<List<int>>(),
+              nullable: false,
+            ),
+            'moveIndex': _is.ParameterDescription(
+              name: 'moveIndex',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+            'language': _is.ParameterDescription(
+              name: 'language',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['review'] as _iypg8dvf.ReviewEndpoint).explainMove(
+                    session,
+                    moves: params['moves'],
+                    moveIndex: params['moveIndex'],
+                    language: params['language'],
+                  ),
         ),
       },
     );

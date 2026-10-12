@@ -1,0 +1,699 @@
+{
+  "params": {
+    "range": {
+      "type": "enum",
+      "values": [
+        "last:24h",
+        "last:7d",
+        "last:30d",
+        "last:90d",
+        "this:week",
+        "this:month",
+        "this:year",
+        "all"
+      ],
+      "description": "Relative period of the games. Never an absolute date.",
+      "label": {
+        "fr": "Période",
+        "en": "Period"
+      }
+    },
+    "lastGames": {
+      "type": "integer",
+      "min": 1,
+      "max": 200,
+      "description": "Only the N most recent games. Use instead of range when the player counts games.",
+      "label": {
+        "fr": "Dernières parties",
+        "en": "Last games"
+      }
+    },
+    "mode": {
+      "type": "enum",
+      "values": [
+        "normal",
+        "classe",
+        "multi"
+      ],
+      "description": "Game mode: normal (vs on-device bot), classe (ranked vs server bot, Elo), multi (online vs a human). Omit for all modes.",
+      "label": {
+        "fr": "Mode",
+        "en": "Mode"
+      }
+    },
+    "opponent": {
+      "type": "opponent",
+      "description": "One opponent, copied verbatim as it appears in data or in the request (a token such as [Player:1], or a bot name such as Expert).",
+      "label": {
+        "fr": "Adversaire",
+        "en": "Opponent"
+      }
+    },
+    "who": {
+      "type": "enum",
+      "values": [
+        "me",
+        "opponent"
+      ],
+      "description": "Whose discs to count.",
+      "label": {
+        "fr": "Pions de",
+        "en": "Discs of"
+      }
+    },
+    "only": {
+      "type": "enum",
+      "values": [
+        "all",
+        "winning"
+      ],
+      "description": "all = every disc played, winning = only discs of winning four-in-a-row lines.",
+      "label": {
+        "fr": "Pions",
+        "en": "Discs"
+      }
+    },
+    "limit": {
+      "type": "integer",
+      "min": 1,
+      "max": 20,
+      "description": "Only for games.recent: number of rows. Other sources have no limit (query_data already truncates to 20 rows).",
+      "label": {
+        "fr": "Nombre",
+        "en": "Count"
+      }
+    },
+    "groupBy": {
+      "type": "enum",
+      "values": [
+        "mode",
+        "opponent",
+        "opponentKind",
+        "result",
+        "starter",
+        "day",
+        "week",
+        "month",
+        "column",
+        "moves"
+      ],
+      "default": "mode",
+      "description": "Only for games.pivot: dimension of the rows (one row or bar per value). column = column of the player's first disc, moves = game length, starter = who played first, week/month = calendar period.",
+      "label": {
+        "fr": "Regrouper par",
+        "en": "Group by"
+      }
+    },
+    "splitBy": {
+      "type": "enum",
+      "values": [
+        "mode",
+        "opponent",
+        "opponentKind",
+        "result",
+        "starter",
+        "day",
+        "week",
+        "month",
+        "column",
+        "moves"
+      ],
+      "description": "Only for games.pivot: optional second dimension, one series per value (chart color). Must differ from groupBy.",
+      "label": {
+        "fr": "Détailler par",
+        "en": "Split by"
+      }
+    },
+    "measure": {
+      "type": "enum",
+      "values": [
+        "count",
+        "wins",
+        "losses",
+        "draws",
+        "winRate",
+        "avgMoves",
+        "eloDelta"
+      ],
+      "default": "count",
+      "description": "Only for games.pivot: value computed for each group. winRate in %, avgMoves = average number of moves, eloDelta = sum of Elo changes (ranked only).",
+      "label": {
+        "fr": "Mesure",
+        "en": "Measure"
+      }
+    },
+    "starter": {
+      "type": "enum",
+      "values": [
+        "me",
+        "opponent"
+      ],
+      "description": "Only for games.pivot: keep only the games where this side played first.",
+      "label": {
+        "fr": "Qui commence",
+        "en": "Who starts"
+      }
+    }
+  },
+  "dashboardParams": [
+    "range",
+    "mode",
+    "opponent"
+  ],
+  "fields": {
+    "day": {
+      "type": "temporal",
+      "label": {
+        "fr": "Jour",
+        "en": "Day"
+      }
+    },
+    "playedAt": {
+      "type": "temporal",
+      "label": {
+        "fr": "Date",
+        "en": "Date"
+      }
+    },
+    "result": {
+      "type": "category",
+      "label": {
+        "fr": "Résultat",
+        "en": "Result"
+      },
+      "values": {
+        "win": {
+          "fr": "Victoire",
+          "en": "Win"
+        },
+        "loss": {
+          "fr": "Défaite",
+          "en": "Loss"
+        },
+        "draw": {
+          "fr": "Nul",
+          "en": "Draw"
+        }
+      },
+      "colors": {
+        "win": "success",
+        "loss": "danger",
+        "draw": "neutral"
+      }
+    },
+    "mode": {
+      "type": "category",
+      "label": {
+        "fr": "Mode",
+        "en": "Mode"
+      },
+      "values": {
+        "normal": {
+          "fr": "Normal",
+          "en": "Normal"
+        },
+        "classe": {
+          "fr": "Classé",
+          "en": "Ranked"
+        },
+        "multi": {
+          "fr": "Multijoueur",
+          "en": "Multiplayer"
+        }
+      }
+    },
+    "opponent": {
+      "type": "category",
+      "label": {
+        "fr": "Adversaire",
+        "en": "Opponent"
+      },
+      "values": {
+        "Très facile": {
+          "fr": "Très facile",
+          "en": "Very easy"
+        },
+        "Facile": {
+          "fr": "Facile",
+          "en": "Easy"
+        },
+        "Moyen": {
+          "fr": "Moyen",
+          "en": "Intermediate"
+        },
+        "Difficile": {
+          "fr": "Difficile",
+          "en": "Hard"
+        },
+        "Expert": {
+          "fr": "Expert",
+          "en": "Expert"
+        },
+        "Débutant": {
+          "fr": "Débutant",
+          "en": "Beginner"
+        },
+        "Medium": {
+          "fr": "Medium",
+          "en": "Medium"
+        }
+      }
+    },
+    "opponentKind": {
+      "type": "category",
+      "label": {
+        "fr": "Type d'adversaire",
+        "en": "Opponent type"
+      },
+      "values": {
+        "bot": {
+          "fr": "Bot",
+          "en": "Bot"
+        },
+        "human": {
+          "fr": "Joueur",
+          "en": "Player"
+        }
+      }
+    },
+    "opponentRef": {
+      "type": "category",
+      "label": {
+        "fr": "Réf. adversaire",
+        "en": "Opponent ref"
+      },
+      "internal": true
+    },
+    "count": {
+      "type": "number",
+      "label": {
+        "fr": "Parties",
+        "en": "Games"
+      }
+    },
+    "discs": {
+      "type": "number",
+      "label": {
+        "fr": "Pions",
+        "en": "Discs"
+      }
+    },
+    "moves": {
+      "type": "category",
+      "label": {
+        "fr": "Coups",
+        "en": "Moves"
+      }
+    },
+    "moveCount": {
+      "type": "number",
+      "label": {
+        "fr": "Coups",
+        "en": "Moves"
+      }
+    },
+    "column": {
+      "type": "category",
+      "label": {
+        "fr": "Colonne",
+        "en": "Column"
+      }
+    },
+    "row": {
+      "type": "category",
+      "label": {
+        "fr": "Rangée",
+        "en": "Row"
+      }
+    },
+    "elo": {
+      "type": "number",
+      "label": {
+        "fr": "Elo",
+        "en": "Elo"
+      }
+    },
+    "eloDelta": {
+      "type": "number",
+      "label": {
+        "fr": "Variation d'Elo",
+        "en": "Elo change"
+      }
+    },
+    "gameId": {
+      "type": "category",
+      "label": {
+        "fr": "Partie",
+        "en": "Game"
+      },
+      "internal": true
+    },
+    "week": {
+      "type": "temporal",
+      "label": {
+        "fr": "Semaine",
+        "en": "Week"
+      }
+    },
+    "month": {
+      "type": "category",
+      "label": {
+        "fr": "Mois",
+        "en": "Month"
+      }
+    },
+    "starter": {
+      "type": "category",
+      "label": {
+        "fr": "Qui commence",
+        "en": "Who starts"
+      },
+      "values": {
+        "me": {
+          "fr": "Je commence",
+          "en": "I start"
+        },
+        "opponent": {
+          "fr": "L'adversaire commence",
+          "en": "Opponent starts"
+        }
+      }
+    },
+    "wins": {
+      "type": "number",
+      "label": {
+        "fr": "Victoires",
+        "en": "Wins"
+      }
+    },
+    "losses": {
+      "type": "number",
+      "label": {
+        "fr": "Défaites",
+        "en": "Losses"
+      }
+    },
+    "draws": {
+      "type": "number",
+      "label": {
+        "fr": "Nuls",
+        "en": "Draws"
+      }
+    },
+    "winRate": {
+      "type": "number",
+      "label": {
+        "fr": "Taux de victoire (%)",
+        "en": "Win rate (%)"
+      }
+    },
+    "avgMoves": {
+      "type": "number",
+      "label": {
+        "fr": "Coups (moyenne)",
+        "en": "Moves (average)"
+      }
+    },
+    "moveList": {
+      "type": "category",
+      "label": {
+        "fr": "Suite des coups",
+        "en": "Moves played"
+      }
+    }
+  },
+  "sources": [
+    {
+      "key": "games.summary",
+      "kind": "kpi",
+      "label": {
+        "fr": "Taux de victoire",
+        "en": "Win rate"
+      },
+      "description": "Win rate in %, number of games as secondary value; delta = change vs the previous period of the same length (only with range).",
+      "params": [
+        "range",
+        "lastGames",
+        "mode",
+        "opponent"
+      ],
+      "live": true
+    },
+    {
+      "key": "games.byDay",
+      "kind": "rows",
+      "label": {
+        "fr": "Parties par jour",
+        "en": "Games per day"
+      },
+      "description": "Games per day and result.",
+      "fields": [
+        "day",
+        "result",
+        "count"
+      ],
+      "params": [
+        "range",
+        "mode",
+        "opponent"
+      ],
+      "defaultChart": {
+        "mark": "bar",
+        "x": "day",
+        "y": "count",
+        "color": "result",
+        "stack": true
+      },
+      "live": true
+    },
+    {
+      "key": "games.length",
+      "kind": "rows",
+      "label": {
+        "fr": "Durée des parties",
+        "en": "Game length"
+      },
+      "description": "Histogram of the number of moves per game.",
+      "fields": [
+        "moves",
+        "count"
+      ],
+      "params": [
+        "range",
+        "lastGames",
+        "mode",
+        "opponent"
+      ],
+      "defaultChart": {
+        "mark": "bar",
+        "x": "moves",
+        "y": "count"
+      },
+      "live": true
+    },
+    {
+      "key": "moves.firstColumn",
+      "kind": "rows",
+      "label": {
+        "fr": "Première colonne jouée",
+        "en": "First column played"
+      },
+      "description": "Column (1 = left, 7 = right) of the player's first disc in each game.",
+      "fields": [
+        "column",
+        "count"
+      ],
+      "params": [
+        "range",
+        "lastGames",
+        "mode",
+        "opponent"
+      ],
+      "defaultChart": {
+        "mark": "bar",
+        "x": "column",
+        "y": "count"
+      },
+      "live": true
+    },
+    {
+      "key": "moves.byCell",
+      "kind": "rows",
+      "label": {
+        "fr": "Cases jouées",
+        "en": "Cells played"
+      },
+      "description": "Discs per board cell: column 1-7 (left to right), row 1-6 (bottom to top). Always 42 rows.",
+      "fields": [
+        "row",
+        "column",
+        "discs"
+      ],
+      "params": [
+        "range",
+        "lastGames",
+        "mode",
+        "opponent",
+        "who",
+        "only"
+      ],
+      "defaultChart": {
+        "mark": "heatmap",
+        "x": "column",
+        "y": "row",
+        "value": "discs"
+      },
+      "live": true
+    },
+    {
+      "key": "results.byOpponent",
+      "kind": "rows",
+      "label": {
+        "fr": "Résultats par adversaire",
+        "en": "Results by opponent"
+      },
+      "description": "Games per opponent and result. opponentKind tells bots from human players.",
+      "fields": [
+        "opponent",
+        "opponentKind",
+        "result",
+        "count",
+        "opponentRef"
+      ],
+      "params": [
+        "range",
+        "lastGames",
+        "mode"
+      ],
+      "defaultChart": {
+        "mark": "bar",
+        "x": "opponent",
+        "y": "count",
+        "color": "result",
+        "stack": true,
+        "horizontal": true
+      },
+      "live": true
+    },
+    {
+      "key": "games.recent",
+      "kind": "rows",
+      "label": {
+        "fr": "Dernières parties",
+        "en": "Recent games"
+      },
+      "description": "Most recent finished games, newest first. moveList = the columns played in order (1 = left, 7 = right). gameId can be passed to analyze_game.",
+      "fields": [
+        "playedAt",
+        "mode",
+        "opponent",
+        "opponentKind",
+        "result",
+        "moveCount",
+        "moveList",
+        "eloDelta",
+        "gameId",
+        "opponentRef"
+      ],
+      "params": [
+        "limit",
+        "mode",
+        "opponent"
+      ],
+      "live": true
+    },
+    {
+      "key": "elo.history",
+      "kind": "rows",
+      "label": {
+        "fr": "Évolution de l'Elo",
+        "en": "Elo over time"
+      },
+      "description": "Elo at the end of each day with ranked games (classe mode only).",
+      "fields": [
+        "day",
+        "elo"
+      ],
+      "params": [
+        "range"
+      ],
+      "defaultChart": {
+        "mark": "line",
+        "x": "day",
+        "y": "elo"
+      },
+      "live": true
+    },
+    {
+      "key": "streaks",
+      "kind": "kpi",
+      "label": {
+        "fr": "Série de victoires",
+        "en": "Win streak"
+      },
+      "description": "Current win streak, best streak as secondary value.",
+      "params": [
+        "mode",
+        "opponent"
+      ],
+      "live": true
+    },
+    {
+      "key": "games.pivot",
+      "kind": "rows",
+      "label": {
+        "fr": "Tableau croisé",
+        "en": "Pivot table"
+      },
+      "description": "Free cross-tab of the player's games, for any question no other source answers: one row per value of groupBy (and of splitBy if given) with the chosen measure. The data fields are [groupBy, splitBy, measure] (plus opponentKind with opponent). For a chart: x = groupBy, color = splitBy, y = measure (the default).",
+      "fields": [
+        "mode",
+        "opponent",
+        "opponentKind",
+        "result",
+        "starter",
+        "day",
+        "week",
+        "month",
+        "column",
+        "moves",
+        "count",
+        "wins",
+        "losses",
+        "draws",
+        "winRate",
+        "avgMoves",
+        "eloDelta",
+        "opponentRef"
+      ],
+      "fieldParams": [
+        "groupBy",
+        "splitBy",
+        "measure"
+      ],
+      "companions": {
+        "opponent": [
+          "opponentKind",
+          "opponentRef"
+        ]
+      },
+      "params": [
+        "range",
+        "lastGames",
+        "mode",
+        "opponent",
+        "starter",
+        "groupBy",
+        "splitBy",
+        "measure"
+      ],
+      "defaultChart": {
+        "mark": "bar",
+        "x": "$groupBy",
+        "y": "$measure",
+        "color": "$splitBy"
+      },
+      "live": true
+    }
+  ]
+}

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../../core/widgets/action_banner.dart';
 import '../../game/model/game_launch.dart';
 import '../../game/view/game_screen.dart';
 import '../../game/viewmodel/game_home_viewmodel.dart';
 import '../viewmodel/ranked_viewmodel.dart';
+import '../../../core/l10n/l10n.dart';
+import '../../bot/view/bot_labels.dart';
 
 /// Classé : une partie contre un bot joué par le serveur, qui compte pour
 /// l'Elo. Le bot dépend de l'Elo du joueur (annoncé avant de jouer).
@@ -22,11 +24,11 @@ class RankedScreen extends ConsumerWidget {
     final resumable = state.resumablePartieId;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background,
-        foregroundColor: Colors.white,
-        title: const Text('Classé'),
+        backgroundColor: context.colors.background,
+        foregroundColor: context.colors.text,
+        title: Text(context.l10n.modeRanked),
       ),
       body: SafeArea(
         child: Padding(
@@ -36,8 +38,8 @@ class RankedScreen extends ConsumerWidget {
             children: [
               if (resumable != null) ...[
                 ActionBanner(
-                  text: 'Tu as une partie en cours.',
-                  actionLabel: 'Reprendre',
+                  text: context.l10n.gameInProgressBanner,
+                  actionLabel: context.l10n.resume,
                   onAction: () => _open(context, viewModel.resume(resumable)),
                 ),
                 const SizedBox(height: 20),
@@ -45,18 +47,18 @@ class RankedScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: AppColors.card,
+                  color: context.colors.card,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: AppColors.yellow.withValues(alpha: 0.4),
+                    color: context.colors.yellow.withValues(alpha: 0.4),
                   ),
                 ),
                 child: Column(
                   children: [
-                    const Text(
-                      'TON ELO',
+                    Text(
+                      context.l10n.yourElo,
                       style: TextStyle(
-                        color: Colors.white54,
+                        color: context.colors.textMuted,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1.2,
@@ -65,30 +67,28 @@ class RankedScreen extends ConsumerWidget {
                     const SizedBox(height: 4),
                     Text(
                       '$elo',
-                      style: const TextStyle(
-                        color: AppColors.yellow,
+                      style: TextStyle(
+                        color: context.colors.yellow,
                         fontSize: 40,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      opponent == null
-                          ? 'Adversaire choisi selon ton Elo'
-                          : 'Adversaire : Bot ${opponent.botName} '
-                                '(ELO ${opponent.elo})',
+                      context.l10n.rankedOpponent(
+                        localizedBotName(context.l10n, opponent.name),
+                        opponent.elo,
+                      ),
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(color: context.colors.text),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Chaque coup est validé par le serveur. Victoire, défaite ou '
-                'nul font varier ton Elo ; quitter la partie compte comme une '
-                'défaite (sauf si tu n\'as joué aucun coup). 60 s par coup.',
-                style: TextStyle(color: Colors.white54, fontSize: 13),
+              Text(
+                context.l10n.rankedRules,
+                style: TextStyle(color: context.colors.textMuted, fontSize: 13),
               ),
               const Spacer(),
               if (state.errorMessage != null)
@@ -97,13 +97,13 @@ class RankedScreen extends ConsumerWidget {
                   child: Text(
                     state.errorMessage!,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: AppColors.yellow),
+                    style: TextStyle(color: context.colors.yellow),
                   ),
                 ),
               FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.yellow,
-                  foregroundColor: AppColors.background,
+                  backgroundColor: context.colors.yellow,
+                  foregroundColor: context.colors.background,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 onPressed: state.isStarting
@@ -115,7 +115,9 @@ class RankedScreen extends ConsumerWidget {
                         }
                       },
                 child: Text(
-                  state.isStarting ? 'Lancement…' : 'Lancer une partie classée',
+                  state.isStarting
+                      ? context.l10n.starting
+                      : context.l10n.startRanked,
                 ),
               ),
             ],

@@ -5,3 +5,13 @@ values:
   - profileChanged
   - historyChanged
   - leaderboardChanged
+  # Lobby Multi : une salle publique a été ouverte, fermée, prise ou a expiré
+  # (canal `multi.lobby`, cf. MultiplayerEndpoint.watchLobby).
+  - lobbyChanged
+  # Amis (E15) : demande reçue, acceptée, refusée, annulée ou ami retiré.
+  - friendsChanged
+  # Défi d'un ami reçu, retiré ou expiré (E15, `FriendsEndpoint.getChallenges`).
+  - challengesChanged
+  # Tableau de bord de l'assistant modifié (E16, nouvelle version) — par
+  # l'assistant ou depuis un autre appareil.
+  - dashboardChanged

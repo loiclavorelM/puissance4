@@ -1,2 +1,7 @@
 tags:
   integration: {}
+  # Évaluation de l'assistant sur le vrai LLM (appels Ollama payants) :
+  # dart test -t eval --run-skipped [ASSISTANT_EVAL_MODEL=<modèle>]
+  eval:
+    skip: "Real Ollama calls: run with dart test -t eval --run-skipped"
+    timeout: 10m

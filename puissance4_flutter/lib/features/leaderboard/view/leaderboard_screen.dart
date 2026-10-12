@@ -2,33 +2,41 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
-import '../../../core/theme/app_colors.dart';
-import '../../../core/utils/initials.dart';
-import '../../../core/widgets/coming_soon_tab.dart';
+import '../../../core/theme/app_palette.dart';
+import '../../friends/viewmodel/friends_viewmodel.dart';
+import '../../profile/view/profile_avatar.dart';
 import '../viewmodel/leaderboard_viewmodel.dart';
+import '../../../core/l10n/l10n.dart';
 
-/// Onglet "Classement" (E8) — reprend `maquette-5.png` : toggle
-/// Global/Amis, podium top 3, liste des rangs 4+, et la ligne du joueur
-/// courant épinglée séparément quand son rang est hors de la page chargée
-/// (voir `leaderboard_viewmodel.dart` et le plan Classement). "Amis" n'a
-/// aucune base dans le backlog : visible mais non fonctionnel, comme les
-/// modes de `GameHomeScreen`.
+/// Onglet Classement (E8) — reprend `maquette-5.png` : toggle Global/Amis,
+/// podium top 3, liste des rangs 4+, et la ligne du joueur courant épinglée
+/// séparément quand son rang est hors de la page chargée (voir
+/// `leaderboard_viewmodel.dart` et le plan Classement). « Amis » classe le
+/// joueur parmi ses amis (E15, `friendsLeaderboardProvider`).
 class LeaderboardScreen extends ConsumerWidget {
-  const LeaderboardScreen({super.key});
+  const LeaderboardScreen({super.key, this.onAddFriends});
+
+  /// Ouvre Amis › Ajouter (classement entre amis vide).
+  final VoidCallback? onAddFriends;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final asyncState = ref.watch(leaderboardProvider);
+    final filter = ref.watch(leaderboardFilterProvider);
+    final asyncState = switch (filter) {
+      LeaderboardFilter.global => ref.watch(leaderboardProvider),
+      LeaderboardFilter.friends => ref.watch(friendsLeaderboardProvider),
+    };
+    final access = ref.watch(friendsAccessProvider);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Classement',
+          Text(
+            context.l10n.tabLeaderboard,
             style: TextStyle(
-              color: Colors.white,
+              color: context.colors.text,
               fontWeight: FontWeight.bold,
               fontSize: 28,
             ),
@@ -38,18 +46,37 @@ class LeaderboardScreen extends ConsumerWidget {
           const SizedBox(height: 20),
           Expanded(
             child: asyncState.when(
-              data: (state) => state == null
-                  ? const _EmptyLeaderboard()
-                  : _LeaderboardBody(state: state),
+              data: (state) => switch ((filter, access, state)) {
+                (LeaderboardFilter.friends, FriendsAccess.loading, _) =>
+                  const Center(child: CircularProgressIndicator()),
+                (LeaderboardFilter.friends, FriendsAccess.localGuest, _) =>
+                  _CenteredMessage(context.l10n.friendsLocalGuestMessage),
+                (LeaderboardFilter.friends, FriendsAccess.guest, _) =>
+                  _CenteredMessage(context.l10n.friendsGuestMessage),
+                (_, _, null) => _CenteredMessage(
+                  context.l10n.leaderboardSignIn,
+                ),
+                // Seul dans son classement entre amis.
+                (LeaderboardFilter.friends, _, final LeaderboardState state)
+                    when state.entries.length <= 1 =>
+                  _CenteredMessage(
+                    context.l10n.leaderboardNoFriends,
+                    actionLabel: context.l10n.friendsEmptyAction,
+                    onAction: onAddFriends,
+                  ),
+                (_, _, final LeaderboardState state) => _LeaderboardBody(
+                  state: state,
+                ),
+              },
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stackTrace) => Center(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Text(
-                    'Impossible de charger le classement.',
+                    context.l10n.leaderboardLoadError,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: AppColors.yellow,
+                    style: TextStyle(
+                      color: context.colors.yellow,
                       fontSize: 13,
                     ),
                   ),
@@ -63,19 +90,25 @@ class LeaderboardScreen extends ConsumerWidget {
   }
 }
 
-class _FilterRow extends StatelessWidget {
+class _FilterRow extends ConsumerWidget {
   const _FilterRow();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final filter = ref.watch(leaderboardFilterProvider);
+    final viewModel = ref.read(leaderboardFilterProvider.notifier);
     return Row(
       children: [
-        _FilterChip(label: 'Global', selected: true, onTap: () {}),
+        _FilterChip(
+          label: context.l10n.leaderboardGlobal,
+          selected: filter == LeaderboardFilter.global,
+          onTap: () => viewModel.select(LeaderboardFilter.global),
+        ),
         const SizedBox(width: 10),
         _FilterChip(
-          label: 'Amis',
-          selected: false,
-          onTap: () => showComingSoonSnackBar(context),
+          label: context.l10n.leaderboardFriends,
+          selected: filter == LeaderboardFilter.friends,
+          onTap: () => viewModel.select(LeaderboardFilter.friends),
         ),
       ],
     );
@@ -105,13 +138,15 @@ class _FilterChip extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: selected ? AppColors.primary : Colors.white24,
+              color: selected ? context.colors.primary : context.colors.outline,
             ),
           ),
           child: Text(
             label,
             style: TextStyle(
-              color: selected ? AppColors.primary : Colors.white70,
+              color: selected
+                  ? context.colors.primary
+                  : context.colors.textSecondary,
               fontWeight: FontWeight.bold,
               fontSize: 13,
             ),
@@ -122,15 +157,38 @@ class _FilterChip extends StatelessWidget {
   }
 }
 
-class _EmptyLeaderboard extends StatelessWidget {
-  const _EmptyLeaderboard();
+class _CenteredMessage extends StatelessWidget {
+  const _CenteredMessage(this.text, {this.actionLabel, this.onAction});
+
+  final String text;
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'Connecte-toi pour voir le classement.',
-        style: TextStyle(color: Colors.white54, fontSize: 13),
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              text,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: context.colors.textMuted, fontSize: 13),
+            ),
+            if (actionLabel != null && onAction != null) ...[
+              const SizedBox(height: 12),
+              FilledButton(
+                onPressed: onAction,
+                style: FilledButton.styleFrom(
+                  backgroundColor: context.colors.primary,
+                ),
+                child: Text(actionLabel!),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -154,27 +212,33 @@ class _LeaderboardBody extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (podium.isNotEmpty) _Podium(entries: podium),
+        if (podium.isNotEmpty) _Podium(entries: podium, myId: myRank.id),
         const SizedBox(height: 20),
         Expanded(
           child: rest.isEmpty && !isPinned
-              ? const Center(
+              ? Center(
                   child: Text(
-                    "Personne d'autre pour l'instant.",
-                    style: TextStyle(color: Colors.white54, fontSize: 13),
+                    context.l10n.leaderboardAlone,
+                    style: TextStyle(
+                      color: context.colors.textMuted,
+                      fontSize: 13,
+                    ),
                   ),
                 )
               : ListView(
                   padding: const EdgeInsets.only(bottom: 20),
                   children: [
                     for (final entry in rest) ...[
-                      _LeaderboardTile(entry: entry),
+                      _LeaderboardTile(
+                        entry: entry,
+                        isMe: entry.id == myRank.id,
+                      ),
                       const SizedBox(height: 12),
                     ],
                     if (isPinned) ...[
                       const _PinnedSeparator(),
                       const SizedBox(height: 12),
-                      _LeaderboardTile(entry: myRank, pinned: true),
+                      _LeaderboardTile(entry: myRank, isMe: true),
                     ],
                   ],
                 ),
@@ -185,9 +249,12 @@ class _LeaderboardBody extends StatelessWidget {
 }
 
 class _Podium extends StatelessWidget {
-  const _Podium({required this.entries});
+  const _Podium({required this.entries, required this.myId});
 
   final List<LeaderboardEntryDto> entries;
+
+  /// `User.id` du joueur courant, mis en évidence s'il est sur le podium.
+  final UuidValue myId;
 
   @override
   Widget build(BuildContext context) {
@@ -201,19 +268,32 @@ class _Podium extends StatelessWidget {
         Expanded(
           child: second == null
               ? const SizedBox()
-              : _PodiumSlot(entry: second, size: 60),
+              : _PodiumSlot(
+                  entry: second,
+                  size: 60,
+                  isMe: second.id == myId,
+                ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: first == null
               ? const SizedBox()
-              : _PodiumSlot(entry: first, size: 80, isFirst: true),
+              : _PodiumSlot(
+                  entry: first,
+                  size: 80,
+                  isFirst: true,
+                  isMe: first.id == myId,
+                ),
         ),
         const SizedBox(width: 8),
         Expanded(
           child: third == null
               ? const SizedBox()
-              : _PodiumSlot(entry: third, size: 60),
+              : _PodiumSlot(
+                  entry: third,
+                  size: 60,
+                  isMe: third.id == myId,
+                ),
         ),
       ],
     );
@@ -225,57 +305,55 @@ class _PodiumSlot extends StatelessWidget {
     required this.entry,
     required this.size,
     this.isFirst = false,
+    this.isMe = false,
   });
 
   final LeaderboardEntryDto entry;
   final double size;
   final bool isFirst;
+  final bool isMe;
 
   @override
   Widget build(BuildContext context) {
-    final accent = isFirst ? AppColors.yellow : Colors.white24;
+    final accent = isMe
+        ? context.colors.primary
+        : isFirst
+        ? context.colors.yellow
+        : context.colors.outline;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         if (isFirst) ...[
-          const Icon(Icons.emoji_events, color: AppColors.yellow, size: 26),
+          Icon(Icons.emoji_events, color: context.colors.yellow, size: 26),
           const SizedBox(height: 4),
         ],
         Container(
-          width: size,
-          height: size,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.card,
-            border: Border.all(color: accent, width: isFirst ? 3 : 2),
+            border: Border.all(color: accent, width: isFirst || isMe ? 3 : 2),
           ),
-          child: Center(
-            child: Text(
-              initialsOf(entry.username),
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: isFirst ? 20 : 16,
-              ),
-            ),
+          child: ProfileAvatar(
+            username: entry.username,
+            thumbnailUrl: entry.thumbnailUrl,
+            radius: size / 2,
           ),
         ),
         const SizedBox(height: 8),
         Text(
-          entry.username,
+          isMe ? context.l10n.youAnd(entry.username) : entry.username,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: isMe ? context.colors.primary : context.colors.text,
             fontWeight: FontWeight.bold,
             fontSize: 13,
           ),
         ),
         Text(
           '${entry.elo}',
-          style: const TextStyle(
-            color: AppColors.yellow,
+          style: TextStyle(
+            color: context.colors.yellow,
             fontWeight: FontWeight.bold,
             fontSize: 12,
           ),
@@ -286,19 +364,24 @@ class _PodiumSlot extends StatelessWidget {
 }
 
 class _LeaderboardTile extends StatelessWidget {
-  const _LeaderboardTile({required this.entry, this.pinned = false});
+  const _LeaderboardTile({required this.entry, this.isMe = false});
 
   final LeaderboardEntryDto entry;
-  final bool pinned;
+
+  /// Ligne du joueur courant : encadrée et marquée « Toi », qu'elle soit
+  /// dans la liste ou épinglée sous la page chargée.
+  final bool isMe;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: context.colors.card,
         borderRadius: BorderRadius.circular(16),
-        border: pinned ? Border.all(color: AppColors.primary, width: 2) : null,
+        border: isMe
+            ? Border.all(color: context.colors.primary, width: 2)
+            : null,
       ),
       child: Row(
         children: [
@@ -307,33 +390,26 @@ class _LeaderboardTile extends StatelessWidget {
             child: Text(
               '${entry.rank}',
               style: TextStyle(
-                color: pinned ? AppColors.primary : Colors.white54,
+                color: isMe ? context.colors.primary : context.colors.textMuted,
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
               ),
             ),
           ),
           const SizedBox(width: 10),
-          CircleAvatar(
+          ProfileAvatar(
+            username: entry.username,
+            thumbnailUrl: entry.thumbnailUrl,
             radius: 20,
-            backgroundColor: AppColors.fieldFill,
-            child: Text(
-              initialsOf(entry.username),
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-              ),
-            ),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Text(
-              pinned ? 'Toi · ${entry.username}' : entry.username,
+              isMe ? context.l10n.youAnd(entry.username) : entry.username,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: pinned ? AppColors.primary : Colors.white,
+                color: isMe ? context.colors.primary : context.colors.text,
                 fontWeight: FontWeight.bold,
                 fontSize: 15,
               ),
@@ -342,7 +418,7 @@ class _LeaderboardTile extends StatelessWidget {
           Text(
             '${entry.elo}',
             style: TextStyle(
-              color: pinned ? AppColors.primary : AppColors.yellow,
+              color: isMe ? context.colors.primary : context.colors.yellow,
               fontWeight: FontWeight.bold,
               fontSize: 14,
             ),
@@ -358,11 +434,11 @@ class _PinnedSeparator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Text(
         '···',
         style: TextStyle(
-          color: Colors.white24,
+          color: context.colors.outline,
           fontWeight: FontWeight.bold,
           letterSpacing: 4,
         ),

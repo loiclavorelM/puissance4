@@ -1,0 +1,649 @@
+{
+  "@@locale": "fr",
+  "abandon": "Abandonner",
+  "abandonMessage": "Quitter compte comme une défaite (ou une partie annulée si tu n'as joué aucun coup).",
+  "abandonTitle": "Abandonner la partie ?",
+  "aboutLine": "Puissance 4 RL · v0.1 · Serverpod",
+  "accountCreated": "Compte créé : ta progression est conservée.",
+  "accountSection": "COMPTE",
+  "actionImpossible": "Action impossible.",
+  "activityDraw": "{friend} a fait match nul en {mode} contre {opponent}",
+  "@activityDraw": {
+    "placeholders": {
+      "friend": {
+        "type": "String"
+      },
+      "mode": {
+        "type": "String"
+      },
+      "opponent": {
+        "type": "String"
+      }
+    }
+  },
+  "activityEmpty": "Pas de partie chez tes amis cette semaine.",
+  "activityLost": "{friend} a perdu en {mode} contre {opponent}",
+  "@activityLost": {
+    "placeholders": {
+      "friend": {
+        "type": "String"
+      },
+      "mode": {
+        "type": "String"
+      },
+      "opponent": {
+        "type": "String"
+      }
+    }
+  },
+  "activityWon": "{friend} a gagné en {mode} contre {opponent}",
+  "@activityWon": {
+    "placeholders": {
+      "friend": {
+        "type": "String"
+      },
+      "mode": {
+        "type": "String"
+      },
+      "opponent": {
+        "type": "String"
+      }
+    }
+  },
+  "activityYou": "toi",
+  "alreadyInGame": "Tu as déjà une partie en cours.",
+  "appTitle": "Puissance 4",
+  "authAnd": " et la ",
+  "authBackToSignIn": "Retour à la connexion",
+  "authBackToSignUp": "Retour à l'inscription",
+  "authContinue": "Continuer",
+  "authContinueAsGuest": "Continuer sans compte",
+  "authEmailLabel": "ADRESSE E-MAIL",
+  "authError": "Erreur de connexion : {error}",
+  "@authError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "authForgotPassword": "Mot de passe oublié ?",
+  "authHaveAccount": "Déjà un compte ? ",
+  "authNewPasswordLabel": "NOUVEAU MOT DE PASSE",
+  "authNewPasswordTitle": "Nouveau mot de passe",
+  "authNoAccount": "Pas de compte ? ",
+  "authNoProviders": "Aucun moyen de connexion n'est configuré sur le serveur.",
+  "authOfflineUnavailable": "Pas de connexion internet : indisponible hors-ligne.",
+  "authOr": "ou",
+  "authPasswordLabel": "MOT DE PASSE",
+  "authPrivacyPolicy": "politique de confidentialité",
+  "authRequestReset": "Envoyer",
+  "authResetPassword": "Réinitialiser",
+  "authResetPasswordDescription": "Saisis ton adresse e-mail pour réinitialiser ton mot de passe.",
+  "authResetPasswordTitle": "Réinitialiser le mot de passe",
+  "authSetPasswordTitle": "Choisir un mot de passe",
+  "authSignIn": "Se connecter",
+  "authSignUp": "S'inscrire",
+  "authSignUpTitle": "Créer un compte",
+  "authTerms": "conditions d'utilisation",
+  "authTermsIntro": "J'ai lu et j'accepte les ",
+  "authTitle": "Connexion",
+  "authVerificationMessage": "Un e-mail de vérification a été envoyé. Vérifie ta boîte de réception et saisis le code ci-dessous.",
+  "authVerify": "Vérifier",
+  "authVerifyAccountTitle": "Vérifier le compte",
+  "authVerifyCodeTitle": "Vérifier le code",
+  "back": "Retour",
+  "bestMove": "Meilleur coup selon l'Expert",
+  "botBeginner": "Débutant",
+  "botDisplayName": "Bot {name}",
+  "@botDisplayName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "botEasy": "Facile",
+  "botEasyDescription": "Un réseau en tout début d'entraînement, encore plein d'erreurs.",
+  "botExpert": "Expert",
+  "botExpertDescription": "Le plus fort : entièrement entraîné, il réfléchit longuement (800 simulations).",
+  "botHard": "Difficile",
+  "botHardDescription": "Réfléchit avant chaque coup (100 simulations).",
+  "botMedium": "Medium",
+  "botModerate": "Moyen",
+  "botModerateDescription": "Ne rate ni une victoire ni un blocage, mais ne calcule pas loin.",
+  "botThinking": "{name} réfléchit…",
+  "@botThinking": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "botVeryEasy": "Très facile",
+  "botVeryEasyDescription": "Un réseau qui n'a encore rien appris : il joue presque au hasard.",
+  "cameraUnavailable": "Caméra indisponible : vérifie l'autorisation d'accès.",
+  "cancel": "Annuler",
+  "challengeDeclined": "{name} a refusé ton défi.",
+  "@challengeDeclined": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "challengeExpired": "{name} n'a pas répondu à ton défi.",
+  "@challengeExpired": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "challengeGone": "Ce défi n'existe plus.",
+  "challengeReceived": "{name} te défie !",
+  "@challengeReceived": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "challengeWaiting": "En attente de {name}…",
+  "@challengeWaiting": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chooseMode": "CHOISIS TON MODE",
+  "chooseOpponent": "CHOISIS TON ADVERSAIRE",
+  "codeCopied": "Code copié",
+  "codeHint": "CODE",
+  "codeLength": "Le code fait 6 caractères.",
+  "comingSoon": "Bientôt disponible",
+  "continueAction": "Continuer",
+  "copy": "Copier",
+  "createAccount": "Créer un compte",
+  "createAccountIntro": "Ton Elo, tes parties et ton historique restent sur ce compte. Tu pourras ensuite te connecter par email sur n'importe quel appareil.",
+  "createAccountSignInBlocked": "Pour te connecter à un compte existant, déconnecte-toi d'abord depuis les réglages — ta progression d'invité ne sera pas conservée.",
+  "createGameFailedRetry": "Impossible de créer la partie. Réessaie.",
+  "createRoom": "Créer et obtenir un code",
+  "createRoomSection": "CRÉER UNE SALLE",
+  "dateToday": "Aujourd'hui, {time}",
+  "@dateToday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "dateYesterday": "Hier, {time}",
+  "@dateYesterday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "defaultPlayerName": "Joueur",
+  "disconnected": "Déconnecté",
+  "edit": "Modifier",
+  "editNeedsServer": "Connexion au serveur requise pour modifier",
+  "editProfileTitle": "Modifier le profil",
+  "eloLabel": "ELO {elo}",
+  "@eloLabel": {
+    "placeholders": {
+      "elo": {
+        "type": "int"
+      }
+    }
+  },
+  "eloVariation": " ({variation} Elo)",
+  "@eloVariation": {
+    "placeholders": {
+      "variation": {
+        "type": "String"
+      }
+    }
+  },
+  "expertAnalysing": "L'Expert analyse ce coup…",
+  "expertWouldPlay": "L'Expert jouait la colonne {column}",
+  "@expertWouldPlay": {
+    "placeholders": {
+      "column": {
+        "type": "int"
+      }
+    }
+  },
+  "explainInvalid": "Ce coup ne peut pas être expliqué.",
+  "explainMove": "Expliquer ce coup",
+  "explainNotConfigured": "L'explication par IA n'est pas activée sur ce serveur.",
+  "explainRateLimited": "Trop d'explications demandées cette heure-ci. Réessaie plus tard.",
+  "explainSignIn": "Connecte-toi pour obtenir une explication.",
+  "explainUnavailable": "Le service d'explication ne répond pas. Réessaie plus tard.",
+  "filterAll": "Tous",
+  "friendAccept": "Accepter",
+  "friendAccepted": "Vous êtes maintenant amis avec {name} !",
+  "@friendAccepted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendAdd": "Ajouter",
+  "friendChallenge": "Défier",
+  "friendCodeCopied": "Code ami copié.",
+  "friendCodeCopy": "Copier le code",
+  "friendCodeHint": "Donne-le à un ami pour qu'il t'ajoute.",
+  "friendDecline": "Refuser",
+  "friendQrHint": "Fais-le scanner par ton ami depuis Amis › Ajouter.",
+  "friendRelationFriend": "Ami",
+  "friendRelationSent": "Demande envoyée",
+  "friendRemove": "Retirer",
+  "friendRemoveMessage": "Tu disparaîtras aussi de sa liste.",
+  "friendRemoveTitle": "Retirer {name} de tes amis ?",
+  "@friendRemoveTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendRequestDaysAgo": "Il y a {days} jours",
+  "@friendRequestDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "friendRequestSent": "Demande envoyée à {name}.",
+  "@friendRequestSent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "friendRequestToday": "Aujourd'hui",
+  "friendRequestYesterday": "Hier",
+  "friendRequestsEmpty": "Aucune demande en attente.",
+  "friendRequestsReceived": "REÇUES",
+  "friendRequestsSent": "ENVOYÉES",
+  "friendScanHint": "Vise le QR code de ton ami (Amis › Ajouter).",
+  "friendScanQr": "Scanner un QR",
+  "friendSearchHint": "Pseudo ou code ami (P4-…)",
+  "friendSearchNoResult": "Aucun joueur trouvé.",
+  "friendSearchTooShort": "Tape au moins 3 caractères, ou un code ami.",
+  "friendShakeToAdd": "Secouer",
+  "friendShowQr": "Afficher mon QR code",
+  "friendUnavailable": "Cet ami n'est plus disponible pour jouer.",
+  "friendsEmpty": "Pas encore d'amis. Ajoute les joueurs que tu croises !",
+  "friendsEmptyAction": "Ajouter des amis",
+  "friendsErrorAlreadyFriends": "Vous êtes déjà amis.",
+  "friendsErrorAlreadySent": "Demande déjà envoyée.",
+  "friendsErrorNotFriends": "Vous n'êtes plus amis.",
+  "friendsErrorRequestNotFound": "Cette demande n'existe plus.",
+  "friendsErrorSelf": "Tu ne peux pas t'ajouter toi-même.",
+  "friendsErrorTooMany": "Limite de 200 amis atteinte.",
+  "friendsErrorUserNotFound": "Joueur introuvable.",
+  "friendsGuestMessage": "Crée un compte pour ajouter des amis : tu gardes ta progression.",
+  "friendsLoadError": "Impossible de charger tes amis.",
+  "friendsLocalGuestMessage": "Connecte-toi au serveur pour ajouter des amis.",
+  "friendsSince": "Amis depuis le {date}",
+  "@friendsSince": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "friendsTabAdd": "Ajouter",
+  "friendsTabList": "Mes amis",
+  "friendsTabRequests": "Demandes",
+  "friendsTabRivalries": "Rivalités",
+  "gameCancelled": "Partie annulée",
+  "gameConnecting": "Connexion à la partie…",
+  "gameDraw": "Match nul",
+  "gameInProgressBanner": "Tu as une partie en cours.",
+  "gameInProgressTitle": "Partie en cours",
+  "gameLost": "Défaite",
+  "gameLostByDisconnect": "Défaite (déconnexion)",
+  "gameLostByForfeit": "Défaite par abandon",
+  "gameLostOnTime": "Défaite au temps",
+  "gameReconnecting": "Connexion perdue — reconnexion…",
+  "gameWon": "Victoire !",
+  "gameWonByDisconnect": "Victoire (déconnexion) !",
+  "gameWonByForfeit": "Victoire par abandon !",
+  "gameWonOnTime": "Victoire au temps !",
+  "guestAccount": "Compte invité",
+  "guestAccountHint": "Crée un compte pour ne pas perdre ta progression.",
+  "guestSignOutMessage": "Tu joues en invité : en te déconnectant, tu perdras ta progression (Elo, parties, historique) sans pouvoir la retrouver.",
+  "guestSignOutTitle": "Se déconnecter ?",
+  "historyEmpty": "Aucune partie pour l'instant.",
+  "historyLoadError": "Impossible de charger l'historique.",
+  "historyTitle": "Historique",
+  "join": "Rejoindre",
+  "joinFriendSection": "REJOINDRE UN AMI",
+  "labelWithElo": "{label} · ELO {elo}",
+  "@labelWithElo": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "elo": {
+        "type": "int"
+      }
+    }
+  },
+  "language": "Langue",
+  "layFlatHint": "Pose le téléphone à plat pour jouer à deux",
+  "leaderboardAlone": "Personne d'autre pour l'instant.",
+  "leaderboardFriends": "Amis",
+  "leaderboardGlobal": "Global",
+  "leaderboardLoadError": "Impossible de charger le classement.",
+  "leaderboardNoFriends": "Ajoute des amis pour te comparer à eux.",
+  "leaderboardSignIn": "Connecte-toi pour voir le classement.",
+  "loginTagline": "Défie l'IA. Grimpe le classement.",
+  "loginWordmark": "PUISSANCE ",
+  "losingMove": "Coup perdant — l'Expert jouait la colonne {column}",
+  "@losingMove": {
+    "placeholders": {
+      "column": {
+        "type": "int"
+      }
+    }
+  },
+  "modeFaceToFace": "Face à face",
+  "modeFaceToFaceSubtitle": "À deux sur ce téléphone, posé sur la table",
+  "modeMulti": "Multi",
+  "modeMultiplayer": "Multijoueur",
+  "modeMultiplayerSubtitle": "Défie un ami en 1v1",
+  "modeNormal": "Normal",
+  "modeNormalSubtitle": "Choisis la difficulté du bot",
+  "modeRanked": "Classé",
+  "modeRankedSubtitle": "Affronte le bot du serveur, fais monter ton Elo",
+  "myFriendCode": "MON CODE AMI",
+  "needsServer": "Ce mode nécessite une connexion au serveur.",
+  "newGame": "Nouvelle partie",
+  "newGameFailed": "Impossible de créer la partie.",
+  "newGameStarted": "Nouvelle partie !",
+  "noOpenRooms": "Aucune salle publique pour le moment. Crée la tienne !",
+  "normalNeedsSession": "Connecte-toi (même en invité, en ligne) pour jouer.",
+  "notImplemented": "Pas encore implémenté",
+  "noticeColumnFull": "Colonne pleine.",
+  "noticeConnectionLost": "Connexion perdue — nouvelles tentatives en cours.",
+  "noticeGameNotFound": "Partie introuvable.",
+  "noticeGameOver": "La partie est terminée.",
+  "noticeMoveRefused": "Coup refusé. Réessaie.",
+  "noticeMoveUnconfirmed": "Connexion instable — coup en attente de confirmation.",
+  "noticeNotYourTurn": "Ce n'est pas ton tour.",
+  "noticeSaveFailed": "La partie n'a pas pu être enregistrée sur l'appareil.",
+  "openRoomsSection": "SALLES OUVERTES",
+  "openRoomsUnavailable": "Liste des salles indisponible.",
+  "opponent": "Adversaire",
+  "opponentDisconnected": "Adversaire déconnecté — victoire s'il ne revient pas.",
+  "opponentTurn": "Tour de l'adversaire",
+  "ownRoom": "C'est ta propre salle : partage le code à un ami.",
+  "photoChange": "Changer la photo",
+  "photoChoose": "Choisir dans la galerie",
+  "photoInvalid": "Ce fichier n'est pas une image lisible.",
+  "photoNeedsServer": "Connexion au serveur requise pour changer la photo",
+  "photoPickFailed": "Impossible d'ouvrir la caméra ou la galerie.",
+  "photoRemove": "Supprimer la photo",
+  "photoRemoved": "Photo de profil supprimée.",
+  "photoTake": "Prendre une photo",
+  "photoTooLarge": "Cette image est trop grande.",
+  "photoUpdated": "Photo de profil mise à jour.",
+  "player1": "Joueur 1",
+  "player2": "Joueur 2",
+  "playerPlayedColumn": "{name} a joué la colonne {column}",
+  "@playerPlayedColumn": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "column": {
+        "type": "int"
+      }
+    }
+  },
+  "playerWins": "{name} gagne !",
+  "@playerWins": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "poweredByServerpod": "Propulsé par Serverpod",
+  "preferencesSection": "PRÉFÉRENCES",
+  "presenceOnline": "En ligne",
+  "presencePlaying": "En partie · {mode}",
+  "@presencePlaying": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "presenceSeenDays": "Vu il y a {count} j",
+  "@presenceSeenDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "presenceSeenHours": "Vu il y a {count} h",
+  "@presenceSeenHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "presenceSeenJustNow": "Vu à l'instant",
+  "presenceSeenMinutes": "Vu il y a {count} min",
+  "@presenceSeenMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "publicRoom": "Salle publique",
+  "publicRoomOff": "Seuls ceux qui ont le code peuvent rejoindre",
+  "publicRoomOn": "Visible par tous dans les salles ouvertes",
+  "rankedOpponent": "Adversaire : Bot {name} (ELO {elo})",
+  "@rankedOpponent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "elo": {
+        "type": "int"
+      }
+    }
+  },
+  "rankedRules": "Chaque coup est validé par le serveur. Victoire, défaite ou nul font varier ton Elo ; quitter la partie compte comme une défaite (sauf si tu n'as joué aucun coup). 60 s par coup.",
+  "recentOpponents": "RENCONTRÉS RÉCEMMENT",
+  "recentOpponentsEmpty": "Tes adversaires en Multi apparaîtront ici, pour les ajouter en un tap.",
+  "replayFirst": "Début",
+  "replayLast": "Fin",
+  "replayMove": "Coup {cursor} / {total}",
+  "@replayMove": {
+    "placeholders": {
+      "cursor": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "replayNext": "Suivant",
+  "replayNoMoves": "Les coups de cette partie n'ont pas été enregistrés.",
+  "replayPause": "Pause",
+  "replayPlay": "Lecture",
+  "replayPrevious": "Précédent",
+  "replayTitle": "Revoir la partie",
+  "replayUnavailable": "Replay indisponible pour le moment (réseau ?).",
+  "resultDraw": "Match nul",
+  "resultLoss": "Défaite",
+  "resultWin": "Victoire",
+  "resume": "Reprendre",
+  "retry": "Réessayer",
+  "rivalriesActivity": "ACTIVITÉ DE TES AMIS",
+  "rivalriesEmpty": "Ajoute des amis pour suivre vos rivalités.",
+  "rivalriesHeadToHead": "TÊTE-À-TÊTE",
+  "rivalryChallengeOffline": "Défier (quand il sera en ligne)",
+  "rivalryDraws": "{count} nul(s)",
+  "@rivalryDraws": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rivalryGames": "VOS PARTIES",
+  "rivalryGamesEmpty": "Défie-le pour commencer votre rivalité !",
+  "rivalryNoGames": "Pas encore joué ensemble",
+  "rivalryRecord": "{wins} V · {losses} D · {draws} N",
+  "@rivalryRecord": {
+    "placeholders": {
+      "wins": {
+        "type": "int"
+      },
+      "losses": {
+        "type": "int"
+      },
+      "draws": {
+        "type": "int"
+      }
+    }
+  },
+  "roomClosedNobody": "Salle fermée : personne ne l'a rejointe à temps.",
+  "roomClosesIn": "La salle se ferme dans {remaining}",
+  "@roomClosesIn": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "roomHostInfo": "{elo} Elo · {remaining}",
+  "@roomHostInfo": {
+    "placeholders": {
+      "elo": {
+        "type": "int"
+      },
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "roomNotFound": "Code inconnu ou salle déjà fermée.",
+  "roomTaken": "Salle déjà prise ou fermée.",
+  "save": "Enregistrer",
+  "secondsLeft": "{seconds} s",
+  "@secondsLeft": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "serverConnectionLost": "Connexion au serveur perdue.",
+  "serverUnreachableLater": "Impossible de joindre le serveur. Réessaie plus tard.",
+  "serverUnreachableRetry": "Impossible de joindre le serveur. Réessaie.",
+  "serversUnreachable": "Vous êtes connecté à internet, mais nos serveurs sont injoignables pour le moment.",
+  "settings": "Réglages",
+  "shakeToAddFound": "Trouvé !",
+  "shakeToAddHint": "Rien n'est envoyé sans ton accord : tu choisis ensuite de l'ajouter.",
+  "shakeToAddMatching": "Recherche…",
+  "shakeToAddNobody": "Personne n'a secoué en même temps",
+  "shakeToAddWaiting": "Secoue ton téléphone en même temps que ton ami",
+  "shakeToStop": "Secoue le téléphone pour arrêter la partie",
+  "shareCode": "PARTAGE CE CODE",
+  "signOut": "Se déconnecter",
+  "start": "Démarrer",
+  "startGameFailed": "Impossible de lancer la partie.",
+  "startRanked": "Lancer une partie classée",
+  "starting": "Lancement…",
+  "statElo": "ELO",
+  "statGames": "Parties",
+  "statWins": "Victoires",
+  "statsLoadError": "Impossible de charger tes stats à jour — valeurs par défaut affichées.",
+  "statsServerRequired": "Le tableau de bord et l'assistant ont besoin d'une connexion au serveur. Connecte-toi pour les utiliser.",
+  "statsTitle": "Mes stats",
+  "statusConnected": "Connecté",
+  "statusOffline": "Hors ligne",
+  "statusUnknown": "Statut inconnu",
+  "stop": "Arrêter",
+  "stopCancels": "Tu n'as pas encore joué : elle sera simplement annulée.",
+  "stopCountsAsLoss": "Tu as déjà joué : elle comptera comme une défaite.",
+  "stopGameTitle": "Arrêter la partie ?",
+  "stopLoserIsPlayerToMove": "Le joueur dont c'est le tour perdra la partie.",
+  "tabFriends": "Amis",
+  "tabHistory": "Historique",
+  "tabLeaderboard": "Classement",
+  "tabPlay": "Jouer",
+  "tabStats": "Stats",
+  "theme": "Thème",
+  "themeDark": "Sombre",
+  "themeLight": "Clair",
+  "themeSystem": "Système",
+  "turnOf": "À {name} de jouer",
+  "@turnOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "usernameInvalid": "Ce pseudo n'est pas valide.",
+  "usernameInvalidChars": "Lettres, chiffres, « _ » et « - » uniquement.",
+  "usernameLabel": "PSEUDO",
+  "usernameTaken": "Ce pseudo est déjà pris.",
+  "usernameTooLong": "{max} caractères maximum.",
+  "@usernameTooLong": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "usernameTooShort": "Au moins {min} caractères.",
+  "@usernameTooShort": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+  "usernameUpdated": "Pseudo mis à jour.",
+  "waitingOpponent": "En attente d'un adversaire…",
+  "you": "Toi",
+  "youAnd": "Toi · {name}",
+  "@youAnd": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "youPlayedColumn": "Tu as joué la colonne {column}",
+  "@youPlayedColumn": {
+    "placeholders": {
+      "column": {
+        "type": "int"
+      }
+    }
+  },
+  "yourElo": "TON ELO",
+  "yourTurn": "À toi de jouer"
+}

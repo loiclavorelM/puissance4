@@ -8,3 +8,6 @@ fields:
   elo: int
   nbParties: int
   nbVictoires: int
+  # Connecté en anonyme (E0) : peut encore créer un compte email sans perdre
+  # sa progression (US0.2).
+  isGuest: bool, default=false

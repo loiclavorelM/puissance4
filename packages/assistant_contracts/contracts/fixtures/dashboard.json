@@ -1,0 +1,257 @@
+{
+  "version": 7,
+  "filters": {
+    "range": "last:30d"
+  },
+  "widgets": [
+    {
+      "id": "w_kpi00001",
+      "type": "kpi",
+      "title": "Taux de victoire",
+      "query": {
+        "source": "games.summary",
+        "params": {
+          "range": "$dashboard.range",
+          "mode": "$dashboard.mode",
+          "opponent": "$dashboard.opponent"
+        }
+      },
+      "refresh": {
+        "mode": "live",
+        "minIntervalSeconds": 5
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "w": 4,
+        "h": 2
+      }
+    },
+    {
+      "id": "w_kpi00002",
+      "type": "kpi",
+      "title": "Série en cours",
+      "query": {
+        "source": "streaks",
+        "params": {
+          "mode": "$dashboard.mode",
+          "opponent": "$dashboard.opponent"
+        }
+      },
+      "refresh": {
+        "mode": "live",
+        "minIntervalSeconds": 5
+      },
+      "layout": {
+        "x": 4,
+        "y": 0,
+        "w": 4,
+        "h": 2
+      }
+    },
+    {
+      "id": "w_byday001",
+      "type": "chart",
+      "title": "Mes parties par jour",
+      "query": {
+        "source": "games.byDay",
+        "params": {
+          "range": "$dashboard.range",
+          "mode": "$dashboard.mode",
+          "opponent": "$dashboard.opponent"
+        }
+      },
+      "chart": {
+        "mark": "bar",
+        "x": {
+          "field": "day"
+        },
+        "y": {
+          "field": "count"
+        },
+        "color": {
+          "field": "result"
+        },
+        "stack": true
+      },
+      "refresh": {
+        "mode": "live",
+        "minIntervalSeconds": 5
+      },
+      "layout": {
+        "x": 0,
+        "y": 2,
+        "w": 8,
+        "h": 4
+      }
+    },
+    {
+      "id": "w_cells001",
+      "type": "chart",
+      "title": "Où je joue (30 dernières parties)",
+      "query": {
+        "source": "moves.byCell",
+        "params": {
+          "lastGames": 30,
+          "who": "me",
+          "mode": "$dashboard.mode",
+          "opponent": "$dashboard.opponent"
+        }
+      },
+      "chart": {
+        "mark": "heatmap",
+        "x": {
+          "field": "column"
+        },
+        "y": {
+          "field": "row"
+        },
+        "value": {
+          "field": "discs"
+        }
+      },
+      "display": {
+        "cell": "circle",
+        "color": "rouge"
+      },
+      "refresh": {
+        "mode": "live",
+        "minIntervalSeconds": 5
+      },
+      "layout": {
+        "x": 8,
+        "y": 0,
+        "w": 4,
+        "h": 6
+      }
+    },
+    {
+      "id": "w_opp00001",
+      "type": "chart",
+      "title": "Résultats par adversaire",
+      "query": {
+        "source": "results.byOpponent",
+        "params": {
+          "range": "$dashboard.range",
+          "mode": "$dashboard.mode"
+        }
+      },
+      "chart": {
+        "mark": "bar",
+        "x": {
+          "field": "opponent"
+        },
+        "y": {
+          "field": "count"
+        },
+        "color": {
+          "field": "result"
+        },
+        "stack": true,
+        "horizontal": true
+      },
+      "drilldown": {
+        "source": "games.recent",
+        "filterField": "opponentRef"
+      },
+      "refresh": {
+        "mode": "live",
+        "minIntervalSeconds": 5
+      },
+      "layout": {
+        "x": 0,
+        "y": 6,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "id": "w_elo00001",
+      "type": "chart",
+      "title": "Mon Elo",
+      "query": {
+        "source": "elo.history",
+        "params": {
+          "range": "$dashboard.range"
+        }
+      },
+      "chart": {
+        "mark": "line",
+        "x": {
+          "field": "day"
+        },
+        "y": {
+          "field": "elo"
+        }
+      },
+      "display": {
+        "color": "accent"
+      },
+      "refresh": {
+        "mode": "live",
+        "minIntervalSeconds": 5
+      },
+      "layout": {
+        "x": 6,
+        "y": 6,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "id": "w_first001",
+      "type": "chart",
+      "title": "Première colonne",
+      "query": {
+        "source": "moves.firstColumn",
+        "params": {
+          "range": "$dashboard.range",
+          "mode": "$dashboard.mode",
+          "opponent": "$dashboard.opponent"
+        }
+      },
+      "chart": {
+        "mark": "donut",
+        "x": {
+          "field": "column"
+        },
+        "y": {
+          "field": "count"
+        }
+      },
+      "refresh": {
+        "mode": "live",
+        "minIntervalSeconds": 5
+      },
+      "layout": {
+        "x": 0,
+        "y": 10,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "id": "w_recent01",
+      "type": "table",
+      "title": "Dernières parties",
+      "query": {
+        "source": "games.recent",
+        "params": {
+          "limit": 8,
+          "mode": "$dashboard.mode",
+          "opponent": "$dashboard.opponent"
+        }
+      },
+      "refresh": {
+        "mode": "live",
+        "minIntervalSeconds": 5
+      },
+      "layout": {
+        "x": 4,
+        "y": 10,
+        "w": 8,
+        "h": 4
+      }
+    }
+  ]
+}

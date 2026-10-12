@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 
 import '../../auth/viewmodel/auth_viewmodel.dart';
+import '../../friends/viewmodel/friends_viewmodel.dart';
 import '../../history/viewmodel/history_viewmodel.dart';
 import '../../leaderboard/viewmodel/leaderboard_viewmodel.dart';
 import '../../offline/model/server_connection_tracker.dart';
@@ -15,10 +16,27 @@ final liveUpdatesRepositoryProvider = Provider<LiveUpdatesRepository>(
   (ref) => LiveUpdatesRepository(),
 );
 
+/// Signal « les données de jeu ont changé » (partie finie, côté serveur ou
+/// Normal synchronisée) : les widgets « live » du tableau de bord (E16)
+/// s'y abonnent.
+final gameDataChangesProvider = Provider<StreamController<void>>((ref) {
+  final controller = StreamController<void>.broadcast();
+  ref.onDispose(controller.close);
+  return controller;
+});
+
+/// Signal « le tableau de bord de l'assistant a une nouvelle version »
+/// (écrite par l'assistant ou depuis un autre appareil, E16).
+final dashboardChangesProvider = Provider<StreamController<void>>((ref) {
+  final controller = StreamController<void>.broadcast();
+  ref.onDispose(controller.close);
+  return controller;
+});
+
 /// Garde un abonnement au stream temps réel du serveur tant qu'on a une
-/// session serveur, et recharge (cache puis réseau) le profil, l'historique
-/// ou le classement dès que le serveur annonce qu'ils ont changé — ex. un
-/// autre joueur qui passe devant soi au classement.
+/// session serveur, et recharge (cache puis réseau) le profil, l'historique,
+/// le classement ou les amis dès que le serveur annonce qu'ils ont changé —
+/// ex. un autre joueur qui passe devant soi au classement.
 ///
 /// Le stream tombe avec la connexion (WebSocket) : on se réabonne avec un
 /// délai croissant, ou tout de suite au retour du serveur. Après une coupure
@@ -40,6 +58,13 @@ final liveUpdatesProvider = Provider<void>((ref) {
     ref.invalidate(myProfileProvider);
     ref.invalidate(serverHistoryProvider);
     ref.invalidate(leaderboardProvider);
+    ref.invalidate(friendsOverviewProvider);
+    ref.invalidate(friendChallengesProvider);
+    ref.invalidate(recentOpponentsProvider);
+    ref.invalidate(rivalriesProvider);
+    ref.invalidate(friendsActivityProvider);
+    ref.read(gameDataChangesProvider).add(null);
+    ref.read(dashboardChangesProvider).add(null);
   }
 
   void onEvent(LiveEvent event) {
@@ -50,8 +75,25 @@ final liveUpdatesProvider = Provider<void>((ref) {
         ref.invalidate(myProfileProvider);
       case EnumLiveEventType.historyChanged:
         ref.invalidate(serverHistoryProvider);
+        // Une partie Multi finie ajoute peut-être un adversaire récent, et
+        // change le tête-à-tête.
+        ref.invalidate(recentOpponentsProvider);
+        ref.invalidate(rivalriesProvider);
+        ref.read(gameDataChangesProvider).add(null);
       case EnumLiveEventType.leaderboardChanged:
         ref.invalidate(leaderboardProvider);
+      case EnumLiveEventType.friendsChanged:
+        // Aussi envoyé quand un ami commence ou finit une partie.
+        ref.invalidate(friendsOverviewProvider);
+        ref.invalidate(rivalriesProvider);
+        ref.invalidate(friendsActivityProvider);
+      case EnumLiveEventType.challengesChanged:
+        ref.invalidate(friendChallengesProvider);
+      case EnumLiveEventType.lobbyChanged:
+        // Propre au lobby Multi, qui a son stream (`lobbyRoomsProvider`).
+        break;
+      case EnumLiveEventType.dashboardChanged:
+        ref.read(dashboardChangesProvider).add(null);
     }
   }
 

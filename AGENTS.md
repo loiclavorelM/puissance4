@@ -5,20 +5,23 @@ Build for multiple users. Authentication uses Serverpod's **native auth module**
 
 ## The app
 
-Puissance 4 (Connect Four) with three game modes, all rendered by **one** game screen:
+Puissance 4 (Connect Four) with four game modes, all rendered by **one** game screen:
 
 - **Normal** — vs a bot running on the phone, playable offline. Stored in `OfflineMatchResult` (`database: sync`, serverpod_offline_sync). No Elo.
 - **Classé** — vs a bot played **by the server** (`RankedEndpoint`), which validates every move; Elo (K = 32) updated at the end with an `EloHistory` row.
 - **Multijoueur** — 1v1 via a 6-char room code (`MultiplayerEndpoint`), real time over Serverpod streams. No Elo.
+- **Face à face** — two players on the same phone (`GameLaunch.faceToFace`, two `HumanSeat`s). Only offered on the Jouer screen while the phone lies flat (`isFlatProvider`); always offered without motion sensors (web, desktop — `motionSensorsProvider`). Offline, not recorded, no Elo.
 - **Replay** of any finished game from the history (moves are stored for every mode).
 
 Key pieces:
 
-- `puissance4_rules/` — pure-Dart workspace package shared by server and app: Connect Four rules (`Connect4Rules`) and the placeholder bot AI (`HeuristicBot`, `BotStrength.fromElo`) until the RL models (E5) land. Tests: `dart test` in that package.
+- `puissance4_rules/` — pure-Dart workspace package shared by server and app: Connect Four rules (`Connect4Rules`), the bot levels (`BotLevel`: 5 RL networks, `forElo` for Classé), `NetworkBot` + `Mcts` + `TacticalGuard`, the network in pure Dart (`ConnectFourNet`, weights read straight from the `.tflite`) and the review's exact search (`MoveAnalysis`). Tests: `dart test` in that package.
+- **RL bots (E5)**: every bot plays with its RL network — no heuristic bot. The `.tflite` models live in `puissance4_flutter/assets/models/` and `puissance4_server/assets/models/` (deployed by Serverpod Cloud). Normal: on the phone (`NetworkBotBrain`: TFLite in a background isolate on Android/iOS, `ConnectFourNet` on web/desktop), no server call, so it works offline. Classé: the server plays `BotLevel.forElo(elo)` with `ConnectFourNet` in an isolate (`BotNetworks`). No bot endpoint; `bot_seed.dart` seeds the levels into the `Bot` table under their fixed ids. Models come from `rl_training/notebooks/` (levels = `LEVELS` in section 7).
 - Flutter `features/game/`: `GameScreen` only reads a `GameSnapshot` from a `GameEngine` passed in a `GameLaunch`. Engines: `LocalGameEngine` (rules on the phone, seats = human or on-device `BotBrain`), `ServerGameEngine` (server decides — Multi & Classé), `ReplayGameEngine` (moves from history). Never build a mode-specific board or game screen.
 - Server `lib/src/game/`: `ServerGame` (Multi + Classé state machine, DB is the source of truth, row locks, idempotent scheduled checks), `GameEndpoint` (`watchPartie`, `playMove`, `abandon`, `getActivePartie`), `GameStream`/`followPartie` (per-client stream + presence).
 - **No ghost games**: a server `Partie` is only created once both sides are known (Multi rooms live in memory while the host's stream is open), and every `inProgress` game always has a scheduled end (60 s per move, 15 s disconnect grace, `resumePending` at boot). Games cancelled before any human move end as `EnumStatut.abandoned` (excluded from history/stats/Elo).
-- **Redis/cluster-ready**: only `GameScheduler` (`server_game_config.dart`) and `RoomStore` (`multiplayer_config.dart`) are in-memory; swap them for shared implementations when enabling Redis.
+- **Assistant & dashboard (E16, `doc/06-assistant-mcp.md`)**: `packages/assistant_contracts` (pure Dart: JSON contracts in `contracts/` — edit them, then `dart run tool/generate.dart` in that package — plus the shared domain) and `packages/assistant_ui` (Flutter, no Serverpod, no Riverpod; wired in `features/assistant`). Server `lib/src/assistant/`: data sources, `DashboardStore`, MCP tools (bound to one player, never a `userId` argument), orchestrator and privacy filter. Endpoints exchange contract JSON strings. Development-only MCP server on `127.0.0.1:8095/mcp` (Serverpod token; `tool/mcp_token.dart` for Claude Code `headersHelper`). Real-LLM evals: `dart test -t eval --run-skipped` in the server package.
+- **Redis/cluster-ready**: only `GameScheduler` (`server_game_config.dart`), `RoomStore` (`multiplayer_config.dart`) and `PresenceStore` / `ShakeMatcher` (`friends_config.dart`: who is online, shake-to-add pairing) are in-memory; swap them for shared implementations when enabling Redis.
 
 ## Architecture
 
@@ -26,7 +29,8 @@ Follow **MVVM, feature-first**, in both packages — see `doc/03-Backlog-Epics-U
 
 - `puissance4_flutter/lib/features/<feature>/{model,view,viewmodel}` — required folder names for the course. `model` = plain business models/rules **and** repositories (Serverpod client calls, local storage), `view` = widgets, `viewmodel` = Riverpod Notifiers/Providers (state + presentation logic, testable without mounting a widget). No separate `UseCase` class per action, no full Clean Architecture ceremony.
 - `puissance4_server/lib/src/<feature>/` — one endpoint group per feature/epic.
-- New feature-specific code must be added inside the matching feature folder, not in global `screens/`, `models/`, `services/` folders. The one exception is `puissance4_flutter/lib/core/` (`theme/`, `widgets/`) for cross-cutting design-system pieces — the color palette (`AppColors`) and small reusable widgets shared across features (e.g. `ComingSoonTab`) — since duplicating those per feature is exactly what a design system exists to avoid.
+- **l10n (E11)**: every user-facing text is in `puissance4_flutter/lib/core/l10n/app_fr.arb` (template) and `app_en.arb` — widgets use `context.l10n.key`, viewmodels/engines without a `BuildContext` read `l10nProvider`. Models and engines return codes (enums such as `GameNotice`, `UsernameProblem`), never display text. Server data in French (bot names/descriptions) is translated client-side (`bot_labels.dart`).
+- New feature-specific code must be added inside the matching feature folder, not in global `screens/`, `models/`, `services/` folders. The one exception is `puissance4_flutter/lib/core/` (`theme/`, `widgets/`) for cross-cutting design-system pieces — the color palette (`AppPalette`, light and dark, read with `context.colors` — never `Colors.white70` or a local `Color(0xFF...)`) and small reusable widgets shared across features (e.g. `ComingSoonTab`) — since duplicating those per feature is exactly what a design system exists to avoid.
 
 The user starts the server and Flutter app with `serverpod start`. There is no need to check if the server is running: make the changes and call the `serverpod` MCP tools as needed. If the server is not running, an informative error message will be received from the MCP server. Then STOP and ask the user to start it. NEVER start the server yourself. The Flutter app is started along with it, or can be launched from the MCP tool `spawn_flutter_app`.
 

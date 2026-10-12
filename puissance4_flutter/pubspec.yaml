@@ -24,26 +24,39 @@ environment:
 resolution: workspace
 
 dependencies:
+  assistant_contracts:
+    path: ../packages/assistant_contracts
+  assistant_ui:
+    path: ../packages/assistant_ui
   connectivity_plus: ^7.3.1
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.5
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   flutter_riverpod: ^2.6.1
   flutter_secure_storage: ^10.0.0
   google_fonts: ^8.1.0
+  image: ^4.10.1
+  image_picker: ^1.2.3
+  intl: any
+  mobile_scanner: ^7.4.2
   path: ^1.9.1
   path_provider: ^2.1.5
   puissance4_client:
     path: ../puissance4_client
   puissance4_rules:
     path: ../puissance4_rules
-  serverpod_auth_idp_flutter: 4.0.0
-  serverpod_client: 4.0.0
-  serverpod_flutter: 4.0.0
+  qr_flutter: ^4.1.0
+  sensors_plus: ^7.1.1
+  serverpod_auth_idp_flutter: 4.0.3
+  serverpod_client: 4.0.3
+  serverpod_flutter: 4.0.3
   serverpod_offline_sync_client: ^0.0.8
   shared_preferences: ^2.5.5
+  tflite_flutter: ^0.12.1
 
 dev_dependencies:
   # Used for agents to drive the app through the Dart MCP
@@ -65,6 +78,9 @@ flutter:
   # `prod`, cf. android/app/build.gradle.kts).
   default-flavor: dev
 
+  # Génère AppLocalizations depuis lib/core/l10n/*.arb (E11, cf. l10n.yaml).
+  generate: true
+
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -85,6 +101,9 @@ flutter:
     # poste (ignoré par git) et peut manquer — l'app retombe alors sur
     # http://localhost:8080 (`getServerUrl`).
     - assets/
+    # Modèles RL du mode Normal (`NormalBot.model`), embarqués pour jouer
+    # hors ligne.
+    - assets/models/
 
   # To add custom fonts to your application, add a fonts section here,
   # in this "flutter" section. Each entry in this list should have a

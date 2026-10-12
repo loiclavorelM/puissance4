@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
+import '../../auth/view/create_account_screen.dart';
 import '../../auth/viewmodel/auth_viewmodel.dart';
 import '../../offline/view/server_connection_indicator.dart';
 import '../../profile/view/edit_profile_screen.dart';
@@ -9,10 +10,10 @@ import '../../profile/view/profile_avatar.dart';
 import '../../profile/viewmodel/profile_provider.dart';
 import '../model/app_preferences.dart';
 import '../viewmodel/preferences_viewmodel.dart';
+import '../../../core/l10n/l10n.dart';
 
-/// "Réglages" (E2/E11) — maquette p.7 : COMPTE (pseudo modifiable),
-/// PRÉFÉRENCES (langue, thème sombre — mémorisés mais pas encore appliqués),
-/// déconnexion. Pas d'onglet dédié : poussé en route depuis l'icône
+/// context.l10n.settings (E2/E11) — maquette p.7 : COMPTE (pseudo modifiable),
+/// PRÉFÉRENCES (langue, thème système/clair/sombre), déconnexion. Pas d'onglet dédié : poussé en route depuis l'icône
 /// engrenage de l'écran Jouer (`_MainShell._openSettings`), d'où le bouton
 /// retour explicite ci-dessous — pas de nav bar ici pour en sortir.
 class SettingsScreen extends ConsumerWidget {
@@ -21,7 +22,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.colors.background,
       body: SafeArea(
         child: Column(
           children: [
@@ -31,13 +32,13 @@ class SettingsScreen extends ConsumerWidget {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    icon: Icon(Icons.arrow_back, color: context.colors.text),
                   ),
                   const SizedBox(width: 4),
-                  const Text(
-                    'Réglages',
+                  Text(
+                    context.l10n.settings,
                     style: TextStyle(
-                      color: Colors.white,
+                      color: context.colors.text,
                       fontWeight: FontWeight.bold,
                       fontSize: 22,
                     ),
@@ -51,21 +52,15 @@ class SettingsScreen extends ConsumerWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
                 children: [
-                  const _SectionTitle('COMPTE'),
+                  _SectionTitle(context.l10n.accountSection),
                   const _AccountCard(),
-                  const _SectionTitle('PRÉFÉRENCES'),
+                  _SectionTitle(context.l10n.preferencesSection),
                   const _PreferencesCard(),
-                  const Padding(
-                    padding: EdgeInsets.only(top: 8, left: 4),
-                    child: Text(
-                      'Traduction et thème clair arrivent bientôt — '
-                      'ton choix est déjà mémorisé.',
-                      style: TextStyle(color: Colors.white38, fontSize: 12),
-                    ),
-                  ),
                   const SizedBox(height: 32),
                   OutlinedButton(
-                    onPressed: () {
+                    onPressed: () async {
+                      if (!await _confirmSignOut(context, ref)) return;
+                      if (!context.mounted) return;
                       // `signOut()` passe `authViewModelProvider` à
                       // `unauthenticated` de façon synchrone (avant son
                       // premier `await`), donc `_AuthGate` a déjà
@@ -78,23 +73,26 @@ class SettingsScreen extends ConsumerWidget {
                       Navigator.of(context).pop();
                     },
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      side: const BorderSide(color: AppColors.primary),
+                      foregroundColor: context.colors.primary,
+                      side: BorderSide(color: context.colors.primary),
                       minimumSize: const Size.fromHeight(52),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                    child: const Text(
-                      'Se déconnecter',
+                    child: Text(
+                      context.l10n.signOut,
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Center(
+                  Center(
                     child: Text(
-                      'Puissance 4 RL · v0.1 · Serverpod',
-                      style: TextStyle(color: Colors.white38, fontSize: 12),
+                      context.l10n.aboutLine,
+                      style: TextStyle(
+                        color: context.colors.textFaint,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 ],
@@ -107,6 +105,51 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
+enum _GuestSignOutChoice { cancel, createAccount, signOut }
+
+/// Un invité (anonyme ou local) qui se déconnecte perd sa progression pour
+/// de bon : on le prévient et, s'il est connecté au serveur, on lui propose
+/// de créer un compte à la place (US0.2). Un compte email se déconnecte
+/// sans confirmation.
+Future<bool> _confirmSignOut(BuildContext context, WidgetRef ref) async {
+  final isLocalGuest =
+      ref.read(authViewModelProvider).status == AuthStatus.localGuest;
+  final isGuest = ref.read(myProfileProvider).valueOrNull?.isGuest ?? false;
+  if (!isLocalGuest && !isGuest) return true;
+
+  final choice = await showDialog<_GuestSignOutChoice>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(context.l10n.guestSignOutTitle),
+      content: Text(context.l10n.guestSignOutMessage),
+      actions: [
+        TextButton(
+          onPressed: () =>
+              Navigator.of(context).pop(_GuestSignOutChoice.cancel),
+          child: Text(context.l10n.cancel),
+        ),
+        if (isGuest)
+          TextButton(
+            onPressed: () =>
+                Navigator.of(context).pop(_GuestSignOutChoice.createAccount),
+            child: Text(context.l10n.createAccount),
+          ),
+        TextButton(
+          onPressed: () =>
+              Navigator.of(context).pop(_GuestSignOutChoice.signOut),
+          child: Text(context.l10n.signOut),
+        ),
+      ],
+    ),
+  );
+  if (choice == _GuestSignOutChoice.createAccount && context.mounted) {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const CreateAccountScreen()),
+    );
+  }
+  return choice == _GuestSignOutChoice.signOut;
+}
+
 class _AccountCard extends ConsumerWidget {
   const _AccountCard();
 
@@ -115,9 +158,14 @@ class _AccountCard extends ConsumerWidget {
     final auth = ref.watch(authViewModelProvider);
     final profile = ref.watch(myProfileProvider).valueOrNull;
     final username =
-        profile?.username ?? auth.guestProfile?.username ?? 'Joueur';
+        profile?.username ??
+        auth.guestProfile?.username ??
+        context.l10n.defaultPlayerName;
     // Invité local : aucun User serveur à modifier (pas d'authUserId).
     final isLocalGuest = auth.status == AuthStatus.localGuest;
+    // Invité connecté en anonyme : peut créer un compte en gardant sa
+    // progression (US0.2).
+    final isGuest = profile?.isGuest ?? false;
 
     return _Card(
       children: [
@@ -137,16 +185,27 @@ class _AccountCard extends ConsumerWidget {
                     Text(
                       username,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: context.colors.text,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
                     ),
                     if (isLocalGuest)
-                      const Text(
-                        'Connexion au serveur requise pour modifier',
-                        style: TextStyle(color: Colors.white38, fontSize: 12),
+                      Text(
+                        context.l10n.editNeedsServer,
+                        style: TextStyle(
+                          color: context.colors.textFaint,
+                          fontSize: 12,
+                        ),
+                      )
+                    else if (isGuest)
+                      Text(
+                        context.l10n.guestAccount,
+                        style: TextStyle(
+                          color: context.colors.textFaint,
+                          fontSize: 12,
+                        ),
                       ),
                   ],
                 ),
@@ -160,17 +219,44 @@ class _AccountCard extends ConsumerWidget {
                         ),
                       ),
                 style: TextButton.styleFrom(
-                  foregroundColor: AppColors.primary,
-                  disabledForegroundColor: Colors.white24,
+                  foregroundColor: context.colors.primary,
+                  disabledForegroundColor: context.colors.outline,
                 ),
-                child: const Text(
-                  'Modifier',
+                child: Text(
+                  context.l10n.edit,
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ],
           ),
         ),
+        if (isGuest) ...[
+          Divider(height: 1, color: context.colors.fieldFill),
+          ListTile(
+            leading: Icon(
+              Icons.person_add_alt_1,
+              color: context.colors.primary,
+            ),
+            title: Text(
+              context.l10n.createAccount,
+              style: _rowTitleStyle(context),
+            ),
+            subtitle: Text(
+              context.l10n.guestAccountHint,
+              style: TextStyle(
+                color: context.colors.textSecondary,
+                fontSize: 12,
+              ),
+            ),
+            trailing: Icon(
+              Icons.chevron_right,
+              color: context.colors.textFaint,
+            ),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const CreateAccountScreen()),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -179,28 +265,31 @@ class _AccountCard extends ConsumerWidget {
 class _PreferencesCard extends ConsumerWidget {
   const _PreferencesCard();
 
-  Future<void> _pickLanguage(
-    BuildContext context,
-    WidgetRef ref,
-    AppLanguage current,
-  ) async {
-    final picked = await showModalBottomSheet<AppLanguage>(
+  /// Feuille du bas à choix unique (langue, thème) ; `null` si fermée sans
+  /// choisir.
+  Future<T?> _pick<T>(
+    BuildContext context, {
+    required T current,
+    required List<T> values,
+    required String Function(T value) label,
+  }) {
+    return showModalBottomSheet<T>(
       context: context,
-      backgroundColor: AppColors.card,
+      backgroundColor: context.colors.card,
       builder: (context) => SafeArea(
-        child: RadioGroup<AppLanguage>(
+        child: RadioGroup<T>(
           groupValue: current,
-          onChanged: (language) => Navigator.of(context).pop(language),
+          onChanged: (value) => Navigator.of(context).pop(value),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              for (final language in AppLanguage.values)
-                RadioListTile<AppLanguage>(
-                  value: language,
-                  activeColor: AppColors.primary,
+              for (final value in values)
+                RadioListTile<T>(
+                  value: value,
+                  activeColor: context.colors.primary,
                   title: Text(
-                    language.label,
-                    style: const TextStyle(color: Colors.white),
+                    label(value),
+                    style: TextStyle(color: context.colors.text),
                   ),
                 ),
             ],
@@ -208,10 +297,48 @@ class _PreferencesCard extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _pickLanguage(
+    BuildContext context,
+    WidgetRef ref,
+    AppLanguage current,
+  ) async {
+    final picked = await _pick(
+      context,
+      current: current,
+      values: AppLanguage.values,
+      label: (language) => language.label,
+    );
     if (picked != null) {
       await ref.read(preferencesViewModelProvider.notifier).setLanguage(picked);
     }
   }
+
+  Future<void> _pickThemeMode(
+    BuildContext context,
+    WidgetRef ref,
+    ThemeMode current,
+  ) async {
+    final picked = await _pick(
+      context,
+      current: current,
+      values: const [ThemeMode.system, ThemeMode.light, ThemeMode.dark],
+      label: (mode) => _themeModeLabel(context, mode),
+    );
+    if (picked != null) {
+      await ref
+          .read(preferencesViewModelProvider.notifier)
+          .setThemeMode(picked);
+    }
+  }
+
+  static String _themeModeLabel(BuildContext context, ThemeMode mode) =>
+      switch (mode) {
+        ThemeMode.system => context.l10n.themeSystem,
+        ThemeMode.light => context.l10n.themeLight,
+        ThemeMode.dark => context.l10n.themeDark,
+      };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -221,37 +348,52 @@ class _PreferencesCard extends ConsumerWidget {
 
     return _Card(
       children: [
-        ListTile(
-          title: const Text('Langue', style: _rowTitleStyle),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                prefs.language.label,
-                style: const TextStyle(color: Colors.white60),
-              ),
-              const Icon(Icons.chevron_right, color: Colors.white38),
-            ],
-          ),
+        _ChoiceTile(
+          title: context.l10n.language,
+          value: prefs.language.label,
           onTap: () => _pickLanguage(context, ref, prefs.language),
         ),
-        const Divider(height: 1, color: AppColors.fieldFill),
-        SwitchListTile(
-          title: const Text('Thème sombre', style: _rowTitleStyle),
-          value: prefs.darkTheme,
-          activeThumbColor: Colors.white,
-          activeTrackColor: AppColors.primary,
-          onChanged: (value) => ref
-              .read(preferencesViewModelProvider.notifier)
-              .setDarkTheme(value),
+        Divider(height: 1, color: context.colors.fieldFill),
+        _ChoiceTile(
+          title: context.l10n.theme,
+          value: _themeModeLabel(context, prefs.themeMode),
+          onTap: () => _pickThemeMode(context, ref, prefs.themeMode),
         ),
       ],
     );
   }
 }
 
-const _rowTitleStyle = TextStyle(
-  color: Colors.white,
+/// Ligne de préférence : titre, valeur actuelle et chevron vers le choix.
+class _ChoiceTile extends StatelessWidget {
+  const _ChoiceTile({
+    required this.title,
+    required this.value,
+    required this.onTap,
+  });
+
+  final String title;
+  final String value;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(title, style: _rowTitleStyle(context)),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(value, style: TextStyle(color: context.colors.textSecondary)),
+          Icon(Icons.chevron_right, color: context.colors.textFaint),
+        ],
+      ),
+      onTap: onTap,
+    );
+  }
+}
+
+TextStyle _rowTitleStyle(BuildContext context) => TextStyle(
+  color: context.colors.text,
   fontWeight: FontWeight.w600,
 );
 
@@ -266,8 +408,8 @@ class _SectionTitle extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(4, 20, 4, 8),
       child: Text(
         text,
-        style: const TextStyle(
-          color: Colors.white60,
+        style: TextStyle(
+          color: context.colors.textSecondary,
           fontWeight: FontWeight.bold,
           fontSize: 12,
           letterSpacing: 0.8,
@@ -285,11 +427,11 @@ class _Card extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.card,
+      color: context.colors.card,
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppColors.fieldFill),
+        side: BorderSide(color: context.colors.fieldFill),
       ),
       child: Column(children: children),
     );

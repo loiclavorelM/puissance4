@@ -1,0 +1,103 @@
+# Jeu d'évaluation des modèles (lancé à la main, hors `dart test` : il coûte
+# des appels Ollama). Chaque cas part d'une conversation vide.
+#
+# - expect : appels d'outils attendus, dans l'ordre. args est comparé
+#   partiellement (seules les clés données doivent correspondre ; une liste
+#   doit être contenue, dans n'importe quel ordre).
+# - llm_input_must_not_contain : valeurs qui ne doivent apparaître dans
+#   aucune requête envoyée au LLM (contrôle du filtre de confidentialité).
+# - answer_must_match : expression régulière (insensible à la casse) que la
+#   réponse texte doit contenir.
+- request: "Ajoute mon taux de victoire en haut à gauche"
+  expect:
+    - tool: add_widget
+      args: { type: kpi, source: games.summary }
+- request: "Montre mes parties par jour sur 10 jours, empilées par résultat"
+  expect:
+    - tool: propose_widget
+      args: { type: chart, source: games.byDay }
+# La source empile déjà par résultat par défaut : `stack` peut manquer.
+- request: "Ajoute mes parties par jour, empilées par résultat"
+  expect:
+    - tool: add_widget
+      args: { type: chart, source: games.byDay }
+- request: "Mets la carte des cases où je joue à droite, sur mes 30 dernières parties"
+  expect:
+    - tool: add_widget
+      args: { type: chart, source: moves.byCell, lastGames: 30, who: me }
+# games.summary ou games.byDay répondent tous deux : seule la période compte.
+- request: "Combien de parties j'ai gagnées cette semaine ?"
+  expect:
+    - tool: query_data
+      args: { range: "this:week" }
+- request: "Ajoute la courbe de mon Elo sur le dernier mois"
+  expect:
+    - tool: add_widget
+      args: { type: chart, source: elo.history, range: "last:30d" }
+- request: "Contre quel bot je perds le plus ?"
+  expect:
+    - tool: query_data
+      args: { source: results.byOpponent }
+- request: "Est-ce que j'ai déjà battu {opponent} ce mois-ci ?"
+  llm_input_must_not_contain: ["{opponent}"]
+  expect:
+    - tool: query_data
+      args: { source: results.byOpponent, range: "this:month" }
+- request: "Filtre tout le tableau de bord sur le mode classé"
+  expect:
+    - tool: set_dashboard_filters
+      args: { mode: classe }
+# Bonus (lot 6) : le gameId vient de games.recent.
+- request: "Analyse ma dernière partie : où est-ce que ça a basculé ?"
+  expect:
+    - tool: query_data
+      args: { source: games.recent }
+    - tool: analyze_game
+# L'export (PDF ou CSV) se fait widget par widget, depuis son menu, pas par
+# l'assistant : il doit y renvoyer sans prétendre l'avoir fait.
+- request: "Exporte mon taux de victoire en PDF"
+  answer_must_match: "menu"
+- request: "Je veux mes parties en CSV pour Excel"
+  answer_must_match: "(menu|CSV)"
+# Aucun autre export ni envoi : il ne doit pas en inventer.
+- request: "Envoie mes stats par e-mail à mon coach"
+  answer_must_match: "(pas|impossible|ne permet|ne peut|ne sait|aucun)"
+# Tableau croisé : aucune autre source ne croise ces dimensions, et deux
+# dimensions sans forme demandée donnent un tableau (affiché croisé, le
+# mois en colonnes quel que soit l'ordre de groupBy / splitBy).
+- request: "Montre mon taux de victoire par mode et par mois, seulement quand je commence"
+  expect:
+    - tool: propose_widget
+      args: { type: table, source: games.pivot, measure: winRate, starter: me }
+  # Le widget montre déjà les chiffres : pas de tableau recopié en texte.
+  answer_must_match: "^(?![\\s\\S]*\\|)"
+# La phrase de la vidéo de démo, en anglais.
+- request: "Show my win rate by mode and by month, only when I start"
+  language: en
+  expect:
+    - tool: propose_widget
+      args: { type: table, source: games.pivot, measure: winRate, starter: me }
+  # Le widget montre déjà les chiffres : pas de tableau recopié en texte.
+  answer_must_match: "^(?![\\s\\S]*\\|)"
+- request: "Ajoute un tableau de la durée moyenne de mes parties par adversaire"
+  expect:
+    - tool: add_widget
+      args: { type: table, source: games.pivot, groupBy: opponent, measure: avgMoves }
+# Seul le tableau croisé sait qui commence ; filtrer (starter) ou regrouper
+# (groupBy starter, mesure wins ou count × result) répondent tous.
+- request: "Combien de victoires j'ai quand c'est l'adversaire qui commence ?"
+  expect:
+    - tool: query_data
+      args: { source: games.pivot }
+# Choix des colonnes d'un tableau : « les coups » peut être le nombre
+# (moveCount) ou la suite (moveList).
+- request: "Montre-moi mes parties avec le nom de l'adversaire, les coups et victoire ou défaite, mais rien de plus"
+  expect:
+    - tool: propose_widget
+      args: { type: table, source: games.recent, columns: [opponent, result] }
+# Une demande courte et vague doit aboutir (le modèle bouclait sur un
+# widget refusé).
+- request: "Liste de mes parties"
+  expect:
+    - tool: propose_widget
+      args: { source: games.recent }

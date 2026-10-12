@@ -1,20 +1,43 @@
+assistant:
+  - chat:
+dashboard:
+  - get:
+  - saveWidget:
+  - removeWidget:
+  - undo:
+  - setFilters:
+data:
+  - query:
+  - searchMentions:
 anonymousIdp:
   - login:
 emailIdp:
+  - finishRegistration:
   - login:
   - startRegistration:
   - verifyRegistrationCode:
-  - finishRegistration:
   - startPasswordReset:
   - verifyPasswordResetCode:
   - finishPasswordReset:
   - hasAccount:
 jwtRefresh:
   - refreshAccessToken:
-bot:
-  - getBots:
 connection:
   - ping:
+friends:
+  - getOverview:
+  - searchPlayers:
+  - recentOpponents:
+  - getRivalries:
+  - getFriendsActivity:
+  - shakeToAdd:
+  - getChallenges:
+  - declineChallenge:
+  - sendRequest:
+  - acceptRequest:
+  - declineRequest:
+  - cancelRequest:
+  - removeFriend:
 game:
   - getActivePartie:
   - watchPartie:
@@ -33,9 +56,14 @@ live:
   - watchUpdates:
 multiplayer:
   - hostRoom:
+  - watchLobby:
   - joinRoom:
 profile:
   - getMyProfile:
   - updateUsername:
+  - uploadProfilePhoto:
+  - removeProfilePhoto:
 ranked:
   - startRanked:
+review:
+  - explainMove:

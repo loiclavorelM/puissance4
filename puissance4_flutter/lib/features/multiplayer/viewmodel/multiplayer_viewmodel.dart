@@ -6,6 +6,7 @@ import 'package:puissance4_client/puissance4_client.dart';
 import '../../game/model/game_launch.dart';
 import '../../game/model/server_game_engine.dart';
 import '../../game/viewmodel/game_viewmodel.dart';
+import '../../settings/viewmodel/locale_provider.dart';
 import '../model/multiplayer_repository.dart';
 
 enum LobbyPhase {
@@ -24,6 +25,7 @@ class LobbyState {
     this.roomExpiresAt,
     this.resumablePartieId,
     this.errorMessage,
+    this.challenged,
   });
 
   final LobbyPhase phase;
@@ -34,10 +36,20 @@ class LobbyState {
   /// propose de la reprendre.
   final UuidValue? resumablePartieId;
   final String? errorMessage;
+
+  /// Ami défié (E15) : la salle lui est réservée, son code n'est pas à
+  /// partager.
+  final FriendUserDto? challenged;
 }
 
 final multiplayerRepositoryProvider = Provider<MultiplayerRepository>(
   (ref) => MultiplayerRepository(),
+);
+
+/// Salles publiques du lobby (US7.4) — séparé du viewmodel, qui ne gère
+/// que créer / rejoindre / reprendre. Fermé en quittant l'écran.
+final lobbyRoomsProvider = StreamProvider.autoDispose<List<LobbyRoom>>(
+  (ref) => ref.read(multiplayerRepositoryProvider).watchLobby(),
 );
 
 final multiplayerViewModelProvider =
@@ -54,6 +66,8 @@ class MultiplayerViewModel extends AutoDisposeNotifier<LobbyState> {
   StreamSubscription<GameEvent>? _subscription;
   final _launches = StreamController<GameLaunch>.broadcast();
   var _disposed = false;
+  var _fromLobby = false;
+  FriendUserDto? _challenged;
 
   Stream<GameLaunch> get launches => _launches.stream;
 
@@ -68,14 +82,36 @@ class MultiplayerViewModel extends AutoDisposeNotifier<LobbyState> {
     return const LobbyState();
   }
 
-  void host() => _follow(ref.read(multiplayerRepositoryProvider).hostRoom());
+  void host({bool isPublic = false}) {
+    _fromLobby = false;
+    _challenged = null;
+    _follow(
+      ref.read(multiplayerRepositoryProvider).hostRoom(isPublic: isPublic),
+    );
+  }
 
-  void join(String code) {
+  /// Défie l'ami [friend] (E15) : salle privée qui lui est réservée ; il la
+  /// voit dans ses défis reçus.
+  void challenge(FriendUserDto friend) {
+    _fromLobby = false;
+    _challenged = friend;
+    _follow(
+      ref
+          .read(multiplayerRepositoryProvider)
+          .hostRoom(challengeUserId: friend.userId),
+    );
+  }
+
+  /// Rejoint la salle [code], tapé par le joueur ou choisi dans le lobby
+  /// ([fromLobby] : une salle disparue y a été prise par quelqu'un d'autre).
+  void join(String code, {bool fromLobby = false}) {
+    _fromLobby = fromLobby;
+    _challenged = null;
     final normalized = code.trim().toUpperCase();
     if (normalized.length != 6) {
       state = LobbyState(
         resumablePartieId: state.resumablePartieId,
-        errorMessage: 'Le code fait 6 caractères.',
+        errorMessage: ref.read(l10nProvider).codeLength,
       );
       return;
     }
@@ -87,7 +123,7 @@ class MultiplayerViewModel extends AutoDisposeNotifier<LobbyState> {
     final repository = ref.read(serverGameRepositoryProvider);
     _launches.add(
       GameLaunch(
-        title: 'Partie en cours',
+        title: (l10n) => l10n.gameInProgressTitle,
         createEngine: (_) => ServerGameEngine.watch(repository, partieId),
       ),
     );
@@ -134,11 +170,22 @@ class MultiplayerViewModel extends AutoDisposeNotifier<LobbyState> {
           phase: LobbyPhase.hosting,
           code: event.code,
           roomExpiresAt: event.roomExpiresAt,
+          challenged: _challenged,
         );
       case EnumGameEventType.roomClosed:
         _subscription = null;
-        state = const LobbyState(
-          errorMessage: "Salle fermée : personne ne l'a rejointe à temps.",
+        final l10n = ref.read(l10nProvider);
+        state = LobbyState(
+          errorMessage: _challenged == null
+              ? l10n.roomClosedNobody
+              : l10n.challengeExpired(_challenged!.username),
+        );
+      case EnumGameEventType.challengeDeclined:
+        _subscription = null;
+        state = LobbyState(
+          errorMessage: ref
+              .read(l10nProvider)
+              .challengeDeclined(_challenged?.username ?? ''),
         );
       case EnumGameEventType.gameStarted:
         // Passage de relais : le moteur prend l'abonnement tout de suite,
@@ -152,7 +199,10 @@ class MultiplayerViewModel extends AutoDisposeNotifier<LobbyState> {
         );
         state = const LobbyState();
         _launches.add(
-          GameLaunch(title: 'Multijoueur', createEngine: (_) => engine),
+          GameLaunch(
+            title: (l10n) => l10n.modeMultiplayer,
+            createEngine: (_) => engine,
+          ),
         );
       case EnumGameEventType.moveApplied ||
           EnumGameEventType.gameOver ||
@@ -171,13 +221,15 @@ class MultiplayerViewModel extends AutoDisposeNotifier<LobbyState> {
         resumablePartieId: error.reason == EnumGameError.alreadyInGame
             ? error.partieId
             : state.resumablePartieId,
-        errorMessage: _messageFor(error),
+        errorMessage: _fromLobby && error.reason == EnumGameError.roomNotFound
+            ? ref.read(l10nProvider).roomTaken
+            : _messageFor(error),
       );
       return;
     }
     state = LobbyState(
       resumablePartieId: state.resumablePartieId,
-      errorMessage: 'Connexion au serveur perdue.',
+      errorMessage: ref.read(l10nProvider).serverConnectionLost,
     );
   }
 
@@ -187,15 +239,18 @@ class MultiplayerViewModel extends AutoDisposeNotifier<LobbyState> {
     _subscription = null;
     state = LobbyState(
       resumablePartieId: state.resumablePartieId,
-      errorMessage: 'Connexion au serveur perdue.',
+      errorMessage: ref.read(l10nProvider).serverConnectionLost,
     );
   }
 
-  static String _messageFor(GameException error) => switch (error.reason) {
-    EnumGameError.roomNotFound => 'Code inconnu ou salle déjà fermée.',
-    EnumGameError.ownRoom =>
-      "C'est ta propre salle : partage le code à un ami.",
-    EnumGameError.alreadyInGame => 'Tu as déjà une partie en cours.',
-    _ => 'Action impossible.',
-  };
+  String _messageFor(GameException error) {
+    final l10n = ref.read(l10nProvider);
+    return switch (error.reason) {
+      EnumGameError.roomNotFound => l10n.roomNotFound,
+      EnumGameError.ownRoom => l10n.ownRoom,
+      EnumGameError.alreadyInGame => l10n.alreadyInGame,
+      EnumGameError.friendUnavailable => l10n.friendUnavailable,
+      _ => l10n.actionImpossible,
+    };
+  }
 }

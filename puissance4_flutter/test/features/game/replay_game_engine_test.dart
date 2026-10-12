@@ -3,6 +3,19 @@ import 'package:puissance4_client/puissance4_client.dart';
 import 'package:puissance4_flutter/features/game/model/game_participant.dart';
 import 'package:puissance4_flutter/features/game/model/game_snapshot.dart';
 import 'package:puissance4_flutter/features/game/model/replay_game_engine.dart';
+import 'package:puissance4_flutter/features/review/model/move_advisor.dart';
+import 'package:puissance4_rules/puissance4_rules.dart';
+
+/// Avis calculés en direct, appels comptés.
+class _CountingAdvisor implements MoveAdvisor {
+  final requested = <int>[];
+
+  @override
+  Future<MoveAnalysis> analyze(List<int> moves, int index) async {
+    requested.add(index);
+    return MoveAnalysis.of(moves, index);
+  }
+}
 
 void main() {
   ReplayGameEngine replay() => ReplayGameEngine(
@@ -66,6 +79,36 @@ void main() {
 
     engine.togglePlay();
     expect(engine.current.replay?.isPlaying, isFalse);
+    engine.dispose();
+  });
+
+  test('with an advisor each shown move gets the Expert analysis', () async {
+    final advisor = _CountingAdvisor();
+    // Jaune (coup d'indice 5) ne bloque pas Rouge en colonne 3.
+    final engine = ReplayGameEngine(
+      moves: const [0, 6, 1, 6, 2, 6, 3],
+      rouge: const HumanParticipant(username: 'alice'),
+      jaune: const BotParticipant(name: 'Test'),
+      advisor: advisor,
+    );
+    expect(engine.current.replay?.analysis, isNull);
+
+    for (var i = 0; i < 6; i++) {
+      engine.next();
+    }
+    await pumpEventQueue();
+    final analysis = engine.current.replay?.analysis;
+    expect(analysis?.played, 6);
+    expect(analysis?.recommended, 3);
+    expect(analysis?.playedVerdict, MoveVerdict.forcedLoss);
+
+    // Revenir sur un coup déjà analysé ne relance pas l'analyse.
+    engine
+      ..previous()
+      ..next();
+    await pumpEventQueue();
+    expect(advisor.requested.where((i) => i == 5), hasLength(1));
+    expect(engine.current.replay?.analysis?.played, 6);
     engine.dispose();
   });
 }

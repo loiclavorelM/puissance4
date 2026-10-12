@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dashboard.schema.json",
+  "title": "Dashboard",
+  "type": "object",
+  "required": ["version", "filters", "widgets"],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "type": "integer", "minimum": 0 },
+    "filters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "range": { "type": "string" },
+        "mode": { "enum": ["normal", "classe", "multi"] },
+        "opponent": { "type": "string", "description": "Référence user:<uuid> ou bot:<uuid>." },
+        "opponentLabel": { "type": "string", "description": "Nom affiché, résolu par le serveur à la lecture (jamais stocké)." }
+      }
+    },
+    "widgets": { "type": "array", "items": { "$ref": "widget-definition.schema.json" } }
+  }
+}

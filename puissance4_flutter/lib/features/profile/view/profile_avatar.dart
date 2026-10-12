@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_palette.dart';
 import '../../../core/utils/initials.dart';
 
 /// Avatar du joueur : sa photo si [thumbnailUrl] est renseigné, sinon ses
-/// initiales. Point d'entrée unique pour la future photo de profil (US2.1).
+/// initiales (aussi tant que la photo charge, ou si elle ne charge pas).
 class ProfileAvatar extends StatelessWidget {
   const ProfileAvatar({
     super.key,
@@ -22,12 +22,14 @@ class ProfileAvatar extends StatelessWidget {
     final url = thumbnailUrl;
     return CircleAvatar(
       radius: radius,
-      backgroundColor: AppColors.fieldFill,
+      backgroundColor: context.colors.fieldFill,
       foregroundImage: url != null ? NetworkImage(url) : null,
+      // Photo injoignable : les initiales restent affichées dessous.
+      onForegroundImageError: url != null ? (_, _) {} : null,
       child: Text(
         initialsOf(username),
         style: TextStyle(
-          color: Colors.white,
+          color: context.colors.text,
           fontWeight: FontWeight.bold,
           fontSize: radius * 0.6,
         ),

@@ -1,0 +1,17 @@
+{
+  "name": "list_data_sources",
+  "title": "List data sources",
+  "description": "Lists the data sources: key, kind (kpi or rows), fields with their type, parameters and default chart. Call it before building a widget if unsure.",
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "required": [],
+    "additionalProperties": false
+  }
+}

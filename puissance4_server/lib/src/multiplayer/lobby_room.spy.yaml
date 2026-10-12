@@ -1,0 +1,9 @@
+# Salle publique affichée dans le lobby Multi (US7.4). Pas de table : vue des
+# salles en mémoire (`RoomStore.listPublic`).
+class: LobbyRoom
+fields:
+  code: String
+  hostUsername: String
+  hostElo: int
+  hostThumbnailUrl: String?
+  expiresAt: DateTime

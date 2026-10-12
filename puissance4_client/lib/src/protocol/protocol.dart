@@ -11,7 +11,14 @@
 // ignore_for_file: dead_code, unnecessary_type_check
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:puissance4_client/src/protocol/bot/bot.dart' as _ighv8e6n;
+import 'package:puissance4_client/src/protocol/friends/friend_activity_dto.dart'
+    as _ikasuekg;
+import 'package:puissance4_client/src/protocol/friends/friend_challenge_dto.dart'
+    as _im2ichtj;
+import 'package:puissance4_client/src/protocol/friends/player_search_result_dto.dart'
+    as _ionzpnek;
+import 'package:puissance4_client/src/protocol/friends/rivalry_dto.dart'
+    as _ixxp4699;
 import 'package:puissance4_client/src/protocol/history/history_dto.dart'
     as _igkkg43x;
 import 'package:puissance4_client/src/protocol/leaderboard/leaderboard_dto.dart'
@@ -24,8 +31,30 @@ import 'package:serverpod_client/serverpod_client.dart' as _isc;
 import 'package:serverpod_database/serverpod_database.dart' as _isd;
 import 'package:serverpod_offline_sync_client/serverpod_offline_sync_client.dart'
     as _ipulbpi2;
+import 'assistant/assistant_conversation.dart' as _ikd6xdrt;
+import 'assistant/assistant_exception.dart' as _ixtf2j4x;
+import 'assistant/assistant_message.dart' as _ix3wp1gt;
+import 'assistant/assistant_request_log.dart' as _i3uav29g;
+import 'assistant/assistant_token.dart' as _ictlaa9l;
+import 'assistant/enum_assistant_error.dart' as _itiz3l16;
+import 'assistant/enum_dashboard_author.dart' as _iv4kpqf4;
+import 'assistant/user_dashboard.dart' as _ieb6zq8b;
+import 'assistant/user_dashboard_version.dart' as _if7oging;
 import 'bot/bot.dart' as _iij7x2jd;
 import 'bot/enum_bot_level.dart' as _i65o1ott;
+import 'friends/enum_friend_presence.dart' as _ifm42sdi;
+import 'friends/enum_friend_relation.dart' as _it2shy0i;
+import 'friends/enum_friends_error.dart' as _if0hp53x;
+import 'friends/enum_friendship_status.dart' as _iiv2c9gb;
+import 'friends/friend_activity_dto.dart' as _iubkg2x5;
+import 'friends/friend_challenge_dto.dart' as _iqz9h2tk;
+import 'friends/friend_user_dto.dart' as _in6lw5u5;
+import 'friends/friends_exception.dart' as _i9j1nep3;
+import 'friends/friends_overview_dto.dart' as _ibsg885b;
+import 'friends/friendship.dart' as _ix1l50pg;
+import 'friends/friendship_dto.dart' as _if8yjfer;
+import 'friends/player_search_result_dto.dart' as _izsp853n;
+import 'friends/rivalry_dto.dart' as _iouwl73l;
 import 'game/enum_color.dart' as _im0plaxm;
 import 'game/enum_game_end_reason.dart' as _ilcsv24h;
 import 'game/enum_game_error.dart' as _isw7cqst;
@@ -46,13 +75,40 @@ import 'history/replay_dto.dart' as _iwti84ex;
 import 'leaderboard/leaderboard_dto.dart' as _i6lckwy9;
 import 'live/enum_live_event_type.dart' as _ikanpab0;
 import 'live/live_event.dart' as _ixdzvre4;
+import 'multiplayer/lobby_room.dart' as _i39mlunu;
+import 'multiplayer/lobby_snapshot.dart' as _idvrexla;
 import 'profile/enum_profile_update_error.dart' as _ib6s6ke7;
 import 'profile/profile_update_exception.dart' as _i1cvnna1;
 import 'profile/user.dart' as _iytd8mlf;
 import 'profile/user_profile_dto.dart' as _ivqmpbel;
 import 'ranked/elo_history.dart' as _i8na2re5;
+import 'review/enum_review_error.dart' as _ialq3a2v;
+import 'review/move_explanation.dart' as _i0n08bga;
+import 'review/review_exception.dart' as _i7k2kt7u;
+export 'assistant/assistant_conversation.dart';
+export 'assistant/assistant_exception.dart';
+export 'assistant/assistant_message.dart';
+export 'assistant/assistant_request_log.dart';
+export 'assistant/assistant_token.dart';
+export 'assistant/enum_assistant_error.dart';
+export 'assistant/enum_dashboard_author.dart';
+export 'assistant/user_dashboard.dart';
+export 'assistant/user_dashboard_version.dart';
 export 'bot/bot.dart';
 export 'bot/enum_bot_level.dart';
+export 'friends/enum_friend_presence.dart';
+export 'friends/enum_friend_relation.dart';
+export 'friends/enum_friends_error.dart';
+export 'friends/enum_friendship_status.dart';
+export 'friends/friend_activity_dto.dart';
+export 'friends/friend_challenge_dto.dart';
+export 'friends/friend_user_dto.dart';
+export 'friends/friends_exception.dart';
+export 'friends/friends_overview_dto.dart';
+export 'friends/friendship.dart';
+export 'friends/friendship_dto.dart';
+export 'friends/player_search_result_dto.dart';
+export 'friends/rivalry_dto.dart';
 export 'game/enum_color.dart';
 export 'game/enum_game_end_reason.dart';
 export 'game/enum_game_error.dart';
@@ -73,11 +129,16 @@ export 'history/replay_dto.dart';
 export 'leaderboard/leaderboard_dto.dart';
 export 'live/enum_live_event_type.dart';
 export 'live/live_event.dart';
+export 'multiplayer/lobby_room.dart';
+export 'multiplayer/lobby_snapshot.dart';
 export 'profile/enum_profile_update_error.dart';
 export 'profile/profile_update_exception.dart';
 export 'profile/user.dart';
 export 'profile/user_profile_dto.dart';
 export 'ranked/elo_history.dart';
+export 'review/enum_review_error.dart';
+export 'review/move_explanation.dart';
+export 'review/review_exception.dart';
 export 'client.dart';
 export 'sync_tables.dart';
 
@@ -214,11 +275,77 @@ class Protocol extends _isd.DatabaseSerializationManager {
       }
     }
 
+    if (t == _ikd6xdrt.AssistantConversation) {
+      return _ikd6xdrt.AssistantConversation.fromJson(data) as T;
+    }
+    if (t == _ixtf2j4x.AssistantException) {
+      return _ixtf2j4x.AssistantException.fromJson(data) as T;
+    }
+    if (t == _ix3wp1gt.AssistantMessage) {
+      return _ix3wp1gt.AssistantMessage.fromJson(data) as T;
+    }
+    if (t == _i3uav29g.AssistantRequestLog) {
+      return _i3uav29g.AssistantRequestLog.fromJson(data) as T;
+    }
+    if (t == _ictlaa9l.AssistantToken) {
+      return _ictlaa9l.AssistantToken.fromJson(data) as T;
+    }
+    if (t == _itiz3l16.EnumAssistantError) {
+      return _itiz3l16.EnumAssistantError.fromJson(data) as T;
+    }
+    if (t == _iv4kpqf4.EnumDashboardAuthor) {
+      return _iv4kpqf4.EnumDashboardAuthor.fromJson(data) as T;
+    }
+    if (t == _ieb6zq8b.UserDashboard) {
+      return _ieb6zq8b.UserDashboard.fromJson(data) as T;
+    }
+    if (t == _if7oging.UserDashboardVersion) {
+      return _if7oging.UserDashboardVersion.fromJson(data) as T;
+    }
     if (t == _iij7x2jd.Bot) {
       return _iij7x2jd.Bot.fromJson(data) as T;
     }
     if (t == _i65o1ott.EnumBotLevel) {
       return _i65o1ott.EnumBotLevel.fromJson(data) as T;
+    }
+    if (t == _ifm42sdi.EnumFriendPresence) {
+      return _ifm42sdi.EnumFriendPresence.fromJson(data) as T;
+    }
+    if (t == _it2shy0i.EnumFriendRelation) {
+      return _it2shy0i.EnumFriendRelation.fromJson(data) as T;
+    }
+    if (t == _if0hp53x.EnumFriendsError) {
+      return _if0hp53x.EnumFriendsError.fromJson(data) as T;
+    }
+    if (t == _iiv2c9gb.EnumFriendshipStatus) {
+      return _iiv2c9gb.EnumFriendshipStatus.fromJson(data) as T;
+    }
+    if (t == _iubkg2x5.FriendActivityDto) {
+      return _iubkg2x5.FriendActivityDto.fromJson(data) as T;
+    }
+    if (t == _iqz9h2tk.FriendChallengeDto) {
+      return _iqz9h2tk.FriendChallengeDto.fromJson(data) as T;
+    }
+    if (t == _in6lw5u5.FriendUserDto) {
+      return _in6lw5u5.FriendUserDto.fromJson(data) as T;
+    }
+    if (t == _i9j1nep3.FriendsException) {
+      return _i9j1nep3.FriendsException.fromJson(data) as T;
+    }
+    if (t == _ibsg885b.FriendsOverviewDto) {
+      return _ibsg885b.FriendsOverviewDto.fromJson(data) as T;
+    }
+    if (t == _ix1l50pg.Friendship) {
+      return _ix1l50pg.Friendship.fromJson(data) as T;
+    }
+    if (t == _if8yjfer.FriendshipDto) {
+      return _if8yjfer.FriendshipDto.fromJson(data) as T;
+    }
+    if (t == _izsp853n.PlayerSearchResultDto) {
+      return _izsp853n.PlayerSearchResultDto.fromJson(data) as T;
+    }
+    if (t == _iouwl73l.RivalryDto) {
+      return _iouwl73l.RivalryDto.fromJson(data) as T;
     }
     if (t == _im0plaxm.EnumColor) {
       return _im0plaxm.EnumColor.fromJson(data) as T;
@@ -280,6 +407,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _ixdzvre4.LiveEvent) {
       return _ixdzvre4.LiveEvent.fromJson(data) as T;
     }
+    if (t == _i39mlunu.LobbyRoom) {
+      return _i39mlunu.LobbyRoom.fromJson(data) as T;
+    }
+    if (t == _idvrexla.LobbySnapshot) {
+      return _idvrexla.LobbySnapshot.fromJson(data) as T;
+    }
     if (t == _ib6s6ke7.EnumProfileUpdateError) {
       return _ib6s6ke7.EnumProfileUpdateError.fromJson(data) as T;
     }
@@ -295,11 +428,118 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _i8na2re5.EloHistory) {
       return _i8na2re5.EloHistory.fromJson(data) as T;
     }
+    if (t == _ialq3a2v.EnumReviewError) {
+      return _ialq3a2v.EnumReviewError.fromJson(data) as T;
+    }
+    if (t == _i0n08bga.MoveExplanation) {
+      return _i0n08bga.MoveExplanation.fromJson(data) as T;
+    }
+    if (t == _i7k2kt7u.ReviewException) {
+      return _i7k2kt7u.ReviewException.fromJson(data) as T;
+    }
+    if (t == _isc.getType<_ikd6xdrt.AssistantConversation?>()) {
+      return (data != null
+              ? _ikd6xdrt.AssistantConversation.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _isc.getType<_ixtf2j4x.AssistantException?>()) {
+      return (data != null ? _ixtf2j4x.AssistantException.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_ix3wp1gt.AssistantMessage?>()) {
+      return (data != null ? _ix3wp1gt.AssistantMessage.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_i3uav29g.AssistantRequestLog?>()) {
+      return (data != null
+              ? _i3uav29g.AssistantRequestLog.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _isc.getType<_ictlaa9l.AssistantToken?>()) {
+      return (data != null ? _ictlaa9l.AssistantToken.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_itiz3l16.EnumAssistantError?>()) {
+      return (data != null ? _itiz3l16.EnumAssistantError.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_iv4kpqf4.EnumDashboardAuthor?>()) {
+      return (data != null
+              ? _iv4kpqf4.EnumDashboardAuthor.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _isc.getType<_ieb6zq8b.UserDashboard?>()) {
+      return (data != null ? _ieb6zq8b.UserDashboard.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_if7oging.UserDashboardVersion?>()) {
+      return (data != null
+              ? _if7oging.UserDashboardVersion.fromJson(data)
+              : null)
+          as T;
+    }
     if (t == _isc.getType<_iij7x2jd.Bot?>()) {
       return (data != null ? _iij7x2jd.Bot.fromJson(data) : null) as T;
     }
     if (t == _isc.getType<_i65o1ott.EnumBotLevel?>()) {
       return (data != null ? _i65o1ott.EnumBotLevel.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_ifm42sdi.EnumFriendPresence?>()) {
+      return (data != null ? _ifm42sdi.EnumFriendPresence.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_it2shy0i.EnumFriendRelation?>()) {
+      return (data != null ? _it2shy0i.EnumFriendRelation.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_if0hp53x.EnumFriendsError?>()) {
+      return (data != null ? _if0hp53x.EnumFriendsError.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_iiv2c9gb.EnumFriendshipStatus?>()) {
+      return (data != null
+              ? _iiv2c9gb.EnumFriendshipStatus.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _isc.getType<_iubkg2x5.FriendActivityDto?>()) {
+      return (data != null ? _iubkg2x5.FriendActivityDto.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_iqz9h2tk.FriendChallengeDto?>()) {
+      return (data != null ? _iqz9h2tk.FriendChallengeDto.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_in6lw5u5.FriendUserDto?>()) {
+      return (data != null ? _in6lw5u5.FriendUserDto.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_i9j1nep3.FriendsException?>()) {
+      return (data != null ? _i9j1nep3.FriendsException.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_ibsg885b.FriendsOverviewDto?>()) {
+      return (data != null ? _ibsg885b.FriendsOverviewDto.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_ix1l50pg.Friendship?>()) {
+      return (data != null ? _ix1l50pg.Friendship.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_if8yjfer.FriendshipDto?>()) {
+      return (data != null ? _if8yjfer.FriendshipDto.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_izsp853n.PlayerSearchResultDto?>()) {
+      return (data != null
+              ? _izsp853n.PlayerSearchResultDto.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _isc.getType<_iouwl73l.RivalryDto?>()) {
+      return (data != null ? _iouwl73l.RivalryDto.fromJson(data) : null) as T;
     }
     if (t == _isc.getType<_im0plaxm.EnumColor?>()) {
       return (data != null ? _im0plaxm.EnumColor.fromJson(data) : null) as T;
@@ -372,6 +612,13 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _isc.getType<_ixdzvre4.LiveEvent?>()) {
       return (data != null ? _ixdzvre4.LiveEvent.fromJson(data) : null) as T;
     }
+    if (t == _isc.getType<_i39mlunu.LobbyRoom?>()) {
+      return (data != null ? _i39mlunu.LobbyRoom.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_idvrexla.LobbySnapshot?>()) {
+      return (data != null ? _idvrexla.LobbySnapshot.fromJson(data) : null)
+          as T;
+    }
     if (t == _isc.getType<_ib6s6ke7.EnumProfileUpdateError?>()) {
       return (data != null
               ? _ib6s6ke7.EnumProfileUpdateError.fromJson(data)
@@ -394,6 +641,28 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (t == _isc.getType<_i8na2re5.EloHistory?>()) {
       return (data != null ? _i8na2re5.EloHistory.fromJson(data) : null) as T;
     }
+    if (t == _isc.getType<_ialq3a2v.EnumReviewError?>()) {
+      return (data != null ? _ialq3a2v.EnumReviewError.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_i0n08bga.MoveExplanation?>()) {
+      return (data != null ? _i0n08bga.MoveExplanation.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_i7k2kt7u.ReviewException?>()) {
+      return (data != null ? _i7k2kt7u.ReviewException.fromJson(data) : null)
+          as T;
+    }
+    if (t == List<_if8yjfer.FriendshipDto>) {
+      return (data as List)
+              .map((e) => deserialize<_if8yjfer.FriendshipDto>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_isc.UuidValue>) {
+      return (data as List).map((e) => deserialize<_isc.UuidValue>(e)).toList()
+          as T;
+    }
     if (t == List<int>) {
       return (data as List).map((e) => deserialize<int>(e)).toList() as T;
     }
@@ -403,8 +672,34 @@ class Protocol extends _isd.DatabaseSerializationManager {
               : null)
           as T;
     }
-    if (t == List<_ighv8e6n.Bot>) {
-      return (data as List).map((e) => deserialize<_ighv8e6n.Bot>(e)).toList()
+    if (t == List<_i39mlunu.LobbyRoom>) {
+      return (data as List)
+              .map((e) => deserialize<_i39mlunu.LobbyRoom>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_ionzpnek.PlayerSearchResultDto>) {
+      return (data as List)
+              .map((e) => deserialize<_ionzpnek.PlayerSearchResultDto>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_ixxp4699.RivalryDto>) {
+      return (data as List)
+              .map((e) => deserialize<_ixxp4699.RivalryDto>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_ikasuekg.FriendActivityDto>) {
+      return (data as List)
+              .map((e) => deserialize<_ikasuekg.FriendActivityDto>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_im2ichtj.FriendChallengeDto>) {
+      return (data as List)
+              .map((e) => deserialize<_im2ichtj.FriendChallengeDto>(e))
+              .toList()
           as T;
     }
     if (t == List<_igkkg43x.HistoryDto>) {
@@ -418,6 +713,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
               .map((e) => deserialize<_ihkbd7x6.LeaderboardEntryDto>(e))
               .toList()
           as T;
+    }
+    if (t == List<int>) {
+      return (data as List).map((e) => deserialize<int>(e)).toList() as T;
     }
     try {
       return _iacc.Protocol().deserialize<T>(data, t);
@@ -433,8 +731,30 @@ class Protocol extends _isd.DatabaseSerializationManager {
 
   static String? getClassNameForType(Type type) {
     return switch (type) {
+      _ikd6xdrt.AssistantConversation => 'AssistantConversation',
+      _ixtf2j4x.AssistantException => 'AssistantException',
+      _ix3wp1gt.AssistantMessage => 'AssistantMessage',
+      _i3uav29g.AssistantRequestLog => 'AssistantRequestLog',
+      _ictlaa9l.AssistantToken => 'AssistantToken',
+      _itiz3l16.EnumAssistantError => 'EnumAssistantError',
+      _iv4kpqf4.EnumDashboardAuthor => 'EnumDashboardAuthor',
+      _ieb6zq8b.UserDashboard => 'UserDashboard',
+      _if7oging.UserDashboardVersion => 'UserDashboardVersion',
       _iij7x2jd.Bot => 'Bot',
       _i65o1ott.EnumBotLevel => 'EnumBotLevel',
+      _ifm42sdi.EnumFriendPresence => 'EnumFriendPresence',
+      _it2shy0i.EnumFriendRelation => 'EnumFriendRelation',
+      _if0hp53x.EnumFriendsError => 'EnumFriendsError',
+      _iiv2c9gb.EnumFriendshipStatus => 'EnumFriendshipStatus',
+      _iubkg2x5.FriendActivityDto => 'FriendActivityDto',
+      _iqz9h2tk.FriendChallengeDto => 'FriendChallengeDto',
+      _in6lw5u5.FriendUserDto => 'FriendUserDto',
+      _i9j1nep3.FriendsException => 'FriendsException',
+      _ibsg885b.FriendsOverviewDto => 'FriendsOverviewDto',
+      _ix1l50pg.Friendship => 'Friendship',
+      _if8yjfer.FriendshipDto => 'FriendshipDto',
+      _izsp853n.PlayerSearchResultDto => 'PlayerSearchResultDto',
+      _iouwl73l.RivalryDto => 'RivalryDto',
       _im0plaxm.EnumColor => 'EnumColor',
       _ilcsv24h.EnumGameEndReason => 'EnumGameEndReason',
       _isw7cqst.EnumGameError => 'EnumGameError',
@@ -455,11 +775,16 @@ class Protocol extends _isd.DatabaseSerializationManager {
       _i6lckwy9.LeaderboardEntryDto => 'LeaderboardEntryDto',
       _ikanpab0.EnumLiveEventType => 'EnumLiveEventType',
       _ixdzvre4.LiveEvent => 'LiveEvent',
+      _i39mlunu.LobbyRoom => 'LobbyRoom',
+      _idvrexla.LobbySnapshot => 'LobbySnapshot',
       _ib6s6ke7.EnumProfileUpdateError => 'EnumProfileUpdateError',
       _i1cvnna1.ProfileUpdateException => 'ProfileUpdateException',
       _iytd8mlf.User => 'User',
       _ivqmpbel.UserProfileDto => 'UserProfileDto',
       _i8na2re5.EloHistory => 'EloHistory',
+      _ialq3a2v.EnumReviewError => 'EnumReviewError',
+      _i0n08bga.MoveExplanation => 'MoveExplanation',
+      _i7k2kt7u.ReviewException => 'ReviewException',
       _ => null,
     };
   }
@@ -474,10 +799,54 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
 
     switch (data) {
+      case _ikd6xdrt.AssistantConversation():
+        return 'AssistantConversation';
+      case _ixtf2j4x.AssistantException():
+        return 'AssistantException';
+      case _ix3wp1gt.AssistantMessage():
+        return 'AssistantMessage';
+      case _i3uav29g.AssistantRequestLog():
+        return 'AssistantRequestLog';
+      case _ictlaa9l.AssistantToken():
+        return 'AssistantToken';
+      case _itiz3l16.EnumAssistantError():
+        return 'EnumAssistantError';
+      case _iv4kpqf4.EnumDashboardAuthor():
+        return 'EnumDashboardAuthor';
+      case _ieb6zq8b.UserDashboard():
+        return 'UserDashboard';
+      case _if7oging.UserDashboardVersion():
+        return 'UserDashboardVersion';
       case _iij7x2jd.Bot():
         return 'Bot';
       case _i65o1ott.EnumBotLevel():
         return 'EnumBotLevel';
+      case _ifm42sdi.EnumFriendPresence():
+        return 'EnumFriendPresence';
+      case _it2shy0i.EnumFriendRelation():
+        return 'EnumFriendRelation';
+      case _if0hp53x.EnumFriendsError():
+        return 'EnumFriendsError';
+      case _iiv2c9gb.EnumFriendshipStatus():
+        return 'EnumFriendshipStatus';
+      case _iubkg2x5.FriendActivityDto():
+        return 'FriendActivityDto';
+      case _iqz9h2tk.FriendChallengeDto():
+        return 'FriendChallengeDto';
+      case _in6lw5u5.FriendUserDto():
+        return 'FriendUserDto';
+      case _i9j1nep3.FriendsException():
+        return 'FriendsException';
+      case _ibsg885b.FriendsOverviewDto():
+        return 'FriendsOverviewDto';
+      case _ix1l50pg.Friendship():
+        return 'Friendship';
+      case _if8yjfer.FriendshipDto():
+        return 'FriendshipDto';
+      case _izsp853n.PlayerSearchResultDto():
+        return 'PlayerSearchResultDto';
+      case _iouwl73l.RivalryDto():
+        return 'RivalryDto';
       case _im0plaxm.EnumColor():
         return 'EnumColor';
       case _ilcsv24h.EnumGameEndReason():
@@ -518,6 +887,10 @@ class Protocol extends _isd.DatabaseSerializationManager {
         return 'EnumLiveEventType';
       case _ixdzvre4.LiveEvent():
         return 'LiveEvent';
+      case _i39mlunu.LobbyRoom():
+        return 'LobbyRoom';
+      case _idvrexla.LobbySnapshot():
+        return 'LobbySnapshot';
       case _ib6s6ke7.EnumProfileUpdateError():
         return 'EnumProfileUpdateError';
       case _i1cvnna1.ProfileUpdateException():
@@ -528,6 +901,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
         return 'UserProfileDto';
       case _i8na2re5.EloHistory():
         return 'EloHistory';
+      case _ialq3a2v.EnumReviewError():
+        return 'EnumReviewError';
+      case _i0n08bga.MoveExplanation():
+        return 'MoveExplanation';
+      case _i7k2kt7u.ReviewException():
+        return 'ReviewException';
     }
     className = _iacc.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -556,11 +935,77 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (dataClassName is! String) {
       return super.deserializeByClassName(data);
     }
+    if (dataClassName == 'AssistantConversation') {
+      return deserialize<_ikd6xdrt.AssistantConversation>(data['data']);
+    }
+    if (dataClassName == 'AssistantException') {
+      return deserialize<_ixtf2j4x.AssistantException>(data['data']);
+    }
+    if (dataClassName == 'AssistantMessage') {
+      return deserialize<_ix3wp1gt.AssistantMessage>(data['data']);
+    }
+    if (dataClassName == 'AssistantRequestLog') {
+      return deserialize<_i3uav29g.AssistantRequestLog>(data['data']);
+    }
+    if (dataClassName == 'AssistantToken') {
+      return deserialize<_ictlaa9l.AssistantToken>(data['data']);
+    }
+    if (dataClassName == 'EnumAssistantError') {
+      return deserialize<_itiz3l16.EnumAssistantError>(data['data']);
+    }
+    if (dataClassName == 'EnumDashboardAuthor') {
+      return deserialize<_iv4kpqf4.EnumDashboardAuthor>(data['data']);
+    }
+    if (dataClassName == 'UserDashboard') {
+      return deserialize<_ieb6zq8b.UserDashboard>(data['data']);
+    }
+    if (dataClassName == 'UserDashboardVersion') {
+      return deserialize<_if7oging.UserDashboardVersion>(data['data']);
+    }
     if (dataClassName == 'Bot') {
       return deserialize<_iij7x2jd.Bot>(data['data']);
     }
     if (dataClassName == 'EnumBotLevel') {
       return deserialize<_i65o1ott.EnumBotLevel>(data['data']);
+    }
+    if (dataClassName == 'EnumFriendPresence') {
+      return deserialize<_ifm42sdi.EnumFriendPresence>(data['data']);
+    }
+    if (dataClassName == 'EnumFriendRelation') {
+      return deserialize<_it2shy0i.EnumFriendRelation>(data['data']);
+    }
+    if (dataClassName == 'EnumFriendsError') {
+      return deserialize<_if0hp53x.EnumFriendsError>(data['data']);
+    }
+    if (dataClassName == 'EnumFriendshipStatus') {
+      return deserialize<_iiv2c9gb.EnumFriendshipStatus>(data['data']);
+    }
+    if (dataClassName == 'FriendActivityDto') {
+      return deserialize<_iubkg2x5.FriendActivityDto>(data['data']);
+    }
+    if (dataClassName == 'FriendChallengeDto') {
+      return deserialize<_iqz9h2tk.FriendChallengeDto>(data['data']);
+    }
+    if (dataClassName == 'FriendUserDto') {
+      return deserialize<_in6lw5u5.FriendUserDto>(data['data']);
+    }
+    if (dataClassName == 'FriendsException') {
+      return deserialize<_i9j1nep3.FriendsException>(data['data']);
+    }
+    if (dataClassName == 'FriendsOverviewDto') {
+      return deserialize<_ibsg885b.FriendsOverviewDto>(data['data']);
+    }
+    if (dataClassName == 'Friendship') {
+      return deserialize<_ix1l50pg.Friendship>(data['data']);
+    }
+    if (dataClassName == 'FriendshipDto') {
+      return deserialize<_if8yjfer.FriendshipDto>(data['data']);
+    }
+    if (dataClassName == 'PlayerSearchResultDto') {
+      return deserialize<_izsp853n.PlayerSearchResultDto>(data['data']);
+    }
+    if (dataClassName == 'RivalryDto') {
+      return deserialize<_iouwl73l.RivalryDto>(data['data']);
     }
     if (dataClassName == 'EnumColor') {
       return deserialize<_im0plaxm.EnumColor>(data['data']);
@@ -622,6 +1067,12 @@ class Protocol extends _isd.DatabaseSerializationManager {
     if (dataClassName == 'LiveEvent') {
       return deserialize<_ixdzvre4.LiveEvent>(data['data']);
     }
+    if (dataClassName == 'LobbyRoom') {
+      return deserialize<_i39mlunu.LobbyRoom>(data['data']);
+    }
+    if (dataClassName == 'LobbySnapshot') {
+      return deserialize<_idvrexla.LobbySnapshot>(data['data']);
+    }
     if (dataClassName == 'EnumProfileUpdateError') {
       return deserialize<_ib6s6ke7.EnumProfileUpdateError>(data['data']);
     }
@@ -636,6 +1087,15 @@ class Protocol extends _isd.DatabaseSerializationManager {
     }
     if (dataClassName == 'EloHistory') {
       return deserialize<_i8na2re5.EloHistory>(data['data']);
+    }
+    if (dataClassName == 'EnumReviewError') {
+      return deserialize<_ialq3a2v.EnumReviewError>(data['data']);
+    }
+    if (dataClassName == 'MoveExplanation') {
+      return deserialize<_i0n08bga.MoveExplanation>(data['data']);
+    }
+    if (dataClassName == 'ReviewException') {
+      return deserialize<_i7k2kt7u.ReviewException>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);

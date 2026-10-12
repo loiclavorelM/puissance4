@@ -31,12 +31,28 @@ AGENTS.md).
 - `updateUsername(username: String) -> UserProfileDto`
   3 à 20 caractères `[A-Za-z0-9_-]`, unique (insensible à la casse). Lève
   `ProfileUpdateException(reason: invalidUsername | usernameTaken)`.
-- `updateProfilePhoto(...)` — *à venir* (US2.1/T2.1.3) : upload Serverpod
-  séparé qui remplit `User.thumbnailPath`.
+- `uploadProfilePhoto(photo: ByteData) -> UserProfileDto` (US2.1)
+  Miniature envoyée par l'app (carré 256×256). Le serveur la vérifie (JPEG ou
+  PNG, 512 Ko et 1024 px au plus), la réencode (carré 256 px, JPEG, sans
+  métadonnées), la stocke dans le stockage `public` sous
+  `avatars/<userId>/<horodatage>.jpg` (nom neuf à chaque envoi : pas de cache
+  périmé), remplit `User.thumbnailPath` et supprime l'ancienne. Lève
+  `ProfileUpdateException(reason: photoTooLarge | invalidPhoto)`. Notifie
+  profil et classement.
+- `removeProfilePhoto() -> UserProfileDto`
+  Supprime la photo (retour aux initiales).
 
-### Bot — `BotEndpoint` (`client.bot`), `lib/src/bot/`
-- `getBotLevels() -> List<BotDto>`
-- `getLatestModel(idBot: Guid) -> BotModelManifestDto`
+Les DTO (`UserProfileDto`, `LeaderboardEntryDto`, `LobbyRoom`) exposent
+`thumbnailUrl`, l'URL publique du fichier (`ProfilePhoto.url`), jamais le
+chemin ; `null` si le fichier a disparu du stockage.
+
+### Bot — pas d'endpoint
+Les 5 niveaux de bot (`BotLevel`, paquet `puissance4_rules`) et leurs modèles
+RL (`.tflite`) sont embarqués dans l'app (`puissance4_flutter/assets/models/`)
+et dans le serveur (`puissance4_server/assets/models/`) : la liste des bots ne
+vient pas du serveur, pour que le mode Normal se joue entièrement hors ligne.
+Le serveur sème ces niveaux dans la table `Bot` sous les mêmes identifiants
+(`lib/src/bot/bot_seed.dart`) pour le Classé et l'historique.
 
 ### Partie serveur — `GameEndpoint` (`client.game`), `lib/src/game/`
 Commun aux deux modes joués **sur le serveur**, seul juge de chaque coup :
@@ -85,10 +101,23 @@ Prêt pour Redis/cluster : état des parties en base (verrou `FOR UPDATE`),
 La **salle** (code d'attente) n'est jamais en base et ne vit que tant que le
 stream de l'hôte est ouvert ; la `Partie` n'est créée qu'à l'arrivée de
 l'adversaire.
-- `hostRoom() -> Stream<GameEvent>`
+- `hostRoom(isPublic: bool, {challengeUserId: Guid?}) -> Stream<GameEvent>`
   `roomCreated` (code, expiration 10 min), puis `gameStarted` et la suite de la
   partie sur le même stream. Fermer le stream ferme la salle ; à expiration :
-  `roomClosed`. Ouvrir une 2ᵉ salle ferme la 1ʳᵉ.
+  `roomClosed`. Ouvrir une 2ᵉ salle ferme la 1ʳᵉ. Une salle `isPublic` apparaît
+  dans le lobby (pseudo, Elo et avatar de l'hôte lus à l'ouverture) ; une salle
+  privée ne se rejoint que par son code.
+  Avec `challengeUserId` (E15) : défi à un ami — salle privée réservée à lui
+  seul, 2 min, visible dans ses `FriendsEndpoint.getChallenges` ; s'il refuse,
+  `challengeDeclined` termine le stream. Lève `GameException(friendUnavailable)`
+  si ce n'est pas un ami ou s'il est déjà en partie.
+- `watchLobby() -> Stream<LobbySnapshot>` (US7.4)
+  Salles publiques ouvertes, sauf la sienne : la liste au départ, puis une
+  nouvelle à chaque ouverture, fermeture, prise ou expiration d'une salle
+  publique (signal `LiveEvent(lobbyChanged)` sur le canal `multi.lobby`, local
+  tant que les salles sont en mémoire). Pas de table : vue de `RoomStore`.
+  On rejoint une salle du lobby par `joinRoom(code)` ; si elle a été prise
+  entre-temps, `roomNotFound` (affiché « Salle déjà prise »).
 - `joinRoom(code: String) -> Stream<GameEvent>`
   Réserve la salle (atomique : un seul invité l'obtient), crée les 2 `Player` +
   la `Partie`, couleurs tirées au sort, puis suit la partie.
@@ -99,16 +128,18 @@ Le Multi ne change pas l'Elo.
 
 ### Classé — `RankedEndpoint` (`client.ranked`), `lib/src/ranked/`
 - `startRanked() -> Guid`
-  Crée une partie `classe` contre le bot choisi d'après l'Elo du joueur
-  (< 1000 Débutant, < 1400 Medium, sinon Expert — `BotStrength.fromElo`),
+  Crée une partie `classe` contre le niveau de bot dont l'Elo est le plus
+  proche de celui du joueur (`BotLevel.forElo`),
   couleurs tirées au sort. Se suit ensuite par `GameEndpoint.watchPartie`.
   En fin de partie (`finished`), l'Elo du joueur est recalculé contre l'Elo
   virtuel du bot (K = 32, `ranked/elo.dart`) dans la même transaction, avec une
   ligne `EloHistory` ; `GameEvent.eloVariation` la renvoie au joueur.
 
-L'IA des bots (`HeuristicBot`, paquet partagé `puissance4_rules`) est la même
-sur le téléphone (Normal) et sur le serveur (Classé), en attendant les modèles
-RL (E5).
+Tous les bots jouent avec les réseaux RL. En Classé, le serveur les recalcule
+en Dart pur (`ConnectFourNet`, poids lus dans le `.tflite`, `BotNetworks`) ; en
+Normal, l'app passe par TFLite sur Android/iOS et par le même réseau en Dart
+ailleurs (web, bureau). La revue de partie garde une recherche exacte
+(`MoveAnalysis`), seule capable d'affirmer qu'une victoire est forcée.
 
 ### History — `HistoryEndpoint` (`client.history`), `lib/src/history/`
 - `getListHistories(typePartie: EnumType?, limit: int, offset: int) -> List<HistoryDto>`
@@ -127,16 +158,65 @@ RL (E5).
 ### Temps réel — `LiveEndpoint` (`client.live`), `lib/src/live/`
 - `watchUpdates() -> Stream<LiveEvent>`
   Stream (WebSocket) ouvert par le client tant qu'il est connecté. Émet
-  `LiveEvent(type: profileChanged | historyChanged | leaderboardChanged)` —
+  `LiveEvent(type: profileChanged | historyChanged | leaderboardChanged |
+  friendsChanged | challengesChanged)` —
   sans payload : le client recharge la donnée concernée (cache local puis
   réseau). Alimenté par `session.messages` via `live_notifier.dart` : canal
   `live.user.<authUserId>` (profil/historique) et `live.leaderboard` (tous).
 
+### Amis `[hors cahier des charges]` — `FriendsEndpoint` (`client.friends`), `lib/src/friends/`
+Réservé aux comptes email : un invité reçoit `FriendsException(guestNotAllowed)`
+et n'apparaît jamais dans les recherches. Chaque changement envoie
+`LiveEvent(friendsChanged)` aux deux joueurs.
+- `getOverview() -> FriendsOverviewDto`
+  Code ami (attribué au premier appel), amis avec leur présence
+  (`online | playing | offline`, type de partie, `lastSeenAt` ; en ligne
+  d'abord, puis en partie, puis par Elo), demandes reçues et envoyées.
+- `searchPlayers(query: String) -> List<PlayerSearchResultDto>`
+  Pseudos commençant par `query` (3 caractères min., 20 résultats), précédés du
+  joueur dont c'est le code ami (`P4-XXXXXX`, préfixe et casse libres) ; chaque
+  résultat porte la relation (`none | friend | requestSent | requestReceived`).
+- `sendRequest(userId: Guid) -> FriendshipDto`
+  Accepte directement si l'autre avait déjà envoyé une demande.
+- `recentOpponents() -> List<PlayerSearchResultDto>`
+  10 derniers adversaires Multi (une fois chacun), avec leur relation.
+- `getRivalries() -> List<RivalryDto>`
+  Tête-à-tête avec chaque ami : victoires, défaites, nuls (Multi), série en
+  cours, parties communes (ids, plus récentes d'abord).
+- `getFriendsActivity() -> List<FriendActivityDto>`
+  Parties Multi et Classé des amis sur 7 jours (20 au plus), avec la
+  variation d'Elo.
+- `shakeToAdd() -> PlayerSearchResultDto?`
+  « Secouer pour s'ajouter » : attend au plus 2 s une secousse d'un autre
+  joueur (`ShakeMatcher`, en mémoire) et le renvoie avec sa relation, sinon
+  `null`. N'envoie aucune demande.
+- `getChallenges() -> List<FriendChallengeDto>`
+  Défis reçus encore ouverts : salles privées réservées au joueur, ouvertes
+  par `MultiplayerEndpoint.hostRoom(challengeUserId:)`, à rejoindre par
+  `joinRoom(code)`.
+- `declineChallenge(code: String)`
+  Ferme la salle ; le stream de l'hôte émet `challengeDeclined`. Lève
+  `FriendsException(challengeNotFound)` si elle n'existe plus.
+- `acceptRequest(friendshipId)`, `declineRequest(friendshipId)`,
+  `cancelRequest(friendshipId)`, `removeFriend(userId)`
+  Lèvent `FriendsException(reason: userNotFound | cannotAddSelf |
+  alreadyFriends | requestAlreadySent | requestNotFound | notFriends |
+  tooManyFriends)` — 200 amis au plus.
+
 ### Revue de partie IA `[optionnel]` — `ReviewEndpoint` (`client.review`), `lib/src/review/`
-- `explainMove(idPartie: Guid, moveIndex: int) -> ExplainMoveResultDto`
-  Appelle Ollama cloud côté serveur ; indisponible hors-ligne (cf. E14/US14.3).
-  Le coup recommandé par le modèle Expert n'est **pas** calculé ici : il est
-  réexécuté localement sur l'appareil (modèle déjà embarqué pour le bot).
+- `explainMove(moves: List<int>, moveIndex: int, language: String) -> String`
+  Explication en `language` (`fr` | `en`) du coup d'indice `moveIndex`, générée
+  par Ollama cloud depuis le serveur (clé `ollamaApiKey` dans les mots de passe
+  Serverpod, jamais côté client) ; indisponible hors-ligne (cf. E14/US14.3).
+  Prend les coups plutôt qu'un id de partie : marche pour tous les modes, y
+  compris une partie Normale pas encore synchronisée. Le serveur recalcule le
+  coup recommandé avec le même `MoveAnalysis` (`puissance4_rules`) que l'app —
+  sur l'appareil, il sert à afficher la recommandation sans réseau — et
+  fournit au LLM les faits vérifiés (victoires/menaces immédiates). Cache
+  `MoveExplanation` par position (coups jusqu'au coup expliqué) + langue ;
+  au plus 30 générations (hors cache) par joueur et par heure.
+  Lève `ReviewException(reason: invalidMove | notConfigured | unavailable |
+  rateLimited)`.
 
 ## DTO
 
@@ -155,17 +235,6 @@ UserProfileDto
   int nbParties  
   int nbVictoires    
   // pas d'email ici : géré par le module d'auth natif (AuthUser), pas dupliqué
-
-BotDto
-  Guid id
-  string botName
-  int elo
-  string description
-
-BotModelManifestDto
-  Guid idBot
-  string version
-  string downloadUrl
 
 GamePlayerInfo            // un camp d'une partie serveur
   string username         // nom du bot si isBot
@@ -190,6 +259,16 @@ GameEvent                 // streams de partie serveur, état complet à chaque 
   bool? opponentConnected // sur gameStarted : adversaire présent ?
   int? eloVariation       // Classé, sur gameOver
 
+LobbySnapshot
+  List<LobbyRoom> rooms
+
+LobbyRoom
+  string code
+  string hostUsername
+  int hostElo
+  string? hostThumbnailUrl
+  DateTime expiresAt
+
 ReplayDto
   Guid id
   EnumType typePartie
@@ -209,8 +288,6 @@ HistoryDto
   EnumPlayer resultat
   int? eloVariation
 
-ExplainMoveResultDto
-  string explanation
 ```
 
 Enums `EnumPlayer` / `EnumStatut` / `EnumType` : voir `doc/04-entities.md` (pas
@@ -221,9 +298,9 @@ dupliqués ici, pour éviter les divergences entre les deux fichiers).
 - `login` / `logout` / `createaccount` → gérés par le module d'auth natif Serverpod
   (`SignInWidget` + `client.auth.*`) côté client, pas des méthodes custom, et pas
   Firebase (cf. Auth ci-dessus).
-- `ListeBotDispo` / `GetListBot` / `GetBot` / `DownloadBot` → fusionnés en
-  `getBotLevels` + `getLatestModel`, alignés sur le contrat déjà posé dans le
-  cahier des charges.
+- `ListeBotDispo` / `GetListBot` / `GetBot` / `DownloadBot` → d'abord fusionnés
+  en `getBotLevels` + `getLatestModel`, puis supprimés (`getBots` compris) :
+  les modèles sont embarqués dans l'app pour jouer hors ligne.
 - `GetListClassement` → renommé `getLeaderboard` (même nom que le cahier des
   charges).
 

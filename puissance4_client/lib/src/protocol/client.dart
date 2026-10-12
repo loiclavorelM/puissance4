@@ -11,8 +11,20 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _ida;
+import 'dart:typed_data' as _idt;
 import 'package:http/http.dart' as _i85jenna;
-import 'package:puissance4_client/src/protocol/bot/bot.dart' as _ighv8e6n;
+import 'package:puissance4_client/src/protocol/friends/friend_activity_dto.dart'
+    as _ikasuekg;
+import 'package:puissance4_client/src/protocol/friends/friend_challenge_dto.dart'
+    as _im2ichtj;
+import 'package:puissance4_client/src/protocol/friends/friends_overview_dto.dart'
+    as _ibtv0qn2;
+import 'package:puissance4_client/src/protocol/friends/friendship_dto.dart'
+    as _izlxexk7;
+import 'package:puissance4_client/src/protocol/friends/player_search_result_dto.dart'
+    as _ionzpnek;
+import 'package:puissance4_client/src/protocol/friends/rivalry_dto.dart'
+    as _ixxp4699;
 import 'package:puissance4_client/src/protocol/game/enum_type.dart'
     as _i6ui2hi8;
 import 'package:puissance4_client/src/protocol/game/game_event.dart'
@@ -27,6 +39,8 @@ import 'package:puissance4_client/src/protocol/leaderboard/leaderboard_dto.dart'
     as _ihkbd7x6;
 import 'package:puissance4_client/src/protocol/live/live_event.dart'
     as _io59k800;
+import 'package:puissance4_client/src/protocol/multiplayer/lobby_snapshot.dart'
+    as _imc99i6z;
 import 'package:puissance4_client/src/protocol/profile/user_profile_dto.dart'
     as _i5lufru8;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
@@ -40,6 +54,129 @@ import 'package:serverpod_offline_sync_client/serverpod_offline_sync_client.dart
 import 'protocol.dart' as _il2as5qe;
 import 'sync_tables.dart' as _ii3f3u05;
 import 'package:puissance4_client/migrations/migration_registry.dart';
+
+/// L'assistant (E16) : une méthode en stream qui renvoie les événements de
+/// `contracts/assistant-events.schema.json`, un objet JSON par message. La
+/// clé du LLM ne quitte jamais le serveur.
+/// {@category Endpoint}
+class EndpointAssistant extends _isc.EndpointRef {
+  EndpointAssistant(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'assistant';
+
+  /// Envoie [inputJson] (`ChatInput` : texte, langue, mentions) dans
+  /// [conversationId], ou dans une nouvelle conversation si `null` — son id
+  /// arrive dans le premier événement (`started`).
+  _ida.Stream<String> chat(
+    String? conversationId,
+    String inputJson,
+  ) => caller.callStreamingServerEndpoint<_ida.Stream<String>, String>(
+    'assistant',
+    'chat',
+    {
+      'conversationId': conversationId,
+      'inputJson': inputJson,
+    },
+    {},
+  );
+}
+
+/// Le tableau de bord de l'assistant côté app (E16) : lecture, panneau
+/// « Modifier », « Épingler » un bloc du chat, annulation, filtres. Les
+/// écritures de l'assistant passent par les outils MCP ; les deux aboutissent
+/// à [DashboardStore], donc aux mêmes versions annulables.
+///
+/// Entrées et sorties en JSON des contrats (`dashboard.schema.json`,
+/// `widget-definition.schema.json`). Les nouvelles versions sont signalées
+/// par `LiveEvent(dashboardChanged)`.
+/// {@category Endpoint}
+class EndpointDashboard extends _isc.EndpointRef {
+  EndpointDashboard(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'dashboard';
+
+  _ida.Future<String> get() => caller.callServerEndpoint<String>(
+    'dashboard',
+    'get',
+    {},
+  );
+
+  /// Ajoute [definitionJson] (sans id : « Épingler ») ou remplace le widget
+  /// de même id (panneau « Modifier »). Lève [AssistantException]
+  /// (`invalidWidget`, `notFound`).
+  _ida.Future<String> saveWidget(String definitionJson) =>
+      caller.callServerEndpoint<String>(
+        'dashboard',
+        'saveWidget',
+        {'definitionJson': definitionJson},
+      );
+
+  _ida.Future<String> removeWidget(String id) =>
+      caller.callServerEndpoint<String>(
+        'dashboard',
+        'removeWidget',
+        {'id': id},
+      );
+
+  /// Revient à la version précédente. Lève [AssistantException]
+  /// (`nothingToUndo`).
+  _ida.Future<String> undo() => caller.callServerEndpoint<String>(
+    'dashboard',
+    'undo',
+    {},
+  );
+
+  /// Remplace les filtres par [filtersJson] (`range`, `mode`, `opponent` en
+  /// référence `user:`/`bot:` ; absent = pas de filtre).
+  _ida.Future<String> setFilters(String filtersJson) =>
+      caller.callServerEndpoint<String>(
+        'dashboard',
+        'setFilters',
+        {'filtersJson': filtersJson},
+      );
+}
+
+/// Données des widgets du tableau de bord (E16) : l'app les charge elle-même,
+/// avec les vraies valeurs — elles ne passent jamais par le LLM.
+///
+/// Entrées et sorties en JSON des contrats (`data.schema.json`) plutôt qu'en
+/// classes Serverpod, pour rester transposables.
+/// {@category Endpoint}
+class EndpointData extends _isc.EndpointRef {
+  EndpointData(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'data';
+
+  /// Interroge [source] avec [paramsJson] (objet JSON, `$dashboard.xxx` déjà
+  /// résolus par l'app). Renvoie un `SourceData` en JSON.
+  ///
+  /// Lève [AssistantException] (`invalidQuery`) si la source ou les
+  /// paramètres sont invalides.
+  _ida.Future<String> query(
+    String source,
+    String paramsJson,
+  ) => caller.callServerEndpoint<String>(
+    'data',
+    'query',
+    {
+      'source': source,
+      'paramsJson': paramsJson,
+    },
+  );
+
+  /// Autocomplétion des mentions du chat : les adversaires du joueur dont le
+  /// nom contient [text] (8 au plus). Renvoie une liste de `Mention` en JSON
+  /// (`ref`, `label`) avec `kind` (`bot` ou `human`).
+  _ida.Future<String> searchMentions(String text) =>
+      caller.callServerEndpoint<String>(
+        'data',
+        'searchMentions',
+        {'text': text},
+      );
+}
 
 /// By extending [AnonymousIdpBaseEndpoint], the anonymous identity provider
 /// endpoint is made available on the server and enables the corresponding
@@ -73,6 +210,26 @@ class EndpointEmailIdp extends _iaic.EndpointEmailIdpBase {
 
   @override
   String get name => 'emailIdp';
+
+  /// Completes a new account registration, like the module's — except for a
+  /// guest signed in anonymously: the email account is then attached to the
+  /// guest's own auth user, so the player keeps their Elo, games and history
+  /// (US0.2, server side in `guest_upgrade.dart`).
+  ///
+  /// Throws an [EmailAccountRequestException] in case of errors (expired,
+  /// policyViolation, invalid), as the module does.
+  @override
+  _ida.Future<_iacc.AuthSuccess> finishRegistration({
+    required String registrationToken,
+    required String password,
+  }) => caller.callServerEndpoint<_iacc.AuthSuccess>(
+    'emailIdp',
+    'finishRegistration',
+    {
+      'registrationToken': registrationToken,
+      'password': password,
+    },
+  );
 
   /// Logs in the user and returns a new session.
   ///
@@ -134,33 +291,6 @@ class EndpointEmailIdp extends _iaic.EndpointEmailIdpBase {
     {
       'accountRequestId': accountRequestId,
       'verificationCode': verificationCode,
-    },
-  );
-
-  /// Completes a new account registration, creating a new auth user with a
-  /// profile and attaching the given email account to it.
-  ///
-  /// Throws an [EmailAccountRequestException] in case of errors, with reason:
-  /// - [EmailAccountRequestExceptionReason.expired] if the account request has
-  ///   already expired.
-  /// - [EmailAccountRequestExceptionReason.policyViolation] if the password
-  ///   does not comply with the password policy.
-  /// - [EmailAccountRequestExceptionReason.invalid] if the [registrationToken]
-  ///   is invalid.
-  ///
-  /// Throws an [AuthUserBlockedException] if the auth user is blocked.
-  ///
-  /// Returns a session for the newly created user.
-  @override
-  _ida.Future<_iacc.AuthSuccess> finishRegistration({
-    required String registrationToken,
-    required String password,
-  }) => caller.callServerEndpoint<_iacc.AuthSuccess>(
-    'emailIdp',
-    'finishRegistration',
-    {
-      'registrationToken': registrationToken,
-      'password': password,
     },
   );
 
@@ -289,24 +419,6 @@ class EndpointJwtRefresh extends _iacc.EndpointRefreshJwtTokens {
       );
 }
 
-/// Liste des bots jouables en mode Normal (E5) — alimentée par `botSeeds`
-/// (`bot_seed.dart`). Pas de connexion requise : ce n'est pas une donnée
-/// personnelle, et un invité local doit pouvoir voir les niveaux proposés.
-/// {@category Endpoint}
-class EndpointBot extends _isc.EndpointRef {
-  EndpointBot(_isc.EndpointCaller caller) : super(caller);
-
-  @override
-  String get name => 'bot';
-
-  _ida.Future<List<_ighv8e6n.Bot>> getBots() =>
-      caller.callServerEndpoint<List<_ighv8e6n.Bot>>(
-        'bot',
-        'getBots',
-        {},
-      );
-}
-
 /// Endpoint volontairement vide : sert uniquement de sonde de joignabilité
 /// pour `ServerConnectionTracker` côté client. Le simple fait que l'appel
 /// réussisse ou échoue passe par les hooks globaux
@@ -323,6 +435,139 @@ class EndpointConnection extends _isc.EndpointRef {
     'ping',
     {},
   );
+}
+
+/// Amis (E15) : demandes d'ami, liste d'amis, recherche de joueurs. Réservé
+/// aux comptes email — un invité (compte anonyme) reçoit
+/// `FriendsException(guestNotAllowed)` et n'apparaît jamais dans les
+/// recherches. Chaque changement prévient les deux joueurs
+/// (`LiveEvent.friendsChanged`).
+/// {@category Endpoint}
+class EndpointFriends extends _isc.EndpointRef {
+  EndpointFriends(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'friends';
+
+  /// Tout l'onglet Amis : code ami (attribué au premier appel), amis — en
+  /// ligne d'abord, puis en partie, puis par Elo —, demandes reçues et
+  /// envoyées (plus récentes d'abord).
+  _ida.Future<_ibtv0qn2.FriendsOverviewDto> getOverview() =>
+      caller.callServerEndpoint<_ibtv0qn2.FriendsOverviewDto>(
+        'friends',
+        'getOverview',
+        {},
+      );
+
+  /// Joueurs dont le pseudo commence par [query] (à partir de
+  /// [minSearchLength] caractères), précédés de celui dont c'est le code ami
+  /// le cas échéant. Ni soi-même, ni les invités.
+  _ida.Future<List<_ionzpnek.PlayerSearchResultDto>> searchPlayers(
+    String query,
+  ) => caller.callServerEndpoint<List<_ionzpnek.PlayerSearchResultDto>>(
+    'friends',
+    'searchPlayers',
+    {'query': query},
+  );
+
+  /// Derniers adversaires humains du joueur en Multi (US15.5), du plus
+  /// récent au plus ancien, avec leur relation — pour les ajouter en un tap.
+  _ida.Future<List<_ionzpnek.PlayerSearchResultDto>> recentOpponents() =>
+      caller.callServerEndpoint<List<_ionzpnek.PlayerSearchResultDto>>(
+        'friends',
+        'recentOpponents',
+        {},
+      );
+
+  /// Bilan tête-à-tête avec chaque ami (US15.7) — parties Multi terminées
+  /// entre les deux —, ceux avec qui on a le plus joué d'abord.
+  _ida.Future<List<_ixxp4699.RivalryDto>> getRivalries() =>
+      caller.callServerEndpoint<List<_ixxp4699.RivalryDto>>(
+        'friends',
+        'getRivalries',
+        {},
+      );
+
+  /// Fil d'activité (US15.7) : parties Multi et Classé terminées par mes
+  /// amis ces [activityPeriod] derniers jours, plus récentes d'abord.
+  _ida.Future<List<_ikasuekg.FriendActivityDto>> getFriendsActivity() =>
+      caller.callServerEndpoint<List<_ikasuekg.FriendActivityDto>>(
+        'friends',
+        'getFriendsActivity',
+        {},
+      );
+
+  /// « Secouer pour s'ajouter » (US15.6) : le joueur courant vient de
+  /// secouer son téléphone. Attend au plus `FriendsConfig.shakeWindow` une
+  /// autre secousse et renvoie ce joueur avec sa relation, ou `null`.
+  /// Rien n'est envoyé : chacun choisit ensuite d'ajouter l'autre
+  /// (`sendRequest`, accepté d'office si l'autre l'a fait aussi).
+  _ida.Future<_ionzpnek.PlayerSearchResultDto?> shakeToAdd() =>
+      caller.callServerEndpoint<_ionzpnek.PlayerSearchResultDto?>(
+        'friends',
+        'shakeToAdd',
+        {},
+      );
+
+  /// Défis reçus encore ouverts (E15) : des salles privées réservées au
+  /// joueur courant, à rejoindre par `MultiplayerEndpoint.joinRoom`.
+  _ida.Future<List<_im2ichtj.FriendChallengeDto>> getChallenges() =>
+      caller.callServerEndpoint<List<_im2ichtj.FriendChallengeDto>>(
+        'friends',
+        'getChallenges',
+        {},
+      );
+
+  /// Refuse le défi [code] : la salle se ferme et son hôte reçoit
+  /// `challengeDeclined`.
+  _ida.Future<void> declineChallenge(String code) =>
+      caller.callServerEndpoint<void>(
+        'friends',
+        'declineChallenge',
+        {'code': code},
+      );
+
+  /// Envoie une demande d'ami à [userId] — ou accepte directement la sienne
+  /// s'il en avait déjà envoyé une.
+  _ida.Future<_izlxexk7.FriendshipDto> sendRequest(_isc.UuidValue userId) =>
+      caller.callServerEndpoint<_izlxexk7.FriendshipDto>(
+        'friends',
+        'sendRequest',
+        {'userId': userId},
+      );
+
+  /// Accepte la demande [friendshipId] reçue par le joueur courant.
+  _ida.Future<_izlxexk7.FriendshipDto> acceptRequest(
+    _isc.UuidValue friendshipId,
+  ) => caller.callServerEndpoint<_izlxexk7.FriendshipDto>(
+    'friends',
+    'acceptRequest',
+    {'friendshipId': friendshipId},
+  );
+
+  /// Refuse la demande [friendshipId] reçue par le joueur courant.
+  _ida.Future<void> declineRequest(_isc.UuidValue friendshipId) =>
+      caller.callServerEndpoint<void>(
+        'friends',
+        'declineRequest',
+        {'friendshipId': friendshipId},
+      );
+
+  /// Annule la demande [friendshipId] envoyée par le joueur courant.
+  _ida.Future<void> cancelRequest(_isc.UuidValue friendshipId) =>
+      caller.callServerEndpoint<void>(
+        'friends',
+        'cancelRequest',
+        {'friendshipId': friendshipId},
+      );
+
+  /// Retire [userId] des amis du joueur courant (et inversement).
+  _ida.Future<void> removeFriend(_isc.UuidValue userId) =>
+      caller.callServerEndpoint<void>(
+        'friends',
+        'removeFriend',
+        {'userId': userId},
+      );
 }
 
 /// Partie serveur en cours, quel que soit le mode (Multi ou Classé) : la
@@ -477,7 +722,8 @@ class EndpointLeaderboard extends _isc.EndpointRef {
 /// Mises à jour "temps réel" : un stream (WebSocket) par client connecté qui
 /// reçoit un [LiveEvent] chaque fois que son profil, son historique ou le
 /// Classement change côté serveur — les écritures appellent les helpers de
-/// `live_notifier.dart`.
+/// `live_notifier.dart`. Tant qu'il est ouvert, le joueur est « en ligne »
+/// pour ses amis (E15, `PresenceStore`).
 /// {@category Endpoint}
 class EndpointLive extends _isc.EndpointRef {
   EndpointLive(_isc.EndpointCaller caller) : super(caller);
@@ -513,13 +759,46 @@ class EndpointMultiplayer extends _isc.EndpointRef {
   /// Ouvre une salle : émet `roomCreated` (avec le code), puis, à l'arrivée
   /// de l'adversaire, les événements de la partie. Fermer ce stream avant
   /// ferme la salle ; à expiration il émet `roomClosed` et se termine.
-  _ida.Stream<_iho1cjz0.GameEvent> hostRoom() =>
+  /// Une salle [isPublic] apparaît dans le lobby ([watchLobby]) ; sinon elle
+  /// ne se rejoint que par son code.
+  ///
+  /// Avec [challengeUserId] (`User.id` d'un ami, E15), la salle est un défi :
+  /// privée, réservée à cet ami, plus courte
+  /// (`FriendsConfig.challengeLifetime`), et l'ami la voit dans
+  /// `FriendsEndpoint.getChallenges`. S'il refuse, le stream émet
+  /// `challengeDeclined` et se termine. Lève `friendUnavailable` si ce
+  /// n'est pas un ami ou s'il est déjà en partie.
+  _ida.Stream<_iho1cjz0.GameEvent> hostRoom(
+    bool isPublic, {
+    _isc.UuidValue? challengeUserId,
+  }) =>
       caller.callStreamingServerEndpoint<
         _ida.Stream<_iho1cjz0.GameEvent>,
         _iho1cjz0.GameEvent
       >(
         'multiplayer',
         'hostRoom',
+        {
+          'isPublic': isPublic,
+          'challengeUserId': challengeUserId,
+        },
+        {},
+      );
+
+  /// Salles publiques ouvertes (sauf la sienne) : la liste au départ, puis
+  /// une nouvelle liste à chaque changement. On les rejoint par [joinRoom]
+  /// avec leur code — de deux joueurs qui choisissent la même, un seul
+  /// l'obtient, l'autre reçoit `roomNotFound`.
+  ///
+  /// Pas de générateur `async*` : annulé pendant un `await for`, il ne le
+  /// verrait qu'au changement suivant, et la session resterait ouverte.
+  _ida.Stream<_imc99i6z.LobbySnapshot> watchLobby() =>
+      caller.callStreamingServerEndpoint<
+        _ida.Stream<_imc99i6z.LobbySnapshot>,
+        _imc99i6z.LobbySnapshot
+      >(
+        'multiplayer',
+        'watchLobby',
         {},
         {},
       );
@@ -562,14 +841,34 @@ class EndpointProfile extends _isc.EndpointRef {
         'updateUsername',
         {'username': username},
       );
+
+  /// Remplace la photo de profil par [photo] (E2, US2.1) : le serveur la
+  /// vérifie et la réencode en miniature carrée (cf. [ProfilePhoto]), puis
+  /// supprime l'ancienne. Lève [ProfileUpdateException] (`photoTooLarge`,
+  /// `invalidPhoto`).
+  _ida.Future<_i5lufru8.UserProfileDto> uploadProfilePhoto(
+    _idt.ByteData photo,
+  ) => caller.callServerEndpoint<_i5lufru8.UserProfileDto>(
+    'profile',
+    'uploadProfilePhoto',
+    {'photo': photo},
+  );
+
+  /// Retire la photo de profil (retour aux initiales).
+  _ida.Future<_i5lufru8.UserProfileDto> removeProfilePhoto() =>
+      caller.callServerEndpoint<_i5lufru8.UserProfileDto>(
+        'profile',
+        'removeProfilePhoto',
+        {},
+      );
 }
 
 /// Classé : partie contre un bot joué **par le serveur**, qui valide chaque
 /// coup — l'Elo gagné ne peut donc pas être truqué côté client. Le bot est
-/// choisi d'après l'Elo du joueur (cahier des charges : < 1000 Débutant,
-/// < 1400 Medium, sinon Expert). La partie se suit ensuite comme toute
-/// partie serveur, par `GameEndpoint.watchPartie` ; l'Elo est mis à jour à
-/// sa fin (`ServerGame`).
+/// le niveau RL dont l'Elo est le plus proche de celui du joueur
+/// (`BotLevel.forElo`), joué par son réseau. La partie se suit ensuite
+/// comme toute partie serveur, par `GameEndpoint.watchPartie` ; l'Elo est
+/// mis à jour à sa fin (`ServerGame`).
 /// {@category Endpoint}
 class EndpointRanked extends _isc.EndpointRef {
   EndpointRanked(_isc.EndpointCaller caller) : super(caller);
@@ -586,6 +885,39 @@ class EndpointRanked extends _isc.EndpointRef {
         'startRanked',
         {},
       );
+}
+
+/// Revue de partie post-match (E14, US14.3) : explication en langage naturel
+/// du coup recommandé par l'Expert, générée par un LLM (Ollama cloud) depuis
+/// le serveur — la clé API ne quitte jamais le serveur.
+/// {@category Endpoint}
+class EndpointReview extends _isc.EndpointRef {
+  EndpointReview(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'review';
+
+  /// Explique le coup d'indice [moveIndex] de [moves] en [language] ("fr"
+  /// ou "en"). Le serveur recalcule lui-même le coup recommandé (mêmes
+  /// règles et même Expert que l'app) : seuls les coups viennent du client.
+  /// Les explications sont gardées par position (`MoveExplanation`) : une
+  /// position déjà expliquée ne rappelle pas Ollama.
+  ///
+  /// Lève [ReviewException] : `invalidMove`, `notConfigured`, `unavailable`,
+  /// `rateLimited`.
+  _ida.Future<String> explainMove({
+    required List<int> moves,
+    required int moveIndex,
+    required String language,
+  }) => caller.callServerEndpoint<String>(
+    'review',
+    'explainMove',
+    {
+      'moves': moves,
+      'moveIndex': moveIndex,
+      'language': language,
+    },
+  );
 }
 
 class Modules {
@@ -629,11 +961,14 @@ class Client extends _isc.ServerpodClientShared {
              disconnectStreamsOnLostInternetConnection,
          httpClientOverride: httpClientOverride,
        ) {
+    assistant = EndpointAssistant(this);
+    dashboard = EndpointDashboard(this);
+    data = EndpointData(this);
     anonymousIdp = EndpointAnonymousIdp(this);
     emailIdp = EndpointEmailIdp(this);
     jwtRefresh = EndpointJwtRefresh(this);
-    bot = EndpointBot(this);
     connection = EndpointConnection(this);
+    friends = EndpointFriends(this);
     game = EndpointGame(this);
     greeting = EndpointGreeting(this);
     history = EndpointHistory(this);
@@ -642,8 +977,15 @@ class Client extends _isc.ServerpodClientShared {
     multiplayer = EndpointMultiplayer(this);
     profile = EndpointProfile(this);
     ranked = EndpointRanked(this);
+    review = EndpointReview(this);
     modules = Modules(this);
   }
+
+  late final EndpointAssistant assistant;
+
+  late final EndpointDashboard dashboard;
+
+  late final EndpointData data;
 
   late final EndpointAnonymousIdp anonymousIdp;
 
@@ -651,9 +993,9 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointJwtRefresh jwtRefresh;
 
-  late final EndpointBot bot;
-
   late final EndpointConnection connection;
+
+  late final EndpointFriends friends;
 
   late final EndpointGame game;
 
@@ -671,15 +1013,20 @@ class Client extends _isc.ServerpodClientShared {
 
   late final EndpointRanked ranked;
 
+  late final EndpointReview review;
+
   late final Modules modules;
 
   @override
   Map<String, _isc.EndpointRef> get endpointRefLookup => {
+    'assistant': assistant,
+    'dashboard': dashboard,
+    'data': data,
     'anonymousIdp': anonymousIdp,
     'emailIdp': emailIdp,
     'jwtRefresh': jwtRefresh,
-    'bot': bot,
     'connection': connection,
+    'friends': friends,
     'game': game,
     'greeting': greeting,
     'history': history,
@@ -688,6 +1035,7 @@ class Client extends _isc.ServerpodClientShared {
     'multiplayer': multiplayer,
     'profile': profile,
     'ranked': ranked,
+    'review': review,
   };
 
   @override
