@@ -849,6 +849,12 @@ const evalsYaml = r'''
   expect:
     - tool: propose_widget
       args: { type: table, source: games.recent, columns: [opponent, result] }
+# Une demande courte et vague doit aboutir (le modèle bouclait sur un
+# widget refusé).
+- request: "Liste de mes parties"
+  expect:
+    - tool: propose_widget
+      args: { source: games.recent }
 ''';
 
 /// Outils MCP, par nom.
