@@ -231,6 +231,36 @@ const sourcesJson = r'''
       "label": {
         "fr": "Adversaire",
         "en": "Opponent"
+      },
+      "values": {
+        "Très facile": {
+          "fr": "Très facile",
+          "en": "Very easy"
+        },
+        "Facile": {
+          "fr": "Facile",
+          "en": "Easy"
+        },
+        "Moyen": {
+          "fr": "Moyen",
+          "en": "Intermediate"
+        },
+        "Difficile": {
+          "fr": "Difficile",
+          "en": "Hard"
+        },
+        "Expert": {
+          "fr": "Expert",
+          "en": "Expert"
+        },
+        "Débutant": {
+          "fr": "Débutant",
+          "en": "Beginner"
+        },
+        "Medium": {
+          "fr": "Medium",
+          "en": "Medium"
+        }
       }
     },
     "opponentKind": {
@@ -740,7 +770,8 @@ How you work:
 - You never see raw game data. Use the tools: query_data to answer questions, add_widget / update_widget / remove_widget / arrange_widgets / set_dashboard_filters / undo_dashboard to change the dashboard, propose_widget to show a chart in the chat without adding it.
 - Never guess a number: every figure you give comes from a tool result in this conversation.
 - When the player asks to add, put or pin something, change the dashboard. When they ask to see or show something, use propose_widget. When they ask a question, answer in text.
-- A "tableau" / "table" (not "tableau de bord") is a widget of type table; use a chart only when they ask for a chart, a curve or a graph, or say nothing about the form.
+- A "tableau" / "table" (not "tableau de bord") is a widget of type table; use a chart only when they ask for a chart, a curve or a graph, or say nothing about the form (except for two dimensions, see the next rule).
+- A measure split by two dimensions ("win rate by mode and by month", a "pivot table", a "tableau croisé") is a table of games.pivot with both groupBy and splitBy, unless they ask for a chart. The app shows it crossed: one row per groupBy value, one column per splitBy value, and a time dimension (day, week, month) always in columns. The widget already shows the numbers: never redraw it as text, one sentence is enough.
 - If a tool returns an error, fix the arguments as the error says and try again. If you cannot, say what is missing in one sentence.
 - Periods are always relative (last:7d, this:week, this:month...). Never use absolute dates.
 - You can only do what your tools do. Never claim an action you did not perform with a tool, and never describe an app feature that is not listed here.
@@ -828,11 +859,23 @@ const evalsYaml = r'''
 # Aucun autre export ni envoi : il ne doit pas en inventer.
 - request: "Envoie mes stats par e-mail à mon coach"
   answer_must_match: "(pas|impossible|ne permet|ne peut|ne sait|aucun)"
-# Tableau croisé : aucune autre source ne croise ces dimensions.
+# Tableau croisé : aucune autre source ne croise ces dimensions, et deux
+# dimensions sans forme demandée donnent un tableau (affiché croisé, le
+# mois en colonnes quel que soit l'ordre de groupBy / splitBy).
 - request: "Montre mon taux de victoire par mode et par mois, seulement quand je commence"
   expect:
     - tool: propose_widget
-      args: { source: games.pivot, measure: winRate, starter: me }
+      args: { type: table, source: games.pivot, measure: winRate, starter: me }
+  # Le widget montre déjà les chiffres : pas de tableau recopié en texte.
+  answer_must_match: "^(?![\\s\\S]*\\|)"
+# La phrase de la vidéo de démo, en anglais.
+- request: "Show my win rate by mode and by month, only when I start"
+  language: en
+  expect:
+    - tool: propose_widget
+      args: { type: table, source: games.pivot, measure: winRate, starter: me }
+  # Le widget montre déjà les chiffres : pas de tableau recopié en texte.
+  answer_must_match: "^(?![\\s\\S]*\\|)"
 - request: "Ajoute un tableau de la durée moyenne de mes parties par adversaire"
   expect:
     - tool: add_widget
@@ -880,7 +923,7 @@ const toolsJson = <String, String>{
           "table",
           "chart"
         ],
-        "description": "kpi for a kpi source (one number); table or chart for a rows source."
+        "description": "kpi for a kpi source (one number); table or chart for a rows source. games.pivot with both groupBy and splitBy (a measure by two dimensions) is a table, shown crossed, unless the player asks for a chart or a graph."
       },
       "title": {
         "type": "string",
@@ -1345,7 +1388,7 @@ const toolsJson = <String, String>{
           "table",
           "chart"
         ],
-        "description": "kpi for a kpi source (one number); table or chart for a rows source."
+        "description": "kpi for a kpi source (one number); table or chart for a rows source. games.pivot with both groupBy and splitBy (a measure by two dimensions) is a table, shown crossed, unless the player asks for a chart or a graph."
       },
       "title": {
         "type": "string",

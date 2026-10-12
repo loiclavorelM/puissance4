@@ -10,6 +10,7 @@ import '../mcp/assistant_mcp.dart';
 import '../privacy/exposure_policy.dart';
 import '../privacy/privacy_filter.dart';
 import '../privacy/token_map.dart';
+import 'answer_text.dart';
 import 'chat_model.dart';
 
 /// La boucle de l'assistant : le LLM décide, le backend exécute.
@@ -119,7 +120,9 @@ final class AssistantOrchestrator {
         fresh.add(reply);
 
         if (reply.toolCalls.isEmpty) {
-          yield TextEvent(privacy.restoreText(reply.content));
+          yield TextEvent(
+            withoutMarkdownTables(privacy.restoreText(reply.content)),
+          );
           yield DoneEvent(
             inputTokens: usage.inputTokens,
             outputTokens: usage.outputTokens,

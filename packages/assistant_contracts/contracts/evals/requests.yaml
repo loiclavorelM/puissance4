@@ -62,11 +62,23 @@
 # Aucun autre export ni envoi : il ne doit pas en inventer.
 - request: "Envoie mes stats par e-mail à mon coach"
   answer_must_match: "(pas|impossible|ne permet|ne peut|ne sait|aucun)"
-# Tableau croisé : aucune autre source ne croise ces dimensions.
+# Tableau croisé : aucune autre source ne croise ces dimensions, et deux
+# dimensions sans forme demandée donnent un tableau (affiché croisé, le
+# mois en colonnes quel que soit l'ordre de groupBy / splitBy).
 - request: "Montre mon taux de victoire par mode et par mois, seulement quand je commence"
   expect:
     - tool: propose_widget
-      args: { source: games.pivot, measure: winRate, starter: me }
+      args: { type: table, source: games.pivot, measure: winRate, starter: me }
+  # Le widget montre déjà les chiffres : pas de tableau recopié en texte.
+  answer_must_match: "^(?![\\s\\S]*\\|)"
+# La phrase de la vidéo de démo, en anglais.
+- request: "Show my win rate by mode and by month, only when I start"
+  language: en
+  expect:
+    - tool: propose_widget
+      args: { type: table, source: games.pivot, measure: winRate, starter: me }
+  # Le widget montre déjà les chiffres : pas de tableau recopié en texte.
+  answer_must_match: "^(?![\\s\\S]*\\|)"
 - request: "Ajoute un tableau de la durée moyenne de mes parties par adversaire"
   expect:
     - tool: add_widget

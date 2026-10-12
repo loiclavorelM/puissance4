@@ -96,7 +96,13 @@ void main() {
           await for (final json in endpoints.assistant.chat(
             me.session,
             null,
-            jsonEncode(ChatInput(text: request).toJson()),
+            jsonEncode(
+              ChatInput(
+                text: request,
+                // Langue de l'app (« en » pour une demande en anglais).
+                language: evalCase['language'] as String? ?? 'fr',
+              ).toJson(),
+            ),
           ))
             AssistantEvent.fromJson((jsonDecode(json) as Map).cast()),
         ];

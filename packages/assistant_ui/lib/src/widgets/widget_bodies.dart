@@ -6,6 +6,7 @@ import '../charts/renderers.dart';
 import '../charts/series_style.dart';
 import '../labels.dart';
 import '../theme/dashboard_tokens.dart';
+import 'cross_table.dart';
 
 /// Clic sur une valeur d'un widget : `(champ, valeur)`.
 typedef SelectCallback = void Function(String field, Object? value);
@@ -22,11 +23,17 @@ abstract final class WidgetRegistry {
       definition: definition,
       data: kpi,
     ),
-    (WidgetType.table, final DataSet rows) => DataTableView(
-      data: rows,
-      columns: definition.display.columns,
-      onSelect: onSelect,
-    ),
+    (WidgetType.table, final DataSet rows) => switch (CrossTable.of(
+      definition,
+      rows,
+    )) {
+      final cross? => CrossTableView(table: cross, onSelect: onSelect),
+      null => DataTableView(
+        data: rows,
+        columns: definition.display.columns,
+        onSelect: onSelect,
+      ),
+    },
     (WidgetType.chart, final DataSet rows) => ChartWidget(
       definition: definition,
       data: rows,
@@ -175,6 +182,68 @@ class DataTableView extends StatelessWidget {
                 cells: [
                   for (final i in visible)
                     DataCell(Text(labels.value(data.fields[i].name, row[i]))),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Un [CrossTable] : première dimension en lignes, seconde en colonnes.
+class CrossTableView extends StatelessWidget {
+  const CrossTableView({super.key, required this.table, this.onSelect});
+
+  final CrossTable table;
+  final SelectCallback? onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.dashboardTokens;
+    final labels = DashboardLabels.of(context);
+    return SingleChildScrollView(
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          headingRowHeight: 32,
+          dataRowMinHeight: 30,
+          dataRowMaxHeight: 34,
+          columnSpacing: 16,
+          horizontalMargin: 4,
+          headingTextStyle: TextStyle(fontSize: 11, color: tokens.textMuted),
+          dataTextStyle: TextStyle(fontSize: 12, color: tokens.text),
+          columns: [
+            DataColumn(label: Text(labels.field(table.rowField))),
+            for (final column in table.columnKeys)
+              DataColumn(
+                label: Text(labels.value(table.columnField, column)),
+                numeric: true,
+              ),
+          ],
+          rows: [
+            for (final row in table.rowKeys)
+              DataRow(
+                onSelectChanged:
+                    onSelect == null || !table.rowRefs.containsKey(row)
+                    ? null
+                    : (_) => onSelect!('opponentRef', table.rowRefs[row]),
+                cells: [
+                  DataCell(
+                    Text(
+                      labels.value(table.rowField, row),
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  for (final column in table.columnKeys)
+                    DataCell(
+                      Text(
+                        labels.value(
+                          table.measureField,
+                          table.cell(row, column),
+                        ),
+                      ),
+                    ),
                 ],
               ),
           ],

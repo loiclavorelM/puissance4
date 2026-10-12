@@ -10,6 +10,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import '../labels.dart';
+import '../widgets/cross_table.dart';
 
 /// Captures d'écran des corps de widgets, pour mettre un graphique tel
 /// qu'il est affiché dans son export PDF. La grille pose [capture] autour
@@ -96,11 +97,26 @@ class WidgetExport {
       if (delta != null) [labels.l10n.exportDelta, _signed(delta)],
       if (secondary != null) [labels.l10n.exportGames, '$secondary'],
     ],
-    final DataSet rows => [
-      [for (final i in _columns(rows)) labels.field(rows.fields[i].name)],
-      for (final row in rows.rows)
-        [for (final i in _columns(rows)) _csvValue(rows.fields[i], row[i])],
-    ],
+    final DataSet rows => switch (CrossTable.of(definition, rows)) {
+      final cross? => [
+        [
+          labels.field(cross.rowField),
+          for (final column in cross.columnKeys)
+            labels.value(cross.columnField, column),
+        ],
+        for (final row in cross.rowKeys)
+          [
+            labels.value(cross.rowField, row),
+            for (final column in cross.columnKeys)
+              '${cross.cell(row, column) ?? ''}',
+          ],
+      ],
+      null => [
+        [for (final i in _columns(rows)) labels.field(rows.fields[i].name)],
+        for (final row in rows.rows)
+          [for (final i in _columns(rows)) _csvValue(rows.fields[i], row[i])],
+      ],
+    },
   };
 
   /// Nombres bruts et dates complètes pour le tableur ; catégories
@@ -277,13 +293,29 @@ class WidgetExport {
   );
 
   pw.Widget _table(DataSet rows) {
+    if (CrossTable.of(definition, rows) case final cross?) {
+      return _textTable(
+        headers: [
+          labels.field(cross.rowField),
+          for (final column in cross.columnKeys)
+            labels.value(cross.columnField, column),
+        ],
+        data: [
+          for (final row in cross.rowKeys)
+            [
+              labels.value(cross.rowField, row),
+              for (final column in cross.columnKeys)
+                labels.value(cross.measureField, cross.cell(row, column)),
+            ],
+        ],
+        numeric: {
+          for (var c = 1; c <= cross.columnKeys.length; c++)
+            c: pw.Alignment.centerRight,
+        },
+      );
+    }
     final columns = _columns(rows);
-    final numeric = {
-      for (var c = 0; c < columns.length; c++)
-        if (rows.fields[columns[c]].type == FieldType.number)
-          c: pw.Alignment.centerRight,
-    };
-    return pw.TableHelper.fromTextArray(
+    return _textTable(
       headers: [
         for (final i in columns) labels.field(rows.fields[i].name),
       ],
@@ -293,6 +325,22 @@ class WidgetExport {
             for (final i in columns) labels.value(rows.fields[i].name, row[i]),
           ],
       ],
+      numeric: {
+        for (var c = 0; c < columns.length; c++)
+          if (rows.fields[columns[c]].type == FieldType.number)
+            c: pw.Alignment.centerRight,
+      },
+    );
+  }
+
+  pw.Widget _textTable({
+    required List<String> headers,
+    required List<List<String>> data,
+    required Map<int, pw.Alignment> numeric,
+  }) {
+    return pw.TableHelper.fromTextArray(
+      headers: headers,
+      data: data,
       border: null,
       headerStyle: pw.TextStyle(
         fontSize: 9,
