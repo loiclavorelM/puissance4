@@ -280,19 +280,42 @@ class AssistantUiLocalizationsFr extends AssistantUiLocalizations {
   String get openAssistant => 'Ouvrir l\'assistant';
 
   @override
-  String get exportPdf => 'Exporter en PDF';
-
-  @override
-  String get exportTitle => 'Mon tableau de bord Puissance 4';
-
-  @override
-  String exportedOn(String date) {
-    return 'Exporté le $date';
-  }
-
-  @override
-  String get exportFailed => 'L\'export PDF a échoué.';
+  String get exportFailed => 'L\'export a échoué.';
 
   @override
   String get editorColumns => 'Colonnes';
+
+  @override
+  String get widgetExportPdf => 'Exporter en PDF';
+
+  @override
+  String get widgetExportCsv => 'Exporter en CSV';
+
+  @override
+  String get exportIndicator => 'Indicateur';
+
+  @override
+  String get exportValue => 'Valeur';
+
+  @override
+  String get exportDelta => 'Variation';
+
+  @override
+  String get exportGames => 'Parties';
+
+  @override
+  String get exportDeltaCaption => 'par rapport à la période précédente';
+
+  @override
+  String get exportData => 'Données';
+
+  @override
+  String exportFooter(String date) {
+    return 'Exporté le $date depuis Puissance 4';
+  }
+
+  @override
+  String exportLastGames(int count) {
+    return '$count dernières parties';
+  }
 }

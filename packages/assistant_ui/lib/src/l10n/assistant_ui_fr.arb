@@ -105,16 +105,30 @@
   "undo": "Annuler la dernière modification",
   "addWidget": "Ajouter un widget",
   "openAssistant": "Ouvrir l'assistant",
-  "exportPdf": "Exporter en PDF",
-  "exportTitle": "Mon tableau de bord Puissance 4",
-  "exportedOn": "Exporté le {date}",
-  "exportFailed": "L'export PDF a échoué.",
-  "@exportedOn": {
+  "exportFailed": "L'export a échoué.",
+  "editorColumns": "Colonnes",
+  "widgetExportPdf": "Exporter en PDF",
+  "widgetExportCsv": "Exporter en CSV",
+  "exportIndicator": "Indicateur",
+  "exportValue": "Valeur",
+  "exportDelta": "Variation",
+  "exportGames": "Parties",
+  "exportDeltaCaption": "par rapport à la période précédente",
+  "exportData": "Données",
+  "exportFooter": "Exporté le {date} depuis Puissance 4",
+  "exportLastGames": "{count} dernières parties",
+  "@exportFooter": {
     "placeholders": {
       "date": {
         "type": "String"
       }
     }
   },
-  "editorColumns": "Colonnes"
+  "@exportLastGames": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

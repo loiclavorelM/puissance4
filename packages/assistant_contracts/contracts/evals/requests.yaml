@@ -53,10 +53,12 @@
     - tool: query_data
       args: { source: games.recent }
     - tool: analyze_game
-# L'export PDF se fait par le bouton du tableau de bord, pas par
+# L'export (PDF ou CSV) se fait widget par widget, depuis son menu, pas par
 # l'assistant : il doit y renvoyer sans prétendre l'avoir fait.
-- request: "Exporte mon tableau de bord en PDF"
-  answer_must_match: "bouton"
+- request: "Exporte mon taux de victoire en PDF"
+  answer_must_match: "menu"
+- request: "Je veux mes parties en CSV pour Excel"
+  answer_must_match: "(menu|CSV)"
 # Aucun autre export ni envoi : il ne doit pas en inventer.
 - request: "Envoie mes stats par e-mail à mon coach"
   answer_must_match: "(pas|impossible|ne permet|ne peut|ne sait|aucun)"
