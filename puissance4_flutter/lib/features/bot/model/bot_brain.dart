@@ -1,27 +1,32 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:puissance4_rules/puissance4_rules.dart';
 
+import 'network_runner.dart';
+
 /// IA d'un bot qui joue sur le téléphone : une position → une colonne.
-/// Aujourd'hui l'heuristique partagée avec le serveur (`HeuristicBot`) ;
-/// demain le modèle RL embarqué (T5.1.3) derrière la même interface.
 abstract interface class BotBrain {
   Future<int> chooseColumn(List<int> moves);
 }
 
-class HeuristicBotBrain implements BotBrain {
-  const HeuristicBotBrain(this.strength);
+/// Niveau du mode Normal joué par son réseau RL embarqué
+/// (`assets/models/`), sans réseau ni serveur : TFLite sur Android et iOS,
+/// le même réseau recalculé en Dart (`ConnectFourNet`) ailleurs.
+class NetworkBotBrain implements BotBrain {
+  NetworkBotBrain(this.level, {AssetBundle? bundle})
+    : _bundle = bundle ?? rootBundle;
 
-  /// Niveau d'après l'Elo virtuel du bot choisi (`botSeeds` côté serveur).
-  HeuristicBotBrain.forElo(int elo) : this(BotStrength.fromElo(elo));
+  final BotLevel level;
+  final AssetBundle _bundle;
+  Future<Uint8List>? _model;
 
-  final BotStrength strength;
-
-  /// Calcul hors du thread UI (la recherche Expert explore des milliers de
-  /// positions) — sur le web, `compute` s'exécute simplement en place.
   @override
-  Future<int> chooseColumn(List<int> moves) =>
-      compute(_choose, (strength.index, List<int>.of(moves)));
-}
+  Future<int> chooseColumn(List<int> moves) async {
+    final model = await (_model ??= _load());
+    return runNetworkBot(level, model, List<int>.of(moves));
+  }
 
-int _choose((int, List<int>) args) =>
-    HeuristicBot(BotStrength.values[args.$1]).chooseColumn(args.$2);
+  Future<Uint8List> _load() async {
+    final data = await _bundle.load('assets/models/${level.model}');
+    return data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+  }
+}

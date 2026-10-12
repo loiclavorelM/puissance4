@@ -13,7 +13,6 @@
 import 'dart:async' as _ida;
 import 'dart:typed_data' as _idt;
 import 'package:http/http.dart' as _i85jenna;
-import 'package:puissance4_client/src/protocol/bot/bot.dart' as _ighv8e6n;
 import 'package:puissance4_client/src/protocol/friends/friend_activity_dto.dart'
     as _ikasuekg;
 import 'package:puissance4_client/src/protocol/friends/friend_challenge_dto.dart'
@@ -417,24 +416,6 @@ class EndpointJwtRefresh extends _iacc.EndpointRefreshJwtTokens {
         'refreshAccessToken',
         {'refreshToken': refreshToken},
         authenticated: false,
-      );
-}
-
-/// Liste des bots jouables en mode Normal (E5) — alimentée par `botSeeds`
-/// (`bot_seed.dart`). Pas de connexion requise : ce n'est pas une donnée
-/// personnelle, et un invité local doit pouvoir voir les niveaux proposés.
-/// {@category Endpoint}
-class EndpointBot extends _isc.EndpointRef {
-  EndpointBot(_isc.EndpointCaller caller) : super(caller);
-
-  @override
-  String get name => 'bot';
-
-  _ida.Future<List<_ighv8e6n.Bot>> getBots() =>
-      caller.callServerEndpoint<List<_ighv8e6n.Bot>>(
-        'bot',
-        'getBots',
-        {},
       );
 }
 
@@ -884,10 +865,10 @@ class EndpointProfile extends _isc.EndpointRef {
 
 /// Classé : partie contre un bot joué **par le serveur**, qui valide chaque
 /// coup — l'Elo gagné ne peut donc pas être truqué côté client. Le bot est
-/// choisi d'après l'Elo du joueur (cahier des charges : < 1000 Débutant,
-/// < 1400 Medium, sinon Expert). La partie se suit ensuite comme toute
-/// partie serveur, par `GameEndpoint.watchPartie` ; l'Elo est mis à jour à
-/// sa fin (`ServerGame`).
+/// le niveau RL dont l'Elo est le plus proche de celui du joueur
+/// (`BotLevel.forElo`), joué par son réseau. La partie se suit ensuite
+/// comme toute partie serveur, par `GameEndpoint.watchPartie` ; l'Elo est
+/// mis à jour à sa fin (`ServerGame`).
 /// {@category Endpoint}
 class EndpointRanked extends _isc.EndpointRef {
   EndpointRanked(_isc.EndpointCaller caller) : super(caller);
@@ -986,7 +967,6 @@ class Client extends _isc.ServerpodClientShared {
     anonymousIdp = EndpointAnonymousIdp(this);
     emailIdp = EndpointEmailIdp(this);
     jwtRefresh = EndpointJwtRefresh(this);
-    bot = EndpointBot(this);
     connection = EndpointConnection(this);
     friends = EndpointFriends(this);
     game = EndpointGame(this);
@@ -1012,8 +992,6 @@ class Client extends _isc.ServerpodClientShared {
   late final EndpointEmailIdp emailIdp;
 
   late final EndpointJwtRefresh jwtRefresh;
-
-  late final EndpointBot bot;
 
   late final EndpointConnection connection;
 
@@ -1047,7 +1025,6 @@ class Client extends _isc.ServerpodClientShared {
     'anonymousIdp': anonymousIdp,
     'emailIdp': emailIdp,
     'jwtRefresh': jwtRefresh,
-    'bot': bot,
     'connection': connection,
     'friends': friends,
     'game': game,

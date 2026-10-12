@@ -5,6 +5,9 @@
 /// chaque côté.
 library;
 
+export 'src/bot_level.dart';
 export 'src/connect4_rules.dart';
-export 'src/heuristic_bot.dart';
+export 'src/connect_four_net.dart';
 export 'src/move_analysis.dart';
+export 'src/network_bot.dart';
+export 'src/tactical_guard.dart';

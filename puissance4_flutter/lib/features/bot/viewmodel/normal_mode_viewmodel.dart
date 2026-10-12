@@ -1,8 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
-import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
+import 'package:puissance4_rules/puissance4_rules.dart';
 
-import '../../../client.dart';
 import '../../auth/viewmodel/auth_viewmodel.dart';
 import '../../game/model/game_launch.dart';
 import '../../history/viewmodel/history_viewmodel.dart';
@@ -10,23 +9,10 @@ import '../../live/viewmodel/live_updates_provider.dart';
 import '../../game/model/game_participant.dart';
 import '../../game/model/local_game_engine.dart';
 import '../../game/viewmodel/game_home_viewmodel.dart';
-import '../../offline/viewmodel/local_cache_provider.dart';
 import '../../offline/viewmodel/offline_sync_provider.dart';
 import '../model/bot_brain.dart';
-import '../model/bot_repository.dart';
 import '../model/normal_game_recorder.dart';
 import '../../settings/viewmodel/locale_provider.dart';
-
-final botRepositoryProvider = Provider<BotRepository>(
-  (ref) => BotRepository(ref.watch(localCacheProvider)),
-);
-
-final botsProvider = StreamProvider<List<Bot>>((ref) {
-  ref.watch(authViewModelProvider);
-  return ref
-      .read(botRepositoryProvider)
-      .watchBots(client.auth.authInfo?.authUserId);
-});
 
 /// La partie est enregistrée dans la session de synchro hors-ligne, qui
 /// exige un `authUserId` — impossible en invité local (limitation déjà
@@ -43,7 +29,7 @@ class NormalModeState {
     this.errorMessage,
   });
 
-  final Bot? selectedBot;
+  final BotLevel? selectedBot;
   final bool isStarting;
 
   /// Échec du dernier "Démarrer", `null` sinon.
@@ -55,12 +41,13 @@ final normalModeViewModelProvider =
       NormalModeViewModel.new,
     );
 
-/// Écran "Mode Normal — choix du bot" (T5.1.1).
+/// Écran "Mode Normal — choix du bot" (T5.1.1) : les niveaux embarqués
+/// ([BotLevel]), jouables sans réseau.
 class NormalModeViewModel extends AutoDisposeNotifier<NormalModeState> {
   @override
   NormalModeState build() => const NormalModeState();
 
-  void select(Bot bot) => state = NormalModeState(selectedBot: bot);
+  void select(BotLevel bot) => state = NormalModeState(selectedBot: bot);
 
   /// Crée la partie hors-ligne et renvoie de quoi ouvrir l'écran de partie,
   /// ou `null` en cas d'échec (message dans [NormalModeState.errorMessage]).
@@ -89,20 +76,20 @@ class NormalModeViewModel extends AutoDisposeNotifier<NormalModeState> {
 /// Crée une partie Normal contre [bot] dans la base locale synchronisée et
 /// renvoie de quoi l'ouvrir. Lève si la partie n'a pas pu être créée.
 /// Recommençable (secousse, E10) : la suivante se crée de la même façon.
-Future<GameLaunch> createNormalLaunch(Ref ref, Bot bot) async {
+Future<GameLaunch> createNormalLaunch(Ref ref, BotLevel bot) async {
   // Le joueur commence toujours, en rouge, contre un bot.
   const userColor = EnumColor.rouge;
   final repository = ref.read(offlineGameRepositoryProvider);
   final partieId = await repository.createGame(bot: bot, playedAs: userColor);
   final home = ref.read(gameHomeViewModelProvider);
-  final brain = HeuristicBotBrain.forElo(bot.elo);
+  final brain = NetworkBotBrain(bot);
   return GameLaunch(
     title: (l10n) => l10n.modeNormal,
     createEngine: (gameRef) => LocalGameEngine(
       rougeSeat: const HumanSeat(),
       jauneSeat: BotSeat(brain.chooseColumn),
       rouge: HumanParticipant(username: home.username, elo: home.elo),
-      jaune: BotParticipant.fromBot(bot),
+      jaune: BotParticipant(name: bot.name, elo: bot.elo),
       myColor: userColor,
       recorder: NormalGameRecorder(
         repository,

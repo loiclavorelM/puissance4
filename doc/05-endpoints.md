@@ -46,9 +46,13 @@ Les DTO (`UserProfileDto`, `LeaderboardEntryDto`, `LobbyRoom`) exposent
 `thumbnailUrl`, l'URL publique du fichier (`ProfilePhoto.url`), jamais le
 chemin ; `null` si le fichier a disparu du stockage.
 
-### Bot — `BotEndpoint` (`client.bot`), `lib/src/bot/`
-- `getBotLevels() -> List<BotDto>`
-- `getLatestModel(idBot: Guid) -> BotModelManifestDto`
+### Bot — pas d'endpoint
+Les 5 niveaux de bot (`BotLevel`, paquet `puissance4_rules`) et leurs modèles
+RL (`.tflite`) sont embarqués dans l'app (`puissance4_flutter/assets/models/`)
+et dans le serveur (`puissance4_server/assets/models/`) : la liste des bots ne
+vient pas du serveur, pour que le mode Normal se joue entièrement hors ligne.
+Le serveur sème ces niveaux dans la table `Bot` sous les mêmes identifiants
+(`lib/src/bot/bot_seed.dart`) pour le Classé et l'historique.
 
 ### Partie serveur — `GameEndpoint` (`client.game`), `lib/src/game/`
 Commun aux deux modes joués **sur le serveur**, seul juge de chaque coup :
@@ -124,16 +128,18 @@ Le Multi ne change pas l'Elo.
 
 ### Classé — `RankedEndpoint` (`client.ranked`), `lib/src/ranked/`
 - `startRanked() -> Guid`
-  Crée une partie `classe` contre le bot choisi d'après l'Elo du joueur
-  (< 1000 Débutant, < 1400 Medium, sinon Expert — `BotStrength.fromElo`),
+  Crée une partie `classe` contre le niveau de bot dont l'Elo est le plus
+  proche de celui du joueur (`BotLevel.forElo`),
   couleurs tirées au sort. Se suit ensuite par `GameEndpoint.watchPartie`.
   En fin de partie (`finished`), l'Elo du joueur est recalculé contre l'Elo
   virtuel du bot (K = 32, `ranked/elo.dart`) dans la même transaction, avec une
   ligne `EloHistory` ; `GameEvent.eloVariation` la renvoie au joueur.
 
-L'IA des bots (`HeuristicBot`, paquet partagé `puissance4_rules`) est la même
-sur le téléphone (Normal) et sur le serveur (Classé), en attendant les modèles
-RL (E5).
+Tous les bots jouent avec les réseaux RL. En Classé, le serveur les recalcule
+en Dart pur (`ConnectFourNet`, poids lus dans le `.tflite`, `BotNetworks`) ; en
+Normal, l'app passe par TFLite sur Android/iOS et par le même réseau en Dart
+ailleurs (web, bureau). La revue de partie garde une recherche exacte
+(`MoveAnalysis`), seule capable d'affirmer qu'une victoire est forcée.
 
 ### History — `HistoryEndpoint` (`client.history`), `lib/src/history/`
 - `getListHistories(typePartie: EnumType?, limit: int, offset: int) -> List<HistoryDto>`
@@ -230,17 +236,6 @@ UserProfileDto
   int nbVictoires    
   // pas d'email ici : géré par le module d'auth natif (AuthUser), pas dupliqué
 
-BotDto
-  Guid id
-  string botName
-  int elo
-  string description
-
-BotModelManifestDto
-  Guid idBot
-  string version
-  string downloadUrl
-
 GamePlayerInfo            // un camp d'une partie serveur
   string username         // nom du bot si isBot
   int elo
@@ -303,9 +298,9 @@ dupliqués ici, pour éviter les divergences entre les deux fichiers).
 - `login` / `logout` / `createaccount` → gérés par le module d'auth natif Serverpod
   (`SignInWidget` + `client.auth.*`) côté client, pas des méthodes custom, et pas
   Firebase (cf. Auth ci-dessus).
-- `ListeBotDispo` / `GetListBot` / `GetBot` / `DownloadBot` → fusionnés en
-  `getBotLevels` + `getLatestModel`, alignés sur le contrat déjà posé dans le
-  cahier des charges.
+- `ListeBotDispo` / `GetListBot` / `GetBot` / `DownloadBot` → d'abord fusionnés
+  en `getBotLevels` + `getLatestModel`, puis supprimés (`getBots` compris) :
+  les modèles sont embarqués dans l'app pour jouer hors ligne.
 - `GetListClassement` → renommé `getLeaderboard` (même nom que le cahier des
   charges).
 

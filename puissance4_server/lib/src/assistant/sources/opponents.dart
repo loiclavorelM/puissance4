@@ -1,3 +1,4 @@
+import 'package:puissance4_rules/puissance4_rules.dart';
 import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
@@ -16,6 +17,11 @@ abstract final class Opponents {
     final trimmed = value.trim();
     if (_ref.hasMatch(trimmed)) return trimmed;
     final lower = trimmed.toLowerCase();
+    // Les niveaux actuels d'abord : d'anciens bots (heuristiques, avant E5)
+    // portent encore le même nom, comme « Expert ».
+    for (final level in BotLevel.values) {
+      if (level.name.toLowerCase() == lower) return 'bot:${level.id}';
+    }
     final bots = await Bot.db.find(session);
     for (final bot in bots) {
       if (bot.botName.toLowerCase() == lower) return 'bot:${bot.id}';

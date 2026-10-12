@@ -4,6 +4,8 @@ import 'package:puissance4_server/src/generated/protocol.dart';
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart';
 import 'package:serverpod_offline_sync_server/serverpod_offline_sync_server.dart'
     show OfflineSyncSpace;
+import 'package:puissance4_rules/puissance4_rules.dart';
+import 'package:serverpod/serverpod.dart';
 import 'package:test/test.dart';
 
 import 'test_tools/serverpod_test_tools.dart';
@@ -76,7 +78,14 @@ void main() {
       final session = sessionBuilder.build();
       bot = await Bot.db.insertRow(
         session,
-        Bot(botName: 'Expert', elo: 1500, pathModel: '', description: ''),
+        // Comme `seedBots` : le niveau Expert, sous son identifiant fixe.
+        Bot(
+          id: UuidValue.withValidation(BotLevel.expert.id),
+          botName: BotLevel.expert.name,
+          elo: BotLevel.expert.elo,
+          pathModel: '',
+          description: '',
+        ),
       );
       botPlayer = await Player.db.insertRow(session, Player(botId: bot.id));
 

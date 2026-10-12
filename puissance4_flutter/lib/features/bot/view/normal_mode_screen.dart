@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:puissance4_client/puissance4_client.dart';
+import 'package:puissance4_rules/puissance4_rules.dart';
 
 import '../../../core/theme/app_palette.dart';
 import '../../game/view/game_screen.dart';
@@ -8,14 +8,13 @@ import '../viewmodel/normal_mode_viewmodel.dart';
 import '../../../core/l10n/l10n.dart';
 import 'bot_labels.dart';
 
-/// Mode Normal — choix du bot parmi ceux renvoyés par le serveur, puis
-/// lancement d'une partie hors-ligne.
+/// Mode Normal — choix du niveau parmi les bots embarqués ([BotLevel]),
+/// puis lancement d'une partie hors-ligne.
 class NormalModeScreen extends ConsumerWidget {
   const NormalModeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final botsAsync = ref.watch(botsProvider);
     final state = ref.watch(normalModeViewModelProvider);
     final viewModel = ref.read(normalModeViewModelProvider.notifier);
     final canPlay = ref.watch(canPlayNormalProvider);
@@ -44,36 +43,17 @@ class NormalModeScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               Expanded(
-                child: botsAsync.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (_, _) => Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          context.l10n.botsLoadError,
-                          style: TextStyle(color: context.colors.textSecondary),
-                        ),
-                        TextButton(
-                          onPressed: () => ref.invalidate(botsProvider),
-                          child: Text(context.l10n.retry),
-                        ),
-                      ],
-                    ),
-                  ),
-                  data: (bots) => ListView.separated(
-                    itemCount: bots.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 12),
-                    itemBuilder: (_, index) {
-                      final bot = bots[index];
-                      return _BotCard(
-                        bot: bot,
-                        isSelected: state.selectedBot?.id == bot.id,
-                        onTap: () => viewModel.select(bot),
-                      );
-                    },
-                  ),
+                child: ListView.separated(
+                  itemCount: BotLevel.values.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 12),
+                  itemBuilder: (_, index) {
+                    final bot = BotLevel.values[index];
+                    return _BotCard(
+                      bot: bot,
+                      isSelected: state.selectedBot == bot,
+                      onTap: () => viewModel.select(bot),
+                    );
+                  },
                 ),
               ),
               if (state.errorMessage != null)
@@ -137,7 +117,7 @@ class _BotCard extends StatelessWidget {
     required this.onTap,
   });
 
-  final Bot bot;
+  final BotLevel bot;
   final bool isSelected;
   final VoidCallback onTap;
 
@@ -156,7 +136,7 @@ class _BotCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 8, 16),
+          padding: const EdgeInsets.all(16),
           child: Row(
             children: [
               Container(
@@ -174,7 +154,7 @@ class _BotCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      localizedBotName(context.l10n, bot.botName),
+                      localizedBotName(context.l10n, bot.name),
                       style: TextStyle(
                         color: context.colors.text,
                         fontWeight: FontWeight.bold,
@@ -199,13 +179,6 @@ class _BotCard extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
-              // Téléchargement du modèle du bot (T5.3.2) — pas encore
-              // branché.
-              IconButton(
-                onPressed: () {},
-                tooltip: context.l10n.download,
-                icon: Icon(Icons.download, color: context.colors.textMuted),
               ),
             ],
           ),

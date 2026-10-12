@@ -56,6 +56,7 @@ dependencies:
   serverpod_flutter: 4.0.3
   serverpod_offline_sync_client: ^0.0.8
   shared_preferences: ^2.5.5
+  tflite_flutter: ^0.12.1
 
 dev_dependencies:
   # Used for agents to drive the app through the Dart MCP
@@ -100,6 +101,9 @@ flutter:
     # poste (ignoré par git) et peut manquer — l'app retombe alors sur
     # http://localhost:8080 (`getServerUrl`).
     - assets/
+    # Modèles RL du mode Normal (`NormalBot.model`), embarqués pour jouer
+    # hors ligne.
+    - assets/models/
 
   # To add custom fonts to your application, add a fonts section here,
   # in this "flutter" section. Each entry in this list should have a

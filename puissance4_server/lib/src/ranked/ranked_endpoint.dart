@@ -6,10 +6,10 @@ import '../generated/protocol.dart';
 
 /// Classé : partie contre un bot joué **par le serveur**, qui valide chaque
 /// coup — l'Elo gagné ne peut donc pas être truqué côté client. Le bot est
-/// choisi d'après l'Elo du joueur (cahier des charges : < 1000 Débutant,
-/// < 1400 Medium, sinon Expert). La partie se suit ensuite comme toute
-/// partie serveur, par `GameEndpoint.watchPartie` ; l'Elo est mis à jour à
-/// sa fin (`ServerGame`).
+/// le niveau RL dont l'Elo est le plus proche de celui du joueur
+/// (`BotLevel.forElo`), joué par son réseau. La partie se suit ensuite
+/// comme toute partie serveur, par `GameEndpoint.watchPartie` ; l'Elo est
+/// mis à jour à sa fin (`ServerGame`).
 class RankedEndpoint extends Endpoint {
   @override
   bool get requireLogin => true;
@@ -21,17 +21,13 @@ class RankedEndpoint extends Endpoint {
     final me = await ServerGame.requireUser(session);
     await ServerGame.ensureNotInGame(session, me);
 
-    final bots = await Bot.db.find(session, orderBy: (t) => t.elo);
-    if (bots.isEmpty) {
+    final bot = await Bot.db.findById(
+      session,
+      UuidValue.withValidation(BotLevel.forElo(me.elo).id),
+    );
+    if (bot == null) {
       throw GameException(reason: EnumGameError.noBotAvailable);
     }
-    final strength = BotStrength.fromElo(me.elo);
-    final bot = bots.firstWhere(
-      (b) => BotStrength.fromElo(b.elo) == strength,
-      orElse: () => bots.reduce(
-        (a, b) => (a.elo - me.elo).abs() <= (b.elo - me.elo).abs() ? a : b,
-      ),
-    );
 
     try {
       final partie = await ServerGame.start(

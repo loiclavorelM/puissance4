@@ -392,17 +392,23 @@ abstract class AppLocalizations {
   /// **'Débutant'**
   String get botBeginner;
 
-  /// No description provided for @botBeginnerDescription.
-  ///
-  /// In fr, this message translates to:
-  /// **'Un bot qui débute au Puissance 4.'**
-  String get botBeginnerDescription;
-
   /// No description provided for @botDisplayName.
   ///
   /// In fr, this message translates to:
   /// **'Bot {name}'**
   String botDisplayName(String name);
+
+  /// No description provided for @botEasy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Facile'**
+  String get botEasy;
+
+  /// No description provided for @botEasyDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un réseau en tout début d\'entraînement, encore plein d\'erreurs.'**
+  String get botEasyDescription;
 
   /// No description provided for @botExpert.
   ///
@@ -413,8 +419,20 @@ abstract class AppLocalizations {
   /// No description provided for @botExpertDescription.
   ///
   /// In fr, this message translates to:
-  /// **'Le bot le plus fort, entraîné par apprentissage par renforcement.'**
+  /// **'Le plus fort : entièrement entraîné, il réfléchit longuement (800 simulations).'**
   String get botExpertDescription;
+
+  /// No description provided for @botHard.
+  ///
+  /// In fr, this message translates to:
+  /// **'Difficile'**
+  String get botHard;
+
+  /// No description provided for @botHardDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réfléchit avant chaque coup (100 simulations).'**
+  String get botHardDescription;
 
   /// No description provided for @botMedium.
   ///
@@ -422,11 +440,17 @@ abstract class AppLocalizations {
   /// **'Medium'**
   String get botMedium;
 
-  /// No description provided for @botMediumDescription.
+  /// No description provided for @botModerate.
   ///
   /// In fr, this message translates to:
-  /// **'Un bot de niveau intermédiaire.'**
-  String get botMediumDescription;
+  /// **'Moyen'**
+  String get botModerate;
+
+  /// No description provided for @botModerateDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ne rate ni une victoire ni un blocage, mais ne calcule pas loin.'**
+  String get botModerateDescription;
 
   /// No description provided for @botThinking.
   ///
@@ -434,11 +458,17 @@ abstract class AppLocalizations {
   /// **'{name} réfléchit…'**
   String botThinking(String name);
 
-  /// No description provided for @botsLoadError.
+  /// No description provided for @botVeryEasy.
   ///
   /// In fr, this message translates to:
-  /// **'Impossible de charger les bots.'**
-  String get botsLoadError;
+  /// **'Très facile'**
+  String get botVeryEasy;
+
+  /// No description provided for @botVeryEasyDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un réseau qui n\'a encore rien appris : il joue presque au hasard.'**
+  String get botVeryEasyDescription;
 
   /// No description provided for @cameraUnavailable.
   ///
@@ -589,12 +619,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Déconnecté'**
   String get disconnected;
-
-  /// No description provided for @download.
-  ///
-  /// In fr, this message translates to:
-  /// **'Télécharger'**
-  String get download;
 
   /// No description provided for @edit.
   ///
@@ -1507,12 +1531,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Adversaire : Bot {name} (ELO {elo})'**
   String rankedOpponent(String name, int elo);
-
-  /// No description provided for @rankedOpponentByElo.
-  ///
-  /// In fr, this message translates to:
-  /// **'Adversaire choisi selon ton Elo'**
-  String get rankedOpponentByElo;
 
   /// No description provided for @rankedRules.
   ///

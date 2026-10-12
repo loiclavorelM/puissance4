@@ -170,13 +170,13 @@ Tickets :
 
 ### US5.1 — En tant que joueur, je veux affronter un bot avec un niveau choisi, afin de jouer à mon niveau.
 Critères d'acceptation :
-- Écran de choix du niveau (Débutant/Medium/Expert).
-- Le coup du bot est calculé localement (hors-ligne).
+- Écran de choix du niveau (5 niveaux : Très facile, Facile, Moyen, Difficile, Expert — `BotLevel`).
+- Le coup du bot est calculé localement (hors-ligne) : modèles `.tflite` embarqués, sans appel serveur.
 
 Tickets :
-- [x] T5.1.1 — Écran "Mode Normal — choix du niveau" (aligné sur 3 niveaux RL, cf. maquettes à ajuster) — `owner:A`/`owner:B`
-- [ ] T5.1.2 — Intégration `tflite_flutter`/`onnxruntime` dans le client Flutter — `owner:B`
-- [ ] T5.1.3 — Appel du modèle local pour déterminer le coup du bot — `owner:B`
+- [x] T5.1.1 — Écran "Mode Normal — choix du niveau" (5 niveaux RL embarqués, plus de liste `getBots`) — `owner:A`/`owner:B`
+- [x] T5.1.2 — Intégration `tflite_flutter` dans le client Flutter (réseau recalculé en Dart sur le web et le bureau) — `owner:B`
+- [x] T5.1.3 — Appel du modèle local pour déterminer le coup du bot (`NetworkBotBrain` : réseau seul ou MCTS, garde-fou tactique) — `owner:B`
 
 ### US5.2 — En tant qu'équipe IA, on veut entraîner 3 modèles RL (Débutant/Medium/Expert), afin d'alimenter les 3 niveaux de bot.
 Critères d'acceptation :
@@ -184,11 +184,13 @@ Critères d'acceptation :
 - Export des 3 modèles en `.tflite` ou `.onnx`.
 
 Tickets :
-- [ ] T5.2.1 — Environnement Puissance 4 pour l'entraînement (Python) — `owner:B` `area:rl`
-- [ ] T5.2.2 — Entraînement self-play (Q-learning/DQN), 3 niveaux — `owner:B` `area:rl`
-- [ ] T5.2.3 — Export SavedModel → TFLite/ONNX + validation de l'inférence — `owner:B` `area:rl`
+- [x] T5.2.1 — Environnement Puissance 4 pour l'entraînement (Python, dans le notebook) — `owner:B` `area:rl`
+- [x] T5.2.2 — Entraînement self-play (AlphaZero : réseau résiduel + MCTS), 5 niveaux tirés des snapshots — `owner:B` `area:rl`
+- [x] T5.2.3 — Export SavedModel → TFLite + validation de l'inférence (PyTorch = Keras = TFLite) — `owner:B` `area:rl`
 
 ### US5.3 — En tant que backend, je veux héberger et versionner les modèles entraînés, afin que le client puisse les télécharger et les mettre à jour sans publier l'app.
+> **Abandonnée** : les modèles (~1,8 Mo chacun) sont embarqués dans les assets de l'app, pour que le mode Normal marche hors ligne dès l'installation. Un nouveau modèle passe par une nouvelle version de l'app.
+
 Critères d'acceptation :
 - Endpoint `getLatestModel(level)` renvoyant l'URL/version du modèle courant.
 - Client capable de télécharger et mettre en cache le modèle.
@@ -215,7 +217,7 @@ Critères d'acceptation :
 - Mêmes garanties anti-parties fantômes que le Multi (délai par coup, délai de grâce).
 
 Tickets :
-- [x] T6.1.1 — `RankedEndpoint.startRanked` + bot serveur (`HeuristicBot` partagé) — `area:backend`
+- [x] T6.1.1 — `RankedEndpoint.startRanked` + bot serveur (réseaux RL en Dart pur, `BotLevel.forElo`) — `area:backend`
 - [x] T6.1.2 — Calcul Elo + `EloHistory` dans la transaction de fin de partie — `area:backend`
 - [x] T6.1.3 — Écran Classé (Elo, adversaire annoncé, reprise d'une partie en cours) — `area:frontend`
 

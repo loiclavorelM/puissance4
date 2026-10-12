@@ -11,7 +11,6 @@
 // ignore_for_file: dead_code, unnecessary_type_check
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:puissance4_client/src/protocol/bot/bot.dart' as _ighv8e6n;
 import 'package:puissance4_client/src/protocol/friends/friend_activity_dto.dart'
     as _ikasuekg;
 import 'package:puissance4_client/src/protocol/friends/friend_challenge_dto.dart'
@@ -677,10 +676,6 @@ class Protocol extends _isd.DatabaseSerializationManager {
       return (data as List)
               .map((e) => deserialize<_i39mlunu.LobbyRoom>(e))
               .toList()
-          as T;
-    }
-    if (t == List<_ighv8e6n.Bot>) {
-      return (data as List).map((e) => deserialize<_ighv8e6n.Bot>(e)).toList()
           as T;
     }
     if (t == List<_ionzpnek.PlayerSearchResultDto>) {

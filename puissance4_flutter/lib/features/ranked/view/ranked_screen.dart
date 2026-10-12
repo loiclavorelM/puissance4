@@ -75,12 +75,10 @@ class RankedScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      opponent == null
-                          ? context.l10n.rankedOpponentByElo
-                          : context.l10n.rankedOpponent(
-                              localizedBotName(context.l10n, opponent.botName),
-                              opponent.elo,
-                            ),
+                      context.l10n.rankedOpponent(
+                        localizedBotName(context.l10n, opponent.name),
+                        opponent.elo,
+                      ),
                       textAlign: TextAlign.center,
                       style: TextStyle(color: context.colors.text),
                     ),
