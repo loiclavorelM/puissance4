@@ -227,6 +227,36 @@
       "label": {
         "fr": "Adversaire",
         "en": "Opponent"
+      },
+      "values": {
+        "Très facile": {
+          "fr": "Très facile",
+          "en": "Very easy"
+        },
+        "Facile": {
+          "fr": "Facile",
+          "en": "Easy"
+        },
+        "Moyen": {
+          "fr": "Moyen",
+          "en": "Intermediate"
+        },
+        "Difficile": {
+          "fr": "Difficile",
+          "en": "Hard"
+        },
+        "Expert": {
+          "fr": "Expert",
+          "en": "Expert"
+        },
+        "Débutant": {
+          "fr": "Débutant",
+          "en": "Beginner"
+        },
+        "Medium": {
+          "fr": "Medium",
+          "en": "Medium"
+        }
       }
     },
     "opponentKind": {
