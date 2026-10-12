@@ -1,0 +1,19 @@
+# Table de correspondance de la pseudonymisation, par conversation : un
+# jeton ([Player:1]) pointe vers une référence (user:<uuid>), jamais vers le
+# nom en clair — le nom se relit au moment de le rétablir. Côté serveur
+# uniquement, jamais exposée.
+class: AssistantToken
+table: assistant_token
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  conversationId: UuidValue, relation(parent=assistant_conversation, onDelete=Cascade)
+  token: String
+  kind: String
+  ref: String
+indexes:
+  assistant_token_token_unique_idx:
+    fields: conversationId, token
+    unique: true
+  assistant_token_ref_unique_idx:
+    fields: conversationId, ref
+    unique: true

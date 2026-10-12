@@ -1,0 +1,6 @@
+# Levée par DataEndpoint et DashboardEndpoint. `message` est en anglais, pour
+# le développeur (l'app affiche un texte selon `reason`).
+exception: AssistantException
+fields:
+  reason: EnumAssistantError
+  message: String?

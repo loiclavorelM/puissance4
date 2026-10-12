@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:assistant_ui/assistant_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +9,8 @@ import 'client.dart';
 import 'core/l10n/l10n.dart';
 import 'core/theme/app_palette.dart';
 import 'core/theme/app_theme.dart';
+import 'features/assistant/view/assistant_screen.dart';
+import 'features/assistant/viewmodel/assistant_providers.dart';
 import 'features/auth/view/login_screen.dart';
 import 'features/auth/viewmodel/auth_viewmodel.dart';
 import 'features/friends/view/challenge_banner.dart';
@@ -64,6 +69,7 @@ class MyApp extends ConsumerWidget {
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [
         AppLocalizations.delegate,
+        AssistantUiLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
@@ -104,9 +110,10 @@ class _AuthGate extends ConsumerWidget {
   }
 }
 
-/// Coquille de navigation principale (post connexion) — 4 onglets : Jouer,
+/// Coquille de navigation principale (post connexion) — 5 onglets : Jouer,
 /// Classement, Historique (`doc/latex/figures/maquette-2.png` et
-/// suivantes) et Amis (E15, hors maquettes). Réglages n'a pas son propre onglet : l'icône engrenage de
+/// suivantes), Stats (tableau de bord et assistant, E16) et Amis (E15, hors
+/// maquettes). Réglages n'a pas son propre onglet : l'icône engrenage de
 /// l'écran Jouer le pousse en route à part (pas besoin des deux accès).
 /// `IndexedStack` garde l'état de chaque onglet en mémoire (ex. le bouton de
 /// test en cours sur Jouer) quand on change d'onglet.
@@ -120,7 +127,8 @@ class _MainShell extends ConsumerStatefulWidget {
 class _MainShellState extends ConsumerState<_MainShell> {
   static const _leaderboardTabIndex = 1;
   static const _historyTabIndex = 2;
-  static const _friendsTabIndex = 3;
+  static const _statsTabIndex = 3;
+  static const _friendsTabIndex = 4;
 
   int _selectedIndex = 0;
 
@@ -137,6 +145,9 @@ class _MainShellState extends ConsumerState<_MainShell> {
     if (index == _historyTabIndex) {
       ref.invalidate(serverHistoryProvider);
       ref.invalidate(offlineHistoryProvider);
+    }
+    if (index == _statsTabIndex && ref.read(assistantAvailableProvider)) {
+      unawaited(ref.read(dashboardControllerProvider).reload());
     }
     if (index == _friendsTabIndex) {
       ref.invalidate(friendsOverviewProvider);
@@ -170,6 +181,7 @@ class _MainShellState extends ConsumerState<_MainShell> {
       GameHomeScreen(onOpenSettings: _openSettings),
       LeaderboardScreen(onAddFriends: _openAddFriends),
       const HistoryScreen(),
+      const AssistantScreen(),
       const FriendsScreen(),
     ];
     final incomingRequests = ref.watch(incomingFriendRequestCountProvider);
@@ -224,6 +236,11 @@ class _MainShellState extends ConsumerState<_MainShell> {
             NavigationDestination(
               icon: const Icon(Icons.history),
               label: context.l10n.tabHistory,
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.insights_outlined),
+              selectedIcon: const Icon(Icons.insights),
+              label: context.l10n.tabStats,
             ),
             NavigationDestination(
               icon: Badge(

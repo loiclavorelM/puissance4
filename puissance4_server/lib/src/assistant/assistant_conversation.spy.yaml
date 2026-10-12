@@ -1,0 +1,11 @@
+# Conversation avec l'assistant (E16).
+class: AssistantConversation
+table: assistant_conversation
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  userId: UuidValue, relation(parent=user, onDelete=Cascade)
+  createdAt: DateTime, default=now
+  updatedAt: DateTime, default=now
+indexes:
+  assistant_conversation_user_idx:
+    fields: userId, updatedAt

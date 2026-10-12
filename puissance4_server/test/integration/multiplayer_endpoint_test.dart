@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:puissance4_server/src/bot/bot_seed.dart';
 import 'package:puissance4_server/src/generated/protocol.dart';
 import 'package:puissance4_server/src/game/server_game.dart';
 import 'package:puissance4_server/src/game/server_game_config.dart';
@@ -653,10 +654,7 @@ void main() {
         () async {
           final alice = await signedInAs('alice');
           final bob = await signedInAs('bob');
-          await Bot.db.insertRow(
-            sessionBuilder.build(),
-            Bot(botName: 'Medium', elo: 1200, pathModel: '', description: ''),
-          );
+          await seedBots(sessionBuilder.build());
           final host = listen(endpoints.multiplayer.hostRoom(alice, false));
           final code = (await host.next(EnumGameEventType.roomCreated)).code!;
           final ranked = await endpoints.ranked.startRanked(alice);

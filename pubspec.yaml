@@ -9,6 +9,8 @@ workspace:
   - puissance4_server
   - puissance4_flutter
   - puissance4_rules
+  - packages/assistant_contracts
+  - packages/assistant_ui
 
 # sqlite3_web 0.9.5 rend `WorkerDatabase` `base` : sqlite_async 0.14.5 (tiré
 # par serverpod_offline_sync, dernière version à ce jour) ne compile plus

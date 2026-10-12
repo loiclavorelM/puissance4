@@ -1,3 +1,14 @@
+assistant:
+  - chat:
+dashboard:
+  - get:
+  - saveWidget:
+  - removeWidget:
+  - undo:
+  - setFilters:
+data:
+  - query:
+  - searchMentions:
 anonymousIdp:
   - login:
 emailIdp:
@@ -11,8 +22,6 @@ emailIdp:
   - hasAccount:
 jwtRefresh:
   - refreshAccessToken:
-bot:
-  - getBots:
 connection:
   - ping:
 friends:

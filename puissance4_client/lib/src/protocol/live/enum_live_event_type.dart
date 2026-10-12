@@ -18,7 +18,8 @@ enum EnumLiveEventType implements _isc.SerializableModel {
   leaderboardChanged,
   lobbyChanged,
   friendsChanged,
-  challengesChanged;
+  challengesChanged,
+  dashboardChanged;
 
   static EnumLiveEventType fromJson(String name) {
     switch (name) {
@@ -34,6 +35,8 @@ enum EnumLiveEventType implements _isc.SerializableModel {
         return EnumLiveEventType.friendsChanged;
       case 'challengesChanged':
         return EnumLiveEventType.challengesChanged;
+      case 'dashboardChanged':
+        return EnumLiveEventType.dashboardChanged;
       default:
         throw ArgumentError(
           'Value "$name" cannot be converted to "EnumLiveEventType"',

@@ -1,0 +1,15 @@
+name: assistant_contracts
+description: >-
+  Contrats de l'assistant (tableau de bord, sources de données, outils MCP,
+  événements, confidentialité) et modèle de domaine en pur Dart, partagés par
+  le serveur et l'app. Transposable : aucune dépendance à Serverpod ni Flutter.
+publish_to: none
+
+environment:
+  sdk: '^3.12.2'
+
+resolution: workspace
+
+dev_dependencies:
+  lints: '>=3.0.0 <7.0.0'
+  test: ^1.25.5

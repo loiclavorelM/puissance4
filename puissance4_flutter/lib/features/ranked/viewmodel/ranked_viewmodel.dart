@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 import 'package:puissance4_rules/puissance4_rules.dart';
 
-import '../../bot/viewmodel/normal_mode_viewmodel.dart';
 import '../../game/model/game_launch.dart';
 import '../../game/model/server_game_engine.dart';
 import '../../game/viewmodel/game_home_viewmodel.dart';
@@ -29,17 +28,11 @@ final rankedRepositoryProvider = Provider<RankedRepository>(
   (ref) => RankedRepository(),
 );
 
-/// Bot que le serveur choisira d'après l'Elo du joueur — mêmes seuils que
-/// `RankedEndpoint` (`BotStrength.fromElo`), pour l'annoncer avant de jouer.
-final rankedOpponentProvider = Provider<Bot?>((ref) {
-  final elo = ref.watch(gameHomeViewModelProvider).elo;
-  final bots = ref.watch(botsProvider).valueOrNull ?? const <Bot>[];
-  final strength = BotStrength.fromElo(elo);
-  for (final bot in bots) {
-    if (BotStrength.fromElo(bot.elo) == strength) return bot;
-  }
-  return null;
-});
+/// Bot que le serveur choisira d'après l'Elo du joueur — même règle que
+/// `RankedEndpoint` (`BotLevel.forElo`), pour l'annoncer avant de jouer.
+final rankedOpponentProvider = Provider<BotLevel>(
+  (ref) => BotLevel.forElo(ref.watch(gameHomeViewModelProvider).elo),
+);
 
 final rankedViewModelProvider =
     NotifierProvider.autoDispose<RankedViewModel, RankedState>(

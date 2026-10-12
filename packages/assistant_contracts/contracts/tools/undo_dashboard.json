@@ -1,0 +1,17 @@
+{
+  "name": "undo_dashboard",
+  "title": "Undo",
+  "description": "Restores the previous version of the dashboard.",
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": false,
+    "idempotentHint": false,
+    "openWorldHint": false
+  },
+  "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "required": [],
+    "additionalProperties": false
+  }
+}

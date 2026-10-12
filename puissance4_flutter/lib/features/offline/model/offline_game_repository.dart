@@ -1,4 +1,5 @@
 import 'package:puissance4_client/puissance4_client.dart';
+import 'package:puissance4_rules/puissance4_rules.dart';
 import 'package:serverpod_offline_sync_client/serverpod_offline_sync_client.dart';
 
 import '../../../client.dart';
@@ -31,7 +32,7 @@ class OfflineGameRepository {
   /// d'abord en `abandoned` : pas de partie fantôme locale, et l'Historique
   /// les ignore déjà (il ne lit que `finished`).
   Future<UuidValue> createGame({
-    required Bot bot,
+    required BotLevel bot,
     required EnumColor playedAs,
   }) => _inOrder(() async {
     final session = await _sessionHolder.getOrCreate();
@@ -49,8 +50,8 @@ class OfflineGameRepository {
       session,
       OfflineMatchResult(
         status: EnumStatut.inProgress,
-        botId: bot.id!,
-        botName: bot.botName,
+        botId: UuidValue.fromString(bot.id),
+        botName: bot.name,
         playedAs: playedAs,
         moves: const [],
         playedAt: DateTime.now(),

@@ -1,0 +1,15 @@
+# Versions précédentes d'un UserDashboard, pour l'annulation. Seules les
+# `DashboardStore.keptVersions` dernières sont gardées.
+class: UserDashboardVersion
+table: user_dashboard_version
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  dashboardId: UuidValue, relation(parent=user_dashboard, onDelete=Cascade)
+  version: int
+  definitionJson: String
+  author: EnumDashboardAuthor
+  createdAt: DateTime, default=now
+indexes:
+  user_dashboard_version_unique_idx:
+    fields: dashboardId, version
+    unique: true

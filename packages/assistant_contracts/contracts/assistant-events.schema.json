@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "assistant-events.schema.json",
+  "title": "AssistantEvent",
+  "description": "Événements du stream AssistantEndpoint.chat, un objet JSON par message.",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": ["event", "conversationId"],
+      "properties": { "event": { "const": "started" }, "conversationId": { "type": "string" } }
+    },
+    {
+      "type": "object",
+      "required": ["event", "tool", "state"],
+      "properties": {
+        "event": { "const": "toolStatus" },
+        "tool": { "type": "string" },
+        "state": { "enum": ["started", "done", "failed"] }
+      }
+    },
+    {
+      "type": "object",
+      "required": ["event", "version"],
+      "properties": { "event": { "const": "dashboardChanged" }, "version": { "type": "integer" } }
+    },
+    {
+      "type": "object",
+      "required": ["event", "definition"],
+      "properties": {
+        "event": { "const": "block" },
+        "definition": { "$ref": "widget-definition.schema.json" }
+      }
+    },
+    {
+      "type": "object",
+      "required": ["event", "text"],
+      "properties": { "event": { "const": "text" }, "text": { "type": "string" } }
+    },
+    {
+      "type": "object",
+      "required": ["event", "usage"],
+      "properties": {
+        "event": { "const": "done" },
+        "usage": {
+          "type": "object",
+          "properties": { "inputTokens": { "type": "integer" }, "outputTokens": { "type": "integer" } }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": ["event", "code"],
+      "properties": {
+        "event": { "const": "error" },
+        "code": { "enum": ["notConfigured", "unavailable", "rateLimited", "tooManySteps", "invalidInput"] }
+      }
+    }
+  ]
+}

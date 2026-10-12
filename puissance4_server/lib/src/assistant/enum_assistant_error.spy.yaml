@@ -1,0 +1,11 @@
+# Raison d'un refus des endpoints de l'assistant (cf. AssistantException).
+enum: EnumAssistantError
+values:
+  # Source ou paramètres invalides (DataEndpoint) — `message` dit quoi corriger.
+  - invalidQuery
+  # Widget, conversation ou version introuvable.
+  - notFound
+  # Définition de widget refusée par la validation (`message`).
+  - invalidWidget
+  # Rien à annuler.
+  - nothingToUndo

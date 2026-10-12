@@ -13,7 +13,6 @@
 import 'dart:async' as _ida;
 import 'dart:typed_data' as _idt;
 import 'package:http/http.dart' as _i85jenna;
-import 'package:puissance4_client/src/protocol/bot/bot.dart' as _ighv8e6n;
 import 'package:puissance4_client/src/protocol/friends/friend_activity_dto.dart'
     as _ikasuekg;
 import 'package:puissance4_client/src/protocol/friends/friend_challenge_dto.dart'
@@ -55,6 +54,129 @@ import 'package:serverpod_offline_sync_client/serverpod_offline_sync_client.dart
 import 'protocol.dart' as _il2as5qe;
 import 'sync_tables.dart' as _ii3f3u05;
 import 'package:puissance4_client/migrations/migration_registry.dart';
+
+/// L'assistant (E16) : une méthode en stream qui renvoie les événements de
+/// `contracts/assistant-events.schema.json`, un objet JSON par message. La
+/// clé du LLM ne quitte jamais le serveur.
+/// {@category Endpoint}
+class EndpointAssistant extends _isc.EndpointRef {
+  EndpointAssistant(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'assistant';
+
+  /// Envoie [inputJson] (`ChatInput` : texte, langue, mentions) dans
+  /// [conversationId], ou dans une nouvelle conversation si `null` — son id
+  /// arrive dans le premier événement (`started`).
+  _ida.Stream<String> chat(
+    String? conversationId,
+    String inputJson,
+  ) => caller.callStreamingServerEndpoint<_ida.Stream<String>, String>(
+    'assistant',
+    'chat',
+    {
+      'conversationId': conversationId,
+      'inputJson': inputJson,
+    },
+    {},
+  );
+}
+
+/// Le tableau de bord de l'assistant côté app (E16) : lecture, panneau
+/// « Modifier », « Épingler » un bloc du chat, annulation, filtres. Les
+/// écritures de l'assistant passent par les outils MCP ; les deux aboutissent
+/// à [DashboardStore], donc aux mêmes versions annulables.
+///
+/// Entrées et sorties en JSON des contrats (`dashboard.schema.json`,
+/// `widget-definition.schema.json`). Les nouvelles versions sont signalées
+/// par `LiveEvent(dashboardChanged)`.
+/// {@category Endpoint}
+class EndpointDashboard extends _isc.EndpointRef {
+  EndpointDashboard(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'dashboard';
+
+  _ida.Future<String> get() => caller.callServerEndpoint<String>(
+    'dashboard',
+    'get',
+    {},
+  );
+
+  /// Ajoute [definitionJson] (sans id : « Épingler ») ou remplace le widget
+  /// de même id (panneau « Modifier »). Lève [AssistantException]
+  /// (`invalidWidget`, `notFound`).
+  _ida.Future<String> saveWidget(String definitionJson) =>
+      caller.callServerEndpoint<String>(
+        'dashboard',
+        'saveWidget',
+        {'definitionJson': definitionJson},
+      );
+
+  _ida.Future<String> removeWidget(String id) =>
+      caller.callServerEndpoint<String>(
+        'dashboard',
+        'removeWidget',
+        {'id': id},
+      );
+
+  /// Revient à la version précédente. Lève [AssistantException]
+  /// (`nothingToUndo`).
+  _ida.Future<String> undo() => caller.callServerEndpoint<String>(
+    'dashboard',
+    'undo',
+    {},
+  );
+
+  /// Remplace les filtres par [filtersJson] (`range`, `mode`, `opponent` en
+  /// référence `user:`/`bot:` ; absent = pas de filtre).
+  _ida.Future<String> setFilters(String filtersJson) =>
+      caller.callServerEndpoint<String>(
+        'dashboard',
+        'setFilters',
+        {'filtersJson': filtersJson},
+      );
+}
+
+/// Données des widgets du tableau de bord (E16) : l'app les charge elle-même,
+/// avec les vraies valeurs — elles ne passent jamais par le LLM.
+///
+/// Entrées et sorties en JSON des contrats (`data.schema.json`) plutôt qu'en
+/// classes Serverpod, pour rester transposables.
+/// {@category Endpoint}
+class EndpointData extends _isc.EndpointRef {
+  EndpointData(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'data';
+
+  /// Interroge [source] avec [paramsJson] (objet JSON, `$dashboard.xxx` déjà
+  /// résolus par l'app). Renvoie un `SourceData` en JSON.
+  ///
+  /// Lève [AssistantException] (`invalidQuery`) si la source ou les
+  /// paramètres sont invalides.
+  _ida.Future<String> query(
+    String source,
+    String paramsJson,
+  ) => caller.callServerEndpoint<String>(
+    'data',
+    'query',
+    {
+      'source': source,
+      'paramsJson': paramsJson,
+    },
+  );
+
+  /// Autocomplétion des mentions du chat : les adversaires du joueur dont le
+  /// nom contient [text] (8 au plus). Renvoie une liste de `Mention` en JSON
+  /// (`ref`, `label`) avec `kind` (`bot` ou `human`).
+  _ida.Future<String> searchMentions(String text) =>
+      caller.callServerEndpoint<String>(
+        'data',
+        'searchMentions',
+        {'text': text},
+      );
+}
 
 /// By extending [AnonymousIdpBaseEndpoint], the anonymous identity provider
 /// endpoint is made available on the server and enables the corresponding
@@ -294,24 +416,6 @@ class EndpointJwtRefresh extends _iacc.EndpointRefreshJwtTokens {
         'refreshAccessToken',
         {'refreshToken': refreshToken},
         authenticated: false,
-      );
-}
-
-/// Liste des bots jouables en mode Normal (E5) — alimentée par `botSeeds`
-/// (`bot_seed.dart`). Pas de connexion requise : ce n'est pas une donnée
-/// personnelle, et un invité local doit pouvoir voir les niveaux proposés.
-/// {@category Endpoint}
-class EndpointBot extends _isc.EndpointRef {
-  EndpointBot(_isc.EndpointCaller caller) : super(caller);
-
-  @override
-  String get name => 'bot';
-
-  _ida.Future<List<_ighv8e6n.Bot>> getBots() =>
-      caller.callServerEndpoint<List<_ighv8e6n.Bot>>(
-        'bot',
-        'getBots',
-        {},
       );
 }
 
@@ -761,10 +865,10 @@ class EndpointProfile extends _isc.EndpointRef {
 
 /// Classé : partie contre un bot joué **par le serveur**, qui valide chaque
 /// coup — l'Elo gagné ne peut donc pas être truqué côté client. Le bot est
-/// choisi d'après l'Elo du joueur (cahier des charges : < 1000 Débutant,
-/// < 1400 Medium, sinon Expert). La partie se suit ensuite comme toute
-/// partie serveur, par `GameEndpoint.watchPartie` ; l'Elo est mis à jour à
-/// sa fin (`ServerGame`).
+/// le niveau RL dont l'Elo est le plus proche de celui du joueur
+/// (`BotLevel.forElo`), joué par son réseau. La partie se suit ensuite
+/// comme toute partie serveur, par `GameEndpoint.watchPartie` ; l'Elo est
+/// mis à jour à sa fin (`ServerGame`).
 /// {@category Endpoint}
 class EndpointRanked extends _isc.EndpointRef {
   EndpointRanked(_isc.EndpointCaller caller) : super(caller);
@@ -857,10 +961,12 @@ class Client extends _isc.ServerpodClientShared {
              disconnectStreamsOnLostInternetConnection,
          httpClientOverride: httpClientOverride,
        ) {
+    assistant = EndpointAssistant(this);
+    dashboard = EndpointDashboard(this);
+    data = EndpointData(this);
     anonymousIdp = EndpointAnonymousIdp(this);
     emailIdp = EndpointEmailIdp(this);
     jwtRefresh = EndpointJwtRefresh(this);
-    bot = EndpointBot(this);
     connection = EndpointConnection(this);
     friends = EndpointFriends(this);
     game = EndpointGame(this);
@@ -875,13 +981,17 @@ class Client extends _isc.ServerpodClientShared {
     modules = Modules(this);
   }
 
+  late final EndpointAssistant assistant;
+
+  late final EndpointDashboard dashboard;
+
+  late final EndpointData data;
+
   late final EndpointAnonymousIdp anonymousIdp;
 
   late final EndpointEmailIdp emailIdp;
 
   late final EndpointJwtRefresh jwtRefresh;
-
-  late final EndpointBot bot;
 
   late final EndpointConnection connection;
 
@@ -909,10 +1019,12 @@ class Client extends _isc.ServerpodClientShared {
 
   @override
   Map<String, _isc.EndpointRef> get endpointRefLookup => {
+    'assistant': assistant,
+    'dashboard': dashboard,
+    'data': data,
     'anonymousIdp': anonymousIdp,
     'emailIdp': emailIdp,
     'jwtRefresh': jwtRefresh,
-    'bot': bot,
     'connection': connection,
     'friends': friends,
     'game': game,

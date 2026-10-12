@@ -169,25 +169,40 @@ class AppLocalizationsFr extends AppLocalizations {
   String get botBeginner => 'Débutant';
 
   @override
-  String get botBeginnerDescription => 'Un bot qui débute au Puissance 4.';
-
-  @override
   String botDisplayName(String name) {
     return 'Bot $name';
   }
+
+  @override
+  String get botEasy => 'Facile';
+
+  @override
+  String get botEasyDescription =>
+      'Un réseau en tout début d\'entraînement, encore plein d\'erreurs.';
 
   @override
   String get botExpert => 'Expert';
 
   @override
   String get botExpertDescription =>
-      'Le bot le plus fort, entraîné par apprentissage par renforcement.';
+      'Le plus fort : entièrement entraîné, il réfléchit longuement (800 simulations).';
+
+  @override
+  String get botHard => 'Difficile';
+
+  @override
+  String get botHardDescription =>
+      'Réfléchit avant chaque coup (100 simulations).';
 
   @override
   String get botMedium => 'Medium';
 
   @override
-  String get botMediumDescription => 'Un bot de niveau intermédiaire.';
+  String get botModerate => 'Moyen';
+
+  @override
+  String get botModerateDescription =>
+      'Ne rate ni une victoire ni un blocage, mais ne calcule pas loin.';
 
   @override
   String botThinking(String name) {
@@ -195,7 +210,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get botsLoadError => 'Impossible de charger les bots.';
+  String get botVeryEasy => 'Très facile';
+
+  @override
+  String get botVeryEasyDescription =>
+      'Un réseau qui n\'a encore rien appris : il joue presque au hasard.';
 
   @override
   String get cameraUnavailable =>
@@ -287,9 +306,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get disconnected => 'Déconnecté';
-
-  @override
-  String get download => 'Télécharger';
 
   @override
   String get edit => 'Modifier';
@@ -801,9 +817,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get rankedOpponentByElo => 'Adversaire choisi selon ton Elo';
-
-  @override
   String get rankedRules =>
       'Chaque coup est validé par le serveur. Victoire, défaite ou nul font varier ton Elo ; quitter la partie compte comme une défaite (sauf si tu n\'as joué aucun coup). 60 s par coup.';
 
@@ -992,6 +1005,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de charger tes stats à jour — valeurs par défaut affichées.';
 
   @override
+  String get statsServerRequired =>
+      'Le tableau de bord et l\'assistant ont besoin d\'une connexion au serveur. Connecte-toi pour les utiliser.';
+
+  @override
+  String get statsTitle => 'Mes stats';
+
+  @override
   String get statusConnected => 'Connecté';
 
   @override
@@ -1029,6 +1049,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tabPlay => 'Jouer';
+
+  @override
+  String get tabStats => 'Stats';
 
   @override
   String get theme => 'Thème';

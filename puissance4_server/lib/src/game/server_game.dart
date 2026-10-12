@@ -1,11 +1,11 @@
 import 'dart:async';
-import 'dart:isolate';
 import 'dart:math';
 
 import 'package:puissance4_rules/puissance4_rules.dart';
 import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart';
 
+import '../bot/bot_networks.dart';
 import '../friends/friend_notifier.dart';
 import '../generated/protocol.dart';
 import '../live/live_notifier.dart';
@@ -343,8 +343,11 @@ abstract final class ServerGame {
     // Colonne choisie avant la transaction : la position ne peut plus
     // changer qu'en ajoutant un coup, ce que [moveCount] revérifie sous
     // verrou.
-    final column = await _botColumn(
-      BotStrength.fromElo(seat.bot!.elo),
+    final bot = seat.bot!;
+    final column = await BotNetworks.chooseColumn(
+      // Partie commencée contre un ancien bot (heuristique, avant E5) : le
+      // niveau d'Elo le plus proche prend la suite.
+      BotLevel.byId(bot.id!.uuid) ?? BotLevel.forElo(bot.elo),
       partie.moves,
     );
 
@@ -358,16 +361,6 @@ abstract final class ServerGame {
     });
     if (updated != null) await _afterMove(session, updated, seats);
   }
-
-  /// Expert dans un isolate à part : sa recherche explore des milliers de
-  /// positions et bloquerait sinon tout le serveur (requêtes et streams).
-  /// Débutant et Medium répondent en quelques microsecondes : lancer un
-  /// isolate coûterait plus cher que le calcul. Fonction séparée pour que
-  /// la closure envoyée à l'isolate ne capture que [strength] et [moves].
-  static Future<int> _botColumn(BotStrength strength, List<int> moves) async =>
-      strength == BotStrength.expert
-      ? Isolate.run(() => HeuristicBot(strength).chooseColumn(moves))
-      : HeuristicBot(strength).chooseColumn(moves);
 
   /// Abandon explicite : l'adversaire gagne, sauf si l'appelant n'a encore
   /// joué aucun coup (partie annulée) — même si l'adversaire a déjà joué.

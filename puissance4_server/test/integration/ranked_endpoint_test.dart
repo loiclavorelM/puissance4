@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:puissance4_rules/puissance4_rules.dart';
+import 'package:puissance4_server/src/bot/bot_seed.dart';
 import 'package:puissance4_server/src/game/server_game_config.dart';
 import 'package:puissance4_server/src/generated/protocol.dart';
 import 'package:serverpod/serverpod.dart';
@@ -75,11 +77,7 @@ void main() {
         ServerGameConfig.botMoveDelay = const Duration(milliseconds: 20);
         ServerGameConfig.turnTimeout = const Duration(seconds: 30);
         ServerGameConfig.disconnectGrace = const Duration(milliseconds: 300);
-        await Bot.db.insert(sessionBuilder.build(), [
-          Bot(botName: 'Débutant', elo: 800, pathModel: '', description: ''),
-          Bot(botName: 'Medium', elo: 1200, pathModel: '', description: ''),
-          Bot(botName: 'Expert', elo: 1600, pathModel: '', description: ''),
-        ]);
+        await seedBots(sessionBuilder.build());
       });
 
       tearDown(() async {
@@ -106,7 +104,7 @@ void main() {
       });
 
       test(
-        'when a 1000 Elo player starts then they face the Medium bot in a classe partie',
+        'when a 1000 Elo player starts then they face the closest level (Moyen) in a classe partie',
         () async {
           final (alice, _) = await signedIn();
 
@@ -121,7 +119,7 @@ void main() {
           final bot = start.yourColor == EnumColor.rouge
               ? start.jaune!
               : start.rouge!;
-          expect(bot.username, 'Medium');
+          expect(bot.username, BotLevel.moyen.name);
           expect(bot.isBot, isTrue);
           await expectLater(
             endpoints.ranked.startRanked(alice),
@@ -169,11 +167,11 @@ void main() {
             (e) => e.type == EnumGameEventType.gameOver,
           );
           expect(over.endReason, EnumGameEndReason.forfeit);
-          expect(over.eloVariation, -8); // 1000 contre le bot Medium (1200)
+          expect(over.eloVariation, -12); // 1000 contre le bot Moyen (1100)
           final session = sessionBuilder.build();
-          expect((await User.db.findById(session, user.id!))!.elo, 992);
+          expect((await User.db.findById(session, user.id!))!.elo, 988);
           final history = await EloHistory.db.find(session);
-          expect(history.single.newElo, 992);
+          expect(history.single.newElo, 988);
         },
       );
 
@@ -220,7 +218,7 @@ void main() {
           }
           expect(partie!.status, EnumStatut.finished);
           expect(partie.endReason, EnumGameEndReason.timeout);
-          expect((await User.db.findById(session, user.id!))!.elo, 992);
+          expect((await User.db.findById(session, user.id!))!.elo, 988);
         },
       );
 

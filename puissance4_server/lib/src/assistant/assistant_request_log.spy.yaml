@@ -1,0 +1,21 @@
+# Journal d'une demande à l'assistant : modèle, tokens, outils appelés,
+# durée, erreur. Ne contient que des données pseudonymisées. Sert aussi à la
+# limite de demandes par heure.
+class: AssistantRequestLog
+table: assistant_request_log
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  userId: UuidValue, relation(parent=user, onDelete=Cascade)
+  conversationId: UuidValue?
+  model: String
+  inputTokens: int
+  outputTokens: int
+  # Noms des outils appelés, dans l'ordre, avec leur état ("add_widget:done").
+  toolsJson: String
+  turns: int
+  durationMs: int
+  errorCode: String?
+  createdAt: DateTime, default=now
+indexes:
+  assistant_request_log_user_idx:
+    fields: userId, createdAt

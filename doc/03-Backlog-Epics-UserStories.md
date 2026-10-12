@@ -170,13 +170,13 @@ Tickets :
 
 ### US5.1 — En tant que joueur, je veux affronter un bot avec un niveau choisi, afin de jouer à mon niveau.
 Critères d'acceptation :
-- Écran de choix du niveau (Débutant/Medium/Expert).
-- Le coup du bot est calculé localement (hors-ligne).
+- Écran de choix du niveau (5 niveaux : Très facile, Facile, Moyen, Difficile, Expert — `BotLevel`).
+- Le coup du bot est calculé localement (hors-ligne) : modèles `.tflite` embarqués, sans appel serveur.
 
 Tickets :
-- [x] T5.1.1 — Écran "Mode Normal — choix du niveau" (aligné sur 3 niveaux RL, cf. maquettes à ajuster) — `owner:A`/`owner:B`
-- [ ] T5.1.2 — Intégration `tflite_flutter`/`onnxruntime` dans le client Flutter — `owner:B`
-- [ ] T5.1.3 — Appel du modèle local pour déterminer le coup du bot — `owner:B`
+- [x] T5.1.1 — Écran "Mode Normal — choix du niveau" (5 niveaux RL embarqués, plus de liste `getBots`) — `owner:A`/`owner:B`
+- [x] T5.1.2 — Intégration `tflite_flutter` dans le client Flutter (réseau recalculé en Dart sur le web et le bureau) — `owner:B`
+- [x] T5.1.3 — Appel du modèle local pour déterminer le coup du bot (`NetworkBotBrain` : réseau seul ou MCTS, garde-fou tactique) — `owner:B`
 
 ### US5.2 — En tant qu'équipe IA, on veut entraîner 3 modèles RL (Débutant/Medium/Expert), afin d'alimenter les 3 niveaux de bot.
 Critères d'acceptation :
@@ -184,11 +184,13 @@ Critères d'acceptation :
 - Export des 3 modèles en `.tflite` ou `.onnx`.
 
 Tickets :
-- [ ] T5.2.1 — Environnement Puissance 4 pour l'entraînement (Python) — `owner:B` `area:rl`
-- [ ] T5.2.2 — Entraînement self-play (Q-learning/DQN), 3 niveaux — `owner:B` `area:rl`
-- [ ] T5.2.3 — Export SavedModel → TFLite/ONNX + validation de l'inférence — `owner:B` `area:rl`
+- [x] T5.2.1 — Environnement Puissance 4 pour l'entraînement (Python, dans le notebook) — `owner:B` `area:rl`
+- [x] T5.2.2 — Entraînement self-play (AlphaZero : réseau résiduel + MCTS), 5 niveaux tirés des snapshots — `owner:B` `area:rl`
+- [x] T5.2.3 — Export SavedModel → TFLite + validation de l'inférence (PyTorch = Keras = TFLite) — `owner:B` `area:rl`
 
 ### US5.3 — En tant que backend, je veux héberger et versionner les modèles entraînés, afin que le client puisse les télécharger et les mettre à jour sans publier l'app.
+> **Abandonnée** : les modèles (~1,8 Mo chacun) sont embarqués dans les assets de l'app, pour que le mode Normal marche hors ligne dès l'installation. Un nouveau modèle passe par une nouvelle version de l'app.
+
 Critères d'acceptation :
 - Endpoint `getLatestModel(level)` renvoyant l'URL/version du modèle courant.
 - Client capable de télécharger et mettre en cache le modèle.
@@ -215,7 +217,7 @@ Critères d'acceptation :
 - Mêmes garanties anti-parties fantômes que le Multi (délai par coup, délai de grâce).
 
 Tickets :
-- [x] T6.1.1 — `RankedEndpoint.startRanked` + bot serveur (`HeuristicBot` partagé) — `area:backend`
+- [x] T6.1.1 — `RankedEndpoint.startRanked` + bot serveur (réseaux RL en Dart pur, `BotLevel.forElo`) — `area:backend`
 - [x] T6.1.2 — Calcul Elo + `EloHistory` dans la transaction de fin de partie — `area:backend`
 - [x] T6.1.3 — Écran Classé (Elo, adversaire annoncé, reprise d'une partie en cours) — `area:frontend`
 
@@ -516,9 +518,44 @@ Tickets :
 
 ---
 
+## E16 — Assistant et tableau de bord modulable `[hors cahier des charges]`
+`area:backend` `area:frontend` `priority:optional`
+
+Prototype personnel, ajouté après coup pour tester une technique
+transposable dans un projet pro : un assistant LLM (Ollama Cloud) qui
+compose le tableau de bord du joueur via un serveur MCP, avec
+pseudonymisation des noms des adversaires avant tout envoi au LLM. Spec,
+analyse et résultats : `doc/06-assistant-mcp.md`. Nouvel onglet « Stats ».
+Réservé aux sessions serveur (comptes email et invités anonymes).
+
+### US16.1 — En tant que joueur, je veux un tableau de bord de mes statistiques que je compose moi-même, afin de suivre ce qui m'intéresse.
+Critères d'acceptation :
+- Widgets chiffre clé, tableau et graphiques (barres, courbe, aires, donut, carte de chaleur du plateau) sur une grille de 12 colonnes, empilés sur téléphone.
+- Ajouter, modifier (panneau qui ne propose que des choix valides), renommer, retirer, annuler ; filtres communs période, mode et adversaire.
+- Données en direct : les widgets se rechargent à la fin d'une partie, Normal compris (après synchronisation).
+
+Tickets :
+- [x] T16.1.1 — `packages/assistant_contracts` : contrats JSON et modèle de domaine partagé — `area:backend` `area:frontend`
+- [x] T16.1.2 — 9 sources de données (`GameRecordRepository`, `DataEndpoint`) — `area:backend`
+- [x] T16.1.3 — `DashboardStore` versionné, `DashboardEndpoint`, `dashboardChanged` — `area:backend`
+- [x] T16.1.4 — `packages/assistant_ui` et onglet « Stats » — `area:frontend`
+
+### US16.2 — En tant que joueur, je veux demander à un assistant d'ajouter un graphique ou de répondre à une question sur mes parties, afin de ne pas tout configurer à la main.
+Critères d'acceptation :
+- L'assistant ajoute, modifie, range ou retire des widgets ; il peut aussi proposer un graphique dans le chat, que j'épingle.
+- Il répond en texte à partir des seules données des outils ; les erreurs arrivent sous forme de codes traduits.
+- Les noms des autres joueurs n'atteignent jamais le LLM (jetons), et la réponse affichée les rétablit.
+
+Tickets :
+- [x] T16.2.1 — Outils MCP et serveur MCP lié au joueur (en mémoire et HTTP de dev) — `area:backend`
+- [x] T16.2.2 — Orchestrateur (`ChatModel`, `OllamaChatModel`), journal, limite par heure — `area:backend`
+- [x] T16.2.3 — Filtre de confidentialité (`ai-exposure.json`, dictionnaire, formats, mentions) — `area:backend`
+- [x] T16.2.4 — Chat avec mentions et blocs épinglables — `area:frontend`
+- [x] T16.2.5 — Évals sur le vrai modèle (`dart test -t eval --run-skipped`) — `area:backend`
+
 ## Récapitulatif
-16 epics, 36 user stories (dont US7.3 et US15.8 abandonnées), 99 tickets. E15 (amis)
-a été ajoutée hors cahier des charges. Tout le
+17 epics, 38 user stories (dont US7.3 et US15.8 abandonnées), 108 tickets. E15 (amis)
+et E16 (assistant et tableau de bord) ont été ajoutées hors cahier des charges. Tout le
 système d'Elo est porté par E6 (mode Classé contre un bot joué par le
 serveur) ; le Multijoueur (E7) ne modifie pas l'Elo. E0 (mode invité local),
 E7 (multijoueur en ligne) et E14 (revue de partie post-match avec IA) sont

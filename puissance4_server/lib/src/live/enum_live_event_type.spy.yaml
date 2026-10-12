@@ -12,3 +12,6 @@ values:
   - friendsChanged
   # Défi d'un ami reçu, retiré ou expiré (E15, `FriendsEndpoint.getChallenges`).
   - challengesChanged
+  # Tableau de bord de l'assistant modifié (E16, nouvelle version) — par
+  # l'assistant ou depuis un autre appareil.
+  - dashboardChanged

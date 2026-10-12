@@ -1,0 +1,7 @@
+# Textes du package (fr modèle, en) — l'app ajoute
+# AssistantUiLocalizations.delegate à ses localizationsDelegates.
+arb-dir: lib/src/l10n
+template-arb-file: assistant_ui_fr.arb
+output-localization-file: assistant_ui_localizations.dart
+output-class: AssistantUiLocalizations
+nullable-getter: false
