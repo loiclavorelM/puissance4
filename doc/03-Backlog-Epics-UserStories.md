@@ -31,7 +31,7 @@ Critères d'acceptation :
 Tickets :
 - [x] T0.1.1 — (spike) Valider `database: sync` / `serverpod_offline_sync` sur un modèle simple (PoC isolé) avant adoption sur les modèles réels — `owner:B` `area:backend`
 - [x] T0.1.2 — Modèle `.spy.yaml` annoté `database: sync` pour les stats/historique invité (SQLite locale générée automatiquement côté client) — `owner:B` `area:backend` *(`OfflineMatchResult`)*
-- [ ] T0.1.3 — Embarquer un modèle de bot par défaut dans les assets de l'app — `owner:B` `area:rl`
+- [x] T0.1.3 — Embarquer un modèle de bot par défaut dans les assets de l'app — `owner:B` `area:rl` *(les 5 modèles `.tflite` sont embarqués, cf. E5)*
 - [x] T0.1.4 — UI : indicateur "mode invité / hors-ligne", désactivation Classé/Multijoueur — `owner:A` *(`ServerConnectionIndicator`, message « nécessite une connexion »)*
 
 ### US0.2 — En tant que joueur invité qui se connecte pour la première fois, je veux que mon historique et mes stats locaux soient migrés vers mon compte, afin de ne pas perdre ma progression.
@@ -97,7 +97,7 @@ Critères d'acceptation :
 Tickets :
 - [x] T1.2.1 — Modèle `User` (`.spy.yaml`) lié à `AuthUser` par relation nullable (schéma Postgres généré par Serverpod) — `owner:B` `area:backend`
 - [x] T1.2.2 — Création paresseuse du profil `User` au premier appel authentifié sans profil existant (ex. dans `getMyProfile`) — `owner:B` `area:backend` *(dès la création de l'`AuthUser` — `createUserForAuthUser` — avec filet dans `getMyProfile`)*
-- [ ] T1.2.3 — Écran de complétion de profil (choix du username) juste après la première inscription réussie — `owner:A`
+- [ ] ~~T1.2.3 — Écran de complétion de profil (choix du username) juste après la première inscription réussie~~ — **remplacé** : un pseudo est attribué à la création du compte, modifiable ensuite depuis « Modifier le profil » (règles de `username_rules.dart`) — `owner:A`
 
 ---
 
@@ -130,7 +130,7 @@ Tickets :
 - [x] T3.1.1 — `serverpod create` + structure du monorepo (`_server`, `_client`, `_flutter`) — `owner:B` *(+ `puissance4_rules`, paquet partagé)*
 - [x] T3.1.2 — Déclaration des endpoints du contrat (signatures vides/mock) — `owner:B` *(implémentés et testés, cf. `doc/05-endpoints.md`)*
 - [x] T3.1.3 — Setup Postgres local (docker-compose fourni par Serverpod) — `owner:B` *(port 8090 ; base embarquée pour les tests)*
-- [ ] T3.1.4 — README "comment lancer le backend en local" — `owner:B`
+- [x] T3.1.4 — README "comment lancer le backend en local" *(README racine, section « Run it locally »)* — `owner:B`
 
 ### US3.2 — En tant qu'équipe, on veut déployer le serveur Serverpod quelque part d'accessible, afin de tester le multijoueur/l'auth réellement en réseau.
 Critères d'acceptation :
@@ -196,8 +196,8 @@ Critères d'acceptation :
 - Client capable de télécharger et mettre en cache le modèle.
 
 Tickets :
-- [ ] T5.3.1 — Stockage des fichiers modèles + endpoint de manifest côté Serverpod — `owner:B` `area:backend`
-- [ ] T5.3.2 — Téléchargement + cache local côté client (au premier lancement / si nouvelle version) — `owner:B`
+- [ ] ~~T5.3.1 — Stockage des fichiers modèles + endpoint de manifest côté Serverpod~~ — **abandonné** (cf. ci-dessus) — `owner:B` `area:backend`
+- [ ] ~~T5.3.2 — Téléchargement + cache local côté client (au premier lancement / si nouvelle version)~~ — **abandonné** (cf. ci-dessus) — `owner:B`
 
 ---
 
@@ -374,7 +374,7 @@ Critères d'acceptation :
 - Courte vidéo de démo montrant le flux complet (login → partie → Elo mis à jour → multijoueur).
 
 Tickets :
-- [ ] T13.1.1 — README principal (pitch EN, stack, instructions de lancement) — `owner:A`
+- [x] T13.1.1 — README principal (pitch EN, stack, instructions de lancement) *(reste : captures d'écran et lien vidéo)* — `owner:A`
 - [ ] T13.1.2 — Vidéo de démo (flux complet) — `owner:A`/`owner:B`
 - [ ] T13.1.3 — Soumission sur builderbase.com — `owner:A`
 

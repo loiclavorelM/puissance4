@@ -23,3 +23,5 @@ pubspec_overrides.yaml
 
 # Env
 .vscode/
+
+rl_training/export/
