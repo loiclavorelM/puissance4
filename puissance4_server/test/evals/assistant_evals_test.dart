@@ -126,6 +126,17 @@ void main() {
             reason: 'leaked $value',
           );
         }
+        if (evalCase['answer_must_match'] case final String pattern) {
+          final answer = events
+              .whereType<TextEvent>()
+              .map((e) => e.text)
+              .join();
+          expect(
+            answer,
+            matches(RegExp(pattern, caseSensitive: false)),
+            reason: 'answer: $answer',
+          );
+        }
         expect(events.whereType<ErrorEvent>(), isEmpty);
         expect(
           ok,
@@ -147,8 +158,15 @@ bool _matches(List<ToolCall> calls, List<YamlMap> expected) {
     final want = expected[i];
     if (call.name != want['tool']) continue;
     final args = (want['args'] as YamlMap?) ?? YamlMap();
+    // Une liste attendue (columns) doit être contenue, dans n'importe quel
+    // ordre ; le reste est comparé tel quel.
     final fits = args.entries.every(
-      (e) => '${call.arguments[e.key]}' == '${e.value}',
+      (e) => switch ((e.value, call.arguments[e.key])) {
+        (final YamlList want, final List<Object?> got) => want.every(
+          (item) => got.map((g) => '$g').contains('$item'),
+        ),
+        (final want, final got) => '$got' == '$want',
+      },
     );
     if (fits) i++;
   }

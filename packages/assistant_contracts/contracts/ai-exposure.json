@@ -7,6 +7,7 @@
       "unless": { "field": "opponentKind", "equals": "bot" }
     },
     "opponentRef": { "exposure": "hidden" },
+    "moveList": { "exposure": "hidden" },
     "username": { "exposure": "pseudonymized", "kind": "Player" },
     "friendCode": { "exposure": "pseudonymized", "kind": "FriendCode" },
     "thumbnailPath": { "exposure": "hidden" },

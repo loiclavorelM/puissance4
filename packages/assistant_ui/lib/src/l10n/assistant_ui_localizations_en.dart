@@ -278,4 +278,44 @@ class AssistantUiLocalizationsEn extends AssistantUiLocalizations {
 
   @override
   String get openAssistant => 'Open assistant';
+
+  @override
+  String get exportFailed => 'The export failed.';
+
+  @override
+  String get editorColumns => 'Columns';
+
+  @override
+  String get widgetExportPdf => 'Export as PDF';
+
+  @override
+  String get widgetExportCsv => 'Export as CSV';
+
+  @override
+  String get exportIndicator => 'Indicator';
+
+  @override
+  String get exportValue => 'Value';
+
+  @override
+  String get exportDelta => 'Change';
+
+  @override
+  String get exportGames => 'Games';
+
+  @override
+  String get exportDeltaCaption => 'vs the previous period';
+
+  @override
+  String get exportData => 'Data';
+
+  @override
+  String exportFooter(String date) {
+    return 'Exported on $date from Connect Four';
+  }
+
+  @override
+  String exportLastGames(int count) {
+    return 'last $count games';
+  }
 }

@@ -20,6 +20,21 @@ void main() {
       }
     });
 
+    test('then the tools accept every source and every source param', () {
+      for (final tool in AssistantContracts.tools) {
+        final properties = (tool.inputSchema['properties']! as Map)
+            .cast<String, Object?>();
+        if (properties['source'] case final Map source) {
+          expect(
+            (source['enum']! as List).toSet(),
+            catalog.sources.keys.toSet(),
+            reason: tool.name,
+          );
+          expect(properties.keys, containsAll(catalog.params.keys));
+        }
+      }
+    });
+
     test('then every tool has the four annotations and a closed schema', () {
       expect(
         AssistantContracts.tools.map((t) => t.name).toSet(),
@@ -61,15 +76,145 @@ void main() {
             case KpiData():
               expect(source.kind, SourceKind.kpi);
             case DataSet(:final fields):
+              // Tableau croisé : les champs suivent les paramètres (ici
+              // ceux par défaut).
               expect(
                 fields.map((f) => f.name),
-                source.fields,
+                catalog.outputFields(source, const {}),
                 reason: source.key,
               );
           }
         }
       },
     );
+  });
+
+  group('Given the games.pivot source', () {
+    final pivot = catalog['games.pivot']!;
+
+    test('when dimensions are chosen then they are the returned fields', () {
+      expect(catalog.outputFields(pivot, const {}), ['mode', 'count']);
+      expect(
+        catalog.outputFields(pivot, {
+          'groupBy': 'opponent',
+          'splitBy': 'result',
+          'measure': 'winRate',
+        }),
+        ['opponent', 'opponentKind', 'result', 'winRate', 'opponentRef'],
+      );
+    });
+
+    test('when a chart is built then its axes follow the dimensions', () {
+      final widget = build({
+        'type': 'chart',
+        'title': 'Taux de victoire par mois et par mode',
+        'source': 'games.pivot',
+        'groupBy': 'month',
+        'splitBy': 'mode',
+        'measure': 'winRate',
+        'starter': 'me',
+      });
+      expect(widget.chart!.x!.field, 'month');
+      expect(widget.chart!.y!.field, 'winRate');
+      expect(widget.chart!.color!.field, 'mode');
+      expect(rules.validate(widget, catalog), isEmpty);
+    });
+
+    test('when a dimension changes then the axes follow it', () {
+      final base = build({
+        'type': 'chart',
+        'title': 'Parties',
+        'source': 'games.pivot',
+      });
+      expect(base.chart!.x!.field, 'mode');
+      final (updated, _) = args.update(base, {'groupBy': 'starter'});
+      expect(updated.chart!.x!.field, 'starter');
+      expect(rules.validate(updated, catalog), isEmpty);
+    });
+
+    test('when an axis is not a returned field then the error lists them', () {
+      final widget = build({
+        'type': 'chart',
+        'title': 'Parties',
+        'source': 'games.pivot',
+        'groupBy': 'month',
+        'x': 'opponent',
+      });
+      expect(
+        rules.validate(widget, catalog),
+        contains(contains('has no field opponent (fields: month, count)')),
+      );
+    });
+
+    test('when both dimensions are the same then it is an error', () {
+      expect(
+        catalog.checkParams(pivot, {'groupBy': 'result', 'splitBy': 'result'}),
+        ['splitBy must differ from groupBy.'],
+      );
+    });
+  });
+
+  group('Given table columns', () {
+    Json recent([Json extra = const {}]) => {
+      'type': 'table',
+      'title': 'Mes parties',
+      'source': 'games.recent',
+      ...extra,
+    };
+
+    test('when columns are chosen then only they are kept, in order', () {
+      final widget = build(
+        recent({
+          'columns': ['opponent', 'moveList', 'result'],
+        }),
+      );
+      expect(widget.display.columns, ['opponent', 'moveList', 'result']);
+      expect(rules.validate(widget, catalog), isEmpty);
+      expect(
+        args.toArgs(widget)['columns'],
+        ['opponent', 'moveList', 'result'],
+      );
+    });
+
+    test(
+      'when a column does not exist then the error lists the valid ones',
+      () {
+        final errors = rules.validate(
+          build(
+            recent({
+              'columns': ['opponent', 'gameId'],
+            }),
+          ),
+          catalog,
+        );
+        expect(errors.single, startsWith('games.recent has no column gameId'));
+        expect(errors.single, contains('moveList'));
+      },
+    );
+
+    test('when a chart gets columns then it is an error', () {
+      final widget = build({
+        'type': 'chart',
+        'title': 'Parties',
+        'source': 'games.byDay',
+        'columns': ['day'],
+      });
+      expect(
+        rules.validate(widget, catalog),
+        contains('Only a table widget has columns.'),
+      );
+    });
+
+    test('when the source changes then the columns are dropped', () {
+      final base = build(
+        recent({
+          'columns': ['opponent', 'result'],
+        }),
+      );
+      final (updated, _) = args.update(base, {'source': 'results.byOpponent'});
+      expect(updated.display.columns, isNull);
+      expect(rules.validate(updated, catalog), isEmpty);
+    });
   });
 
   group('Given ChartRules.validate', () {

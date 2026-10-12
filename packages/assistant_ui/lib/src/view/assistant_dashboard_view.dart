@@ -2,10 +2,13 @@ import 'dart:async';
 
 import 'package:assistant_contracts/assistant_contracts.dart';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../controllers/chat_controller.dart';
 import '../controllers/dashboard_controller.dart';
+import '../export/widget_export.dart';
 import '../l10n/assistant_ui_localizations.dart';
+import '../labels.dart';
 import '../ports/ports.dart';
 import '../theme/dashboard_tokens.dart';
 import 'chart_editor.dart';
@@ -14,9 +17,10 @@ import 'dashboard_grid.dart';
 import 'filter_bar.dart';
 import 'widget_frame.dart';
 
-/// Le tableau de bord complet : filtres, grille, actions (annuler, ajouter)
-/// et chat de l'assistant — en feuille sur téléphone, en panneau à droite
-/// au-delà de [sidePanelFrom] de large.
+/// Le tableau de bord complet : filtres, grille, actions (annuler, ajouter ;
+/// modifier, exporter en PDF ou CSV par widget) et chat de l'assistant — en
+/// feuille sur téléphone, en panneau à droite au-delà de [sidePanelFrom] de
+/// large.
 class AssistantDashboardView extends StatelessWidget {
   const AssistantDashboardView({
     super.key,
@@ -64,7 +68,7 @@ class AssistantDashboardView extends StatelessWidget {
   );
 }
 
-class _Board extends StatelessWidget {
+class _Board extends StatefulWidget {
   const _Board({
     required this.dashboard,
     required this.data,
@@ -74,6 +78,63 @@ class _Board extends StatelessWidget {
   final DashboardController dashboard;
   final DataSourceClient data;
   final ChatController? chat;
+
+  @override
+  State<_Board> createState() => _BoardState();
+}
+
+class _BoardState extends State<_Board> {
+  final _captures = WidgetCaptures();
+
+  DashboardController get dashboard => widget.dashboard;
+  DataSourceClient get data => widget.data;
+  ChatController? get chat => widget.chat;
+
+  /// Exporte un seul widget, avec ses données du moment (mêmes filtres qu'à
+  /// l'écran) : PDF mis en page ou CSV, puis feuille de partage
+  /// (téléchargement sur le web).
+  Future<void> _export(
+    BuildContext context,
+    WidgetDefinition definition, {
+    required bool pdf,
+  }) async {
+    final l10n = AssistantUiLocalizations.of(context);
+    final labels = DashboardLabels.of(context);
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final filters = dashboard.dashboard!.filters;
+    final params = filters.resolve(definition.query.params);
+    final scope = [
+      labels.range(params['range'] as String?),
+      if (params['lastGames'] case final int last) l10n.exportLastGames(last),
+      if (params['mode'] case final String mode) labels.value('mode', mode),
+      if (filters.opponentLabel case final opponent?
+          when params['opponent'] != null)
+        opponent,
+    ].join(' · ');
+    try {
+      final export = WidgetExport(
+        definition: definition,
+        data: await data.query(definition.query.source, params),
+        labels: labels,
+        scope: scope,
+        chartImage: pdf && definition.type == WidgetType.chart
+            ? await _captures.png(definition.id!)
+            : null,
+      );
+      final (bytes, mime, name) = pdf
+          ? (await export.pdf(), 'application/pdf', export.fileName('pdf'))
+          : (export.csv(), 'text/csv', export.fileName('csv'));
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile.fromData(bytes, mimeType: mime, name: name)],
+          fileNameOverrides: [name],
+          downloadFallbackEnabled: true,
+        ),
+      );
+    } on Object {
+      messenger?.showSnackBar(SnackBar(content: Text(l10n.exportFailed)));
+    }
+  }
 
   Future<void> _guard(
     BuildContext context,
@@ -141,6 +202,10 @@ class _Board extends StatelessWidget {
         unawaited(_rename(context, widget));
       case WidgetMenuAction.remove:
         unawaited(_guard(context, () => dashboard.removeWidget(widget.id!)));
+      case WidgetMenuAction.exportPdf:
+        unawaited(_export(context, widget, pdf: true));
+      case WidgetMenuAction.exportCsv:
+        unawaited(_export(context, widget, pdf: false));
     }
   }
 
@@ -332,7 +397,12 @@ class _Board extends StatelessWidget {
                       builder: (context, body) => WidgetFrame(
                         title: widget.title,
                         onMenu: (action) => _onMenu(context, widget, action),
-                        child: body,
+                        // Fond plein : l'image du graphique exporté reste
+                        // lisible sur une page blanche.
+                        child: _captures.capture(
+                          widget.id!,
+                          ColoredBox(color: tokens.surface, child: body),
+                        ),
                       ),
                     ),
                   ),

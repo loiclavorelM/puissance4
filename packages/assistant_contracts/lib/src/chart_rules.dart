@@ -70,18 +70,22 @@ final class ChartRules {
   }
 
   /// Champs de [source] utilisables sur [channel] pour [mark] : ce que le
-  /// panneau « Modifier » propose.
+  /// panneau « Modifier » propose. [params] compte pour un tableau croisé,
+  /// dont les champs dépendent des dimensions choisies.
   List<FieldSpec> allowedFields(
     ChartMark mark,
     ChartChannel channel,
     SourceSpec source,
-    SourceCatalog catalog,
-  ) {
+    SourceCatalog catalog, {
+    Map<String, Object?> params = const {},
+  }) {
     final allowed = marks[mark]!.channels[channel];
     if (allowed == null) return const [];
     return [
-      for (final field in catalog.fieldsOf(source))
-        if (!field.internal && allowed.contains(field.type)) field,
+      for (final name in catalog.outputFields(source, params))
+        if (catalog.fields[name]! case final field
+            when !field.internal && allowed.contains(field.type))
+          field,
     ];
   }
 
@@ -119,9 +123,29 @@ final class ChartRules {
       errors.add('Only a chart widget has a chart spec.');
     }
     if (chart != null && source.kind == SourceKind.rows) {
-      errors.addAll(_validateChart(chart, source, catalog));
+      errors.addAll(
+        _validateChart(chart, source, catalog, definition.query.params),
+      );
     }
 
+    if (definition.display.columns case final columns?) {
+      if (definition.type != WidgetType.table) {
+        errors.add('Only a table widget has columns.');
+      } else {
+        final output = catalog.outputFields(source, definition.query.params);
+        for (final column in columns) {
+          if (!output.contains(column) || catalog.fields[column]!.internal) {
+            errors.add(
+              '${source.key} has no column $column '
+              '(columns: ${_visibleFields(output, catalog)}).',
+            );
+          }
+        }
+        if (columns.isEmpty || columns.toSet().length != columns.length) {
+          errors.add('columns must be non-empty and without duplicates.');
+        }
+      }
+    }
     if (definition.display.color case final color?
         when !displayColors.contains(color)) {
       errors.add('displayColor must be one of ${displayColors.join(', ')}.');
@@ -149,7 +173,9 @@ final class ChartRules {
     ChartSpec chart,
     SourceSpec source,
     SourceCatalog catalog,
+    Map<String, Object?> params,
   ) {
+    final output = catalog.outputFields(source, params);
     final rule = marks[chart.mark]!;
     final errors = <String>[];
     final channels = {
@@ -163,7 +189,14 @@ final class ChartRules {
       if (name == null) {
         if (allowed != null && channel != ChartChannel.color) {
           errors.add(
-            _missingError(chart.mark, channel, allowed, source, catalog),
+            _missingError(
+              chart.mark,
+              channel,
+              allowed,
+              source,
+              catalog,
+              params,
+            ),
           );
         }
         continue;
@@ -172,17 +205,26 @@ final class ChartRules {
         errors.add('A ${chart.mark.name} chart has no ${channel.name}.');
         continue;
       }
-      if (!source.fields.contains(name) || catalog.fields[name]!.internal) {
+      if (!output.contains(name) || catalog.fields[name]!.internal) {
         errors.add(
           '${source.key} has no field $name '
-          '(fields: ${_visibleFields(source, catalog)}).',
+          '(fields: ${_visibleFields(output, catalog)}).',
         );
         continue;
       }
       final type = catalog.fields[name]!.type;
       if (!allowed.contains(type)) {
         errors.add(
-          _typeError(chart.mark, channel, name, type, allowed, source, catalog),
+          _typeError(
+            chart.mark,
+            channel,
+            name,
+            type,
+            allowed,
+            source,
+            catalog,
+            params,
+          ),
         );
       }
     }
@@ -206,8 +248,15 @@ final class ChartRules {
     Set<FieldType> allowed,
     SourceSpec source,
     SourceCatalog catalog,
+    Map<String, Object?> params,
   ) {
-    final fitting = allowedFields(mark, channel, source, catalog);
+    final fitting = allowedFields(
+      mark,
+      channel,
+      source,
+      catalog,
+      params: params,
+    );
     final suggestion = fitting.isEmpty
         ? 'use another chart type'
         : 'use ${fitting.map((f) => f.name).join(' or ')}';
@@ -222,9 +271,16 @@ final class ChartRules {
     Set<FieldType> allowed,
     SourceSpec source,
     SourceCatalog catalog,
+    Map<String, Object?> params,
   ) {
     final kinds = allowed.map((t) => t.name).join(' or ');
-    final fitting = allowedFields(mark, channel, source, catalog);
+    final fitting = allowedFields(
+      mark,
+      channel,
+      source,
+      catalog,
+      params: params,
+    );
     if (fitting.isNotEmpty) {
       return 'A ${mark.name} chart needs a $kinds ${channel.name}: '
           'use ${fitting.map((f) => f.name).join(' or ')}.';
@@ -273,8 +329,8 @@ final class ChartRules {
       if (source.kind == kind) source.key,
   ].join(', ');
 
-  static String _visibleFields(SourceSpec source, SourceCatalog catalog) => [
-    for (final field in catalog.fieldsOf(source))
-      if (!field.internal) field.name,
+  static String _visibleFields(List<String> names, SourceCatalog catalog) => [
+    for (final name in names)
+      if (!catalog.fields[name]!.internal) name,
   ].join(', ');
 }

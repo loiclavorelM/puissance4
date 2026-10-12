@@ -82,6 +82,77 @@
         "fr": "Nombre",
         "en": "Count"
       }
+    },
+    "groupBy": {
+      "type": "enum",
+      "values": [
+        "mode",
+        "opponent",
+        "opponentKind",
+        "result",
+        "starter",
+        "day",
+        "week",
+        "month",
+        "column",
+        "moves"
+      ],
+      "default": "mode",
+      "description": "Only for games.pivot: dimension of the rows (one row or bar per value). column = column of the player's first disc, moves = game length, starter = who played first, week/month = calendar period.",
+      "label": {
+        "fr": "Regrouper par",
+        "en": "Group by"
+      }
+    },
+    "splitBy": {
+      "type": "enum",
+      "values": [
+        "mode",
+        "opponent",
+        "opponentKind",
+        "result",
+        "starter",
+        "day",
+        "week",
+        "month",
+        "column",
+        "moves"
+      ],
+      "description": "Only for games.pivot: optional second dimension, one series per value (chart color). Must differ from groupBy.",
+      "label": {
+        "fr": "Détailler par",
+        "en": "Split by"
+      }
+    },
+    "measure": {
+      "type": "enum",
+      "values": [
+        "count",
+        "wins",
+        "losses",
+        "draws",
+        "winRate",
+        "avgMoves",
+        "eloDelta"
+      ],
+      "default": "count",
+      "description": "Only for games.pivot: value computed for each group. winRate in %, avgMoves = average number of moves, eloDelta = sum of Elo changes (ranked only).",
+      "label": {
+        "fr": "Mesure",
+        "en": "Measure"
+      }
+    },
+    "starter": {
+      "type": "enum",
+      "values": [
+        "me",
+        "opponent"
+      ],
+      "description": "Only for games.pivot: keep only the games where this side played first.",
+      "label": {
+        "fr": "Qui commence",
+        "en": "Who starts"
+      }
     }
   },
   "dashboardParams": [
@@ -246,6 +317,79 @@
         "en": "Game"
       },
       "internal": true
+    },
+    "week": {
+      "type": "temporal",
+      "label": {
+        "fr": "Semaine",
+        "en": "Week"
+      }
+    },
+    "month": {
+      "type": "category",
+      "label": {
+        "fr": "Mois",
+        "en": "Month"
+      }
+    },
+    "starter": {
+      "type": "category",
+      "label": {
+        "fr": "Qui commence",
+        "en": "Who starts"
+      },
+      "values": {
+        "me": {
+          "fr": "Je commence",
+          "en": "I start"
+        },
+        "opponent": {
+          "fr": "L'adversaire commence",
+          "en": "Opponent starts"
+        }
+      }
+    },
+    "wins": {
+      "type": "number",
+      "label": {
+        "fr": "Victoires",
+        "en": "Wins"
+      }
+    },
+    "losses": {
+      "type": "number",
+      "label": {
+        "fr": "Défaites",
+        "en": "Losses"
+      }
+    },
+    "draws": {
+      "type": "number",
+      "label": {
+        "fr": "Nuls",
+        "en": "Draws"
+      }
+    },
+    "winRate": {
+      "type": "number",
+      "label": {
+        "fr": "Taux de victoire (%)",
+        "en": "Win rate (%)"
+      }
+    },
+    "avgMoves": {
+      "type": "number",
+      "label": {
+        "fr": "Coups (moyenne)",
+        "en": "Moves (average)"
+      }
+    },
+    "moveList": {
+      "type": "category",
+      "label": {
+        "fr": "Suite des coups",
+        "en": "Moves played"
+      }
     }
   },
   "sources": [
@@ -408,7 +552,7 @@
         "fr": "Dernières parties",
         "en": "Recent games"
       },
-      "description": "Most recent finished games, newest first. gameId can be passed to analyze_game.",
+      "description": "Most recent finished games, newest first. moveList = the columns played in order (1 = left, 7 = right). gameId can be passed to analyze_game.",
       "fields": [
         "playedAt",
         "mode",
@@ -416,6 +560,7 @@
         "opponentKind",
         "result",
         "moveCount",
+        "moveList",
         "eloDelta",
         "gameId",
         "opponentRef"
@@ -461,6 +606,63 @@
         "mode",
         "opponent"
       ],
+      "live": true
+    },
+    {
+      "key": "games.pivot",
+      "kind": "rows",
+      "label": {
+        "fr": "Tableau croisé",
+        "en": "Pivot table"
+      },
+      "description": "Free cross-tab of the player's games, for any question no other source answers: one row per value of groupBy (and of splitBy if given) with the chosen measure. The data fields are [groupBy, splitBy, measure] (plus opponentKind with opponent). For a chart: x = groupBy, color = splitBy, y = measure (the default).",
+      "fields": [
+        "mode",
+        "opponent",
+        "opponentKind",
+        "result",
+        "starter",
+        "day",
+        "week",
+        "month",
+        "column",
+        "moves",
+        "count",
+        "wins",
+        "losses",
+        "draws",
+        "winRate",
+        "avgMoves",
+        "eloDelta",
+        "opponentRef"
+      ],
+      "fieldParams": [
+        "groupBy",
+        "splitBy",
+        "measure"
+      ],
+      "companions": {
+        "opponent": [
+          "opponentKind",
+          "opponentRef"
+        ]
+      },
+      "params": [
+        "range",
+        "lastGames",
+        "mode",
+        "opponent",
+        "starter",
+        "groupBy",
+        "splitBy",
+        "measure"
+      ],
+      "defaultChart": {
+        "mark": "bar",
+        "x": "$groupBy",
+        "y": "$measure",
+        "color": "$splitBy"
+      },
       "live": true
     }
   ]

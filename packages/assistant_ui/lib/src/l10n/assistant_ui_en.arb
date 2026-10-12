@@ -83,5 +83,17 @@
   "chatError_invalidInput": "Invalid message.",
   "undo": "Undo last change",
   "addWidget": "Add widget",
-  "openAssistant": "Open assistant"
+  "openAssistant": "Open assistant",
+  "exportFailed": "The export failed.",
+  "editorColumns": "Columns",
+  "widgetExportPdf": "Export as PDF",
+  "widgetExportCsv": "Export as CSV",
+  "exportIndicator": "Indicator",
+  "exportValue": "Value",
+  "exportDelta": "Change",
+  "exportGames": "Games",
+  "exportDeltaCaption": "vs the previous period",
+  "exportData": "Data",
+  "exportFooter": "Exported on {date} from Connect Four",
+  "exportLastGames": "last {count} games"
 }

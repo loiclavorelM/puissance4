@@ -7,7 +7,7 @@ import '../ports/ports.dart';
 import '../theme/dashboard_tokens.dart';
 import '../widgets/widget_bodies.dart';
 
-enum WidgetMenuAction { edit, rename, remove }
+enum WidgetMenuAction { edit, rename, exportPdf, exportCsv, remove }
 
 /// Carte d'un widget : titre, menu, et le corps selon l'état des données
 /// (chargement, erreur avec réessai, vide).
@@ -70,6 +70,14 @@ class WidgetFrame extends StatelessWidget {
                     PopupMenuItem(
                       value: WidgetMenuAction.rename,
                       child: Text(l10n.widgetRename),
+                    ),
+                    PopupMenuItem(
+                      value: WidgetMenuAction.exportPdf,
+                      child: Text(l10n.widgetExportPdf),
+                    ),
+                    PopupMenuItem(
+                      value: WidgetMenuAction.exportCsv,
+                      child: Text(l10n.widgetExportCsv),
                     ),
                     PopupMenuItem(
                       value: WidgetMenuAction.remove,

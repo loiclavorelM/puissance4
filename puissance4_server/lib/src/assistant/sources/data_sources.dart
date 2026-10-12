@@ -62,6 +62,7 @@ abstract final class DataSources {
       'games.recent' => _recent(await query.games(session, user), query),
       'elo.history' => _eloHistory(session, user, query),
       'streaks' => _streaks(await query.games(session, user)),
+      'games.pivot' => _pivot(await query.games(session, user), source, params),
       _ => throw StateError('Source $sourceKey declared but not implemented'),
     };
   }
@@ -201,6 +202,7 @@ abstract final class DataSources {
       'opponentKind',
       'result',
       'moveCount',
+      'moveList',
       'eloDelta',
       'gameId',
       'opponentRef',
@@ -214,6 +216,8 @@ abstract final class DataSources {
           game.opponentKind.name,
           game.result.name,
           game.moves.length,
+          // Colonnes jouées, 1 = gauche, comme les autres sources.
+          game.moves.map((c) => c + 1).join(' '),
           game.eloDelta,
           game.id.uuid,
           game.opponentRef,
@@ -267,6 +271,128 @@ abstract final class DataSources {
       if (run > best) best = run;
     }
     return KpiData(value: games.isEmpty ? null : current, secondary: best);
+  }
+
+  /// Tableau croisé : une ligne par valeur de `groupBy` (et de `splitBy`),
+  /// avec la mesure choisie. Dimensions et mesures sont en liste blanche
+  /// (`sources.json`) : jamais de requête libre.
+  static DataSet _pivot(
+    List<GameRecord> games,
+    SourceSpec source,
+    Map<String, Object?> params,
+  ) {
+    final groupBy = catalog.paramValue('groupBy', params)!;
+    final splitBy = catalog.paramValue('splitBy', params);
+    final measure = catalog.paramValue('measure', params)!;
+    final starter = params['starter'] as String?;
+    if (starter != null) {
+      games = [
+        for (final game in games)
+          if (_dimension('starter', game) == starter) game,
+      ];
+    }
+
+    final groups = <(String?, String?), List<GameRecord>>{};
+    final names = <String, (String, OpponentKind)>{};
+    for (final game in games) {
+      final group = _dimension(groupBy, game);
+      final split = splitBy == null ? null : _dimension(splitBy, game);
+      // Pas de premier coup (partie perdue avant de jouer) : hors colonne.
+      if (group == null || (splitBy != null && split == null)) continue;
+      groups.putIfAbsent((group, split), () => []).add(game);
+      names[game.opponentRef] = (game.opponentName, game.opponentKind);
+    }
+
+    /// Valeurs de [dimension] : dans l'ordre du temps ou des numéros, sinon
+    /// de la plus fréquente à la plus rare.
+    List<String> ordered(String dimension) {
+      final totals = <String, int>{};
+      for (final MapEntry(key: (group, split), value: list) in groups.entries) {
+        final value = dimension == groupBy ? group! : split!;
+        totals[value] = (totals[value] ?? 0) + list.length;
+      }
+      final keys = totals.keys.toList();
+      final type = catalog.fields[dimension]!.type;
+      if (type == FieldType.temporal || dimension == 'month') {
+        keys.sort();
+      } else if (dimension == 'column' || dimension == 'moves') {
+        keys.sort((a, b) => int.parse(a).compareTo(int.parse(b)));
+      } else {
+        keys.sort((a, b) => totals[b]!.compareTo(totals[a]!));
+      }
+      return keys;
+    }
+
+    final fields = catalog.outputFields(source, params);
+    final rows = <List<Object?>>[];
+    final groupKeys = ordered(groupBy);
+    final splitKeys = splitBy == null ? const [null] : ordered(splitBy);
+    for (final group in groupKeys) {
+      for (final split in splitKeys) {
+        final list = groups[(group, split)];
+        if (list == null) continue;
+        // L'adversaire est regroupé par référence stable, affiché par nom.
+        String label(String dimension, String value) =>
+            dimension == 'opponent' ? names[value]!.$1 : value;
+        final values = <String, Object?>{
+          groupBy: label(groupBy, group),
+          measure: _measure(measure, list),
+        };
+        if (splitBy != null) values[splitBy] = label(splitBy, split!);
+        // Compagnons de l'adversaire : le type (un bot reste visible pour
+        // le LLM) et la référence (drilldown, filtre).
+        final opponentRef = list.first.opponentRef;
+        if (groupBy == 'opponent' || splitBy == 'opponent') {
+          values['opponentKind'] = names[opponentRef]!.$2.name;
+          values['opponentRef'] = opponentRef;
+        }
+        rows.add([for (final field in fields) values[field]]);
+      }
+    }
+    return DataSet(
+      fields: _fields(fields),
+      rows: rows.take(DataSet.maxRows).toList(),
+      truncated: rows.length > DataSet.maxRows ? rows.length : null,
+    );
+  }
+
+  /// Valeur de la dimension [name] pour [game] (code, jamais un libellé).
+  static String? _dimension(String name, GameRecord game) => switch (name) {
+    'mode' => game.mode.name,
+    'opponent' => game.opponentRef,
+    'opponentKind' => game.opponentKind.name,
+    'result' => game.result.name,
+    'starter' => game.playedAs == EnumColor.rouge ? 'me' : 'opponent',
+    'day' => _day(game.playedAt),
+    'week' => _day(
+      game.playedAt.toUtc().subtract(
+        Duration(days: game.playedAt.toUtc().weekday - 1),
+      ),
+    ),
+    'month' => game.playedAt.toUtc().toIso8601String().substring(0, 7),
+    'column' => switch (game.playedAs == EnumColor.rouge ? 0 : 1) {
+      final index when index < game.moves.length => '${game.moves[index] + 1}',
+      _ => null,
+    },
+    'moves' => '${game.moves.length}',
+    _ => throw StateError('Pivot dimension $name declared but not handled'),
+  };
+
+  static num? _measure(String name, List<GameRecord> games) {
+    int count(EnumMatchResult result) =>
+        games.where((g) => g.result == result).length;
+    return switch (name) {
+      'count' => games.length,
+      'wins' => count(EnumMatchResult.win),
+      'losses' => count(EnumMatchResult.loss),
+      'draws' => count(EnumMatchResult.draw),
+      'winRate' => _winRate(games),
+      'avgMoves' =>
+        (games.fold<int>(0, (sum, g) => sum + g.moves.length) / games.length)
+            .round(),
+      'eloDelta' => games.fold<int>(0, (sum, g) => sum + (g.eloDelta ?? 0)),
+      _ => throw StateError('Pivot measure $name declared but not handled'),
+    };
   }
 
   static List<DataField> _fields(List<String> names) => [

@@ -1,0 +1,27 @@
+{
+  "kind": "rows",
+  "fields": [
+    {
+      "name": "mode",
+      "type": "category"
+    },
+    {
+      "name": "count",
+      "type": "number"
+    }
+  ],
+  "rows": [
+    [
+      "normal",
+      14
+    ],
+    [
+      "classe",
+      9
+    ],
+    [
+      "multi",
+      5
+    ]
+  ]
+}

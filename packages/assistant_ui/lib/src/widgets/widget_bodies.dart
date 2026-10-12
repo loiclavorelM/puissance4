@@ -24,6 +24,7 @@ abstract final class WidgetRegistry {
     ),
     (WidgetType.table, final DataSet rows) => DataTableView(
       data: rows,
+      columns: definition.display.columns,
       onSelect: onSelect,
     ),
     (WidgetType.chart, final DataSet rows) => ChartWidget(
@@ -116,9 +117,17 @@ class KpiCard extends StatelessWidget {
 }
 
 class DataTableView extends StatelessWidget {
-  const DataTableView({super.key, required this.data, this.onSelect});
+  const DataTableView({
+    super.key,
+    required this.data,
+    this.columns,
+    this.onSelect,
+  });
 
   final DataSet data;
+
+  /// Colonnes montrées, dans cet ordre (`null` : toutes).
+  final List<String>? columns;
   final SelectCallback? onSelect;
 
   @override
@@ -126,12 +135,18 @@ class DataTableView extends StatelessWidget {
     final tokens = context.dashboardTokens;
     final labels = DashboardLabels.of(context);
     final catalog = AssistantContracts.catalog;
-    final visible = [
-      for (var i = 0; i < data.fields.length; i++)
-        if (!(catalog.fields[data.fields[i].name]?.internal ?? false) &&
-            data.fields[i].name != 'opponentKind')
-          i,
-    ];
+    // Colonnes choisies, dans leur ordre ; sinon toutes celles qui se lisent.
+    final visible = columns != null
+        ? [
+            for (final name in columns!)
+              if (data.indexOf(name) case final i when i >= 0) i,
+          ]
+        : [
+            for (var i = 0; i < data.fields.length; i++)
+              if (!(catalog.fields[data.fields[i].name]?.internal ?? false) &&
+                  data.fields[i].name != 'opponentKind')
+                i,
+          ];
     final opponentRef = data.indexOf('opponentRef');
     return SingleChildScrollView(
       child: SingleChildScrollView(

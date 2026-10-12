@@ -37,7 +37,8 @@
           "results.byOpponent",
           "games.recent",
           "elo.history",
-          "streaks"
+          "streaks",
+          "games.pivot"
         ],
         "description": "Data source, see list_data_sources."
       },
@@ -95,6 +96,59 @@
         "type": "integer",
         "minimum": 1,
         "maximum": 20
+      },
+      "starter": {
+        "description": "Only for games.pivot: keep only the games where this side played first.",
+        "type": "string",
+        "enum": [
+          "me",
+          "opponent"
+        ]
+      },
+      "groupBy": {
+        "description": "Only for games.pivot: dimension of the rows (one row or bar per value). column = column of the player's first disc, moves = game length, starter = who played first, week/month = calendar period.",
+        "type": "string",
+        "enum": [
+          "mode",
+          "opponent",
+          "opponentKind",
+          "result",
+          "starter",
+          "day",
+          "week",
+          "month",
+          "column",
+          "moves"
+        ]
+      },
+      "splitBy": {
+        "description": "Only for games.pivot: optional second dimension, one series per value (chart color). Must differ from groupBy.",
+        "type": "string",
+        "enum": [
+          "mode",
+          "opponent",
+          "opponentKind",
+          "result",
+          "starter",
+          "day",
+          "week",
+          "month",
+          "column",
+          "moves"
+        ]
+      },
+      "measure": {
+        "description": "Only for games.pivot: value computed for each group. winRate in %, avgMoves = average number of moves, eloDelta = sum of Elo changes (ranked only).",
+        "type": "string",
+        "enum": [
+          "count",
+          "wins",
+          "losses",
+          "draws",
+          "winRate",
+          "avgMoves",
+          "eloDelta"
+        ]
       },
       "mark": {
         "type": "string",
@@ -232,6 +286,14 @@
           "circle"
         ],
         "description": "Heatmap cells; circle draws the board like the game."
+      },
+      "columns": {
+        "description": "Only for type table: the columns to show, in this order (field names of the source, see list_data_sources). Omit to show every column.",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "minItems": 1
       },
       "refresh": {
         "type": "string",
