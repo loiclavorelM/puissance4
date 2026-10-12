@@ -278,4 +278,18 @@ class AssistantUiLocalizationsEn extends AssistantUiLocalizations {
 
   @override
   String get openAssistant => 'Open assistant';
+
+  @override
+  String get exportPdf => 'Export as PDF';
+
+  @override
+  String get exportTitle => 'My Connect Four dashboard';
+
+  @override
+  String exportedOn(String date) {
+    return 'Exported on $date';
+  }
+
+  @override
+  String get exportFailed => 'The PDF export failed.';
 }

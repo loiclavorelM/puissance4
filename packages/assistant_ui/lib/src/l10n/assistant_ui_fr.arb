@@ -104,5 +104,16 @@
   "chatError_invalidInput": "Message invalide.",
   "undo": "Annuler la dernière modification",
   "addWidget": "Ajouter un widget",
-  "openAssistant": "Ouvrir l'assistant"
+  "openAssistant": "Ouvrir l'assistant",
+  "exportPdf": "Exporter en PDF",
+  "exportTitle": "Mon tableau de bord Puissance 4",
+  "exportedOn": "Exporté le {date}",
+  "exportFailed": "L'export PDF a échoué.",
+  "@exportedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  }
 }

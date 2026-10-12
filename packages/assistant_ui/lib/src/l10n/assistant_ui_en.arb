@@ -83,5 +83,9 @@
   "chatError_invalidInput": "Invalid message.",
   "undo": "Undo last change",
   "addWidget": "Add widget",
-  "openAssistant": "Open assistant"
+  "openAssistant": "Open assistant",
+  "exportPdf": "Export as PDF",
+  "exportTitle": "My Connect Four dashboard",
+  "exportedOn": "Exported on {date}",
+  "exportFailed": "The PDF export failed."
 }

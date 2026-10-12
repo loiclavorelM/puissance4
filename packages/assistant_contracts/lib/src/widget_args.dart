@@ -75,7 +75,7 @@ final class WidgetArgs {
       title: args.string('title'),
       query: DataQuery(args.string('source'), params),
       chart: type == WidgetType.chart && source != null
-          ? _chart(args, source)
+          ? _chart(args, source, params)
           : null,
       refresh: switch (args.stringOrNull('refresh')) {
         final mode? => RefreshPolicy(RefreshMode.values.byName(mode)),
@@ -113,7 +113,15 @@ final class WidgetArgs {
         args['source'] != null && args['source'] != base.query.source;
     final markChanged =
         args['mark'] != null && args['mark'] != base.chart?.mark.name;
-    if (sourceChanged || markChanged) {
+    // Tableau croisé : changer une dimension ou la mesure change les champs
+    // renvoyés, les axes repartent donc des valeurs par défaut.
+    final fieldParams = catalog[base.query.source]?.fieldParams ?? const [];
+    final fieldsChanged = fieldParams.any(
+      (p) =>
+          (args[p] != null && args[p] != merged[p]) ||
+          (clear.contains(p) && merged.containsKey(p)),
+    );
+    if (sourceChanged || markChanged || fieldsChanged) {
       merged.removeWhere((key, _) => _chartArgs.contains(key) && key != 'mark');
     }
     if (sourceChanged) {
@@ -172,8 +180,13 @@ final class WidgetArgs {
     });
   }
 
-  ChartSpec _chart(Json args, SourceSpec source) {
+  ChartSpec _chart(Json args, SourceSpec source, Map<String, Object?> params) {
     final defaults = source.defaultChart;
+
+    /// Un axe par défaut peut reprendre un paramètre (`"x": "$groupBy"`).
+    String? resolve(String? axis) => axis != null && axis.startsWith(r'$')
+        ? catalog.paramValue(axis.substring(1), params)
+        : axis;
     final mark = ChartMark.values.byName(
       args.stringOrNull('mark') ?? defaults?.mark ?? ChartMark.bar.name,
     );
@@ -181,7 +194,13 @@ final class WidgetArgs {
 
     String? pick(ChartChannel channel, String? given, String? byDefault) {
       if (given != null) return given;
-      final fitting = rules.allowedFields(mark, channel, source, catalog);
+      final fitting = rules.allowedFields(
+        mark,
+        channel,
+        source,
+        catalog,
+        params: params,
+      );
       if (byDefault != null && fitting.any((f) => f.name == byDefault)) {
         return byDefault;
       }
@@ -203,19 +222,23 @@ final class WidgetArgs {
     );
 
     final x = hasX || args['x'] != null
-        ? pick(ChartChannel.x, args.stringOrNull('x'), defaults?.x)
+        ? pick(ChartChannel.x, args.stringOrNull('x'), resolve(defaults?.x))
         : null;
     final y = hasY || args['y'] != null
-        ? pick(ChartChannel.y, args.stringOrNull('y'), defaults?.y)
+        ? pick(ChartChannel.y, args.stringOrNull('y'), resolve(defaults?.y))
         : null;
     final value = hasValue || args['value'] != null
-        ? pick(ChartChannel.value, args.stringOrNull('value'), defaults?.value)
+        ? pick(
+            ChartChannel.value,
+            args.stringOrNull('value'),
+            resolve(defaults?.value),
+          )
         : null;
     final color = hasColor || args['color'] != null
         ? pick(
             ChartChannel.color,
             args.stringOrNull('color'),
-            sameMark ? defaults?.color : null,
+            sameMark ? resolve(defaults?.color) : null,
           )
         : null;
 

@@ -26,6 +26,7 @@ final class ParamSpec {
     this.values = const [],
     this.min,
     this.max,
+    this.defaultValue,
   });
 
   factory ParamSpec.fromJson(String name, Json json) => ParamSpec(
@@ -40,6 +41,7 @@ final class ParamSpec {
     values: json.list('values').cast<String>(),
     min: json.intOrNull('min'),
     max: json.intOrNull('max'),
+    defaultValue: json.stringOrNull('default'),
   );
 
   final String name;
@@ -49,6 +51,9 @@ final class ParamSpec {
   final List<String> values;
   final int? min;
   final int? max;
+
+  /// Valeur prise quand le paramètre est absent (`null` : aucune).
+  final String? defaultValue;
 
   /// Message d'erreur si [value] ne convient pas, sinon `null`.
   String? check(Object? value) => switch (type) {
@@ -135,6 +140,12 @@ final class DefaultChart {
   final String? color;
   final bool stack;
   final bool horizontal;
+
+  /// Paramètres dont un axe reprend la valeur (`"x": "$groupBy"`).
+  Set<String> get params => {
+    for (final axis in [x, y, value, color])
+      if (axis != null && axis.startsWith(r'$')) axis.substring(1),
+  };
 }
 
 enum SourceKind { kpi, rows }
@@ -147,6 +158,8 @@ final class SourceSpec {
     required this.description,
     required this.params,
     this.fields = const [],
+    this.fieldParams = const [],
+    this.companions = const {},
     this.defaultChart,
     this.live = false,
   });
@@ -156,7 +169,17 @@ final class SourceSpec {
   final LocalizedText label;
   final String description;
   final List<String> params;
+
+  /// Tous les champs que la source peut renvoyer.
   final List<String> fields;
+
+  /// Source à champs choisis (tableau croisé) : paramètres dont la valeur
+  /// est un champ renvoyé, dans cet ordre (`SourceCatalog.outputFields`).
+  final List<String> fieldParams;
+
+  /// Champs ajoutés avec un champ choisi (`opponent` → `opponentKind`,
+  /// `opponentRef`).
+  final Map<String, List<String>> companions;
   final DefaultChart? defaultChart;
 
   /// Données qui changent à la fin d'une partie.
@@ -189,6 +212,12 @@ final class SourceCatalog {
         description: source.string('description'),
         params: source.list('params').cast<String>(),
         fields: source.list('fields').cast<String>(),
+        fieldParams: source.list('fieldParams').cast<String>(),
+        companions: {
+          for (final MapEntry(:key, :value)
+              in (source.objectOrNull('companions') ?? const {}).entries)
+            key: (value! as List).cast<String>(),
+        },
         defaultChart: chart == null ? null : DefaultChart.fromJson(chart),
         live: source.boolOrNull('live') ?? false,
       );
@@ -215,6 +244,34 @@ final class SourceCatalog {
     for (final name in source.fields) fields[name]!,
   ];
 
+  /// Valeur de [name] dans [params], ou sa valeur par défaut.
+  String? paramValue(String name, Map<String, Object?> params) =>
+      switch (params[name]) {
+        final String value when !value.startsWith(dashboardPrefix) => value,
+        _ => this.params[name]?.defaultValue,
+      };
+
+  /// Champs que [source] renvoie pour [params] : ses champs fixes, ou pour
+  /// un tableau croisé les champs choisis ([SourceSpec.fieldParams]) et
+  /// leurs compagnons.
+  List<String> outputFields(SourceSpec source, Map<String, Object?> params) {
+    if (source.fieldParams.isEmpty) return source.fields;
+    final output = <String>[];
+    final internal = <String>[];
+    for (final param in source.fieldParams) {
+      final field = paramValue(param, params);
+      if (field == null || output.contains(field)) continue;
+      output.add(field);
+      for (final companion in source.companions[field] ?? const <String>[]) {
+        if (output.contains(companion) || internal.contains(companion)) {
+          continue;
+        }
+        (fields[companion]!.internal ? internal : output).add(companion);
+      }
+    }
+    return [...output, ...internal];
+  }
+
   /// Erreurs sur [params] pour [source] (paramètres inconnus ou invalides).
   /// Les valeurs `$dashboard.xxx` sont acceptées telles quelles.
   List<String> checkParams(SourceSpec source, Map<String, Object?> params) {
@@ -235,6 +292,18 @@ final class SourceCatalog {
         errors.add(error);
       }
     }
+    // Tableau croisé : deux dimensions identiques ne croisent rien.
+    final chosen = [
+      for (final param in source.fieldParams)
+        if (paramValue(param, params) case final value?) (param, value),
+    ];
+    for (var i = 0; i < chosen.length; i++) {
+      for (var j = i + 1; j < chosen.length; j++) {
+        if (chosen[i].$2 == chosen[j].$2) {
+          errors.add('${chosen[j].$1} must differ from ${chosen[i].$1}.');
+        }
+      }
+    }
     return errors;
   }
 
@@ -252,6 +321,7 @@ final class SourceCatalog {
                 if (!field.internal) field.name: field.type.name,
             },
           'params': source.params,
+          if (source.fieldParams.isNotEmpty) 'fieldsFrom': source.fieldParams,
           if (source.defaultChart case final chart?)
             'defaultChart': compact({
               'mark': chart.mark,
@@ -269,6 +339,7 @@ final class SourceCatalog {
         param.name: compact({
           'description': param.description,
           if (param.values.isNotEmpty) 'values': param.values,
+          'default': param.defaultValue,
           'min': param.min,
           'max': param.max,
         }),
