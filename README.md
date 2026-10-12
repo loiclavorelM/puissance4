@@ -7,7 +7,9 @@ friends in real time, and explains your mistakes with an LLM coach.
 
 - **Web app:** https://puissance4.serverpod.space/
 - **Android APK:** [latest release](https://github.com/loiclavorelM/puissance4/releases/latest)
-- **Demo video:** _(link to add)_
+- **Demo video:** https://youtu.be/ldzXRch4qyI
+
+[![Watch the 2-minute demo](doc/video/thumbnail.png)](https://youtu.be/ldzXRch4qyI)
 
 <!-- Screenshots: add a few phone captures here (game, Normal level picker, ranked, review, dashboard). -->
 
