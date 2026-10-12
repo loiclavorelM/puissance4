@@ -2,10 +2,14 @@ import 'dart:async';
 
 import 'package:assistant_contracts/assistant_contracts.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:printing/printing.dart';
 
 import '../controllers/chat_controller.dart';
 import '../controllers/dashboard_controller.dart';
+import '../export/dashboard_pdf_export.dart';
 import '../l10n/assistant_ui_localizations.dart';
+import '../labels.dart';
 import '../ports/ports.dart';
 import '../theme/dashboard_tokens.dart';
 import 'chart_editor.dart';
@@ -14,9 +18,9 @@ import 'dashboard_grid.dart';
 import 'filter_bar.dart';
 import 'widget_frame.dart';
 
-/// Le tableau de bord complet : filtres, grille, actions (annuler, ajouter)
-/// et chat de l'assistant — en feuille sur téléphone, en panneau à droite
-/// au-delà de [sidePanelFrom] de large.
+/// Le tableau de bord complet : filtres, grille, actions (annuler, exporter
+/// en PDF, ajouter) et chat de l'assistant — en feuille sur téléphone, en
+/// panneau à droite au-delà de [sidePanelFrom] de large.
 class AssistantDashboardView extends StatelessWidget {
   const AssistantDashboardView({
     super.key,
@@ -64,7 +68,7 @@ class AssistantDashboardView extends StatelessWidget {
   );
 }
 
-class _Board extends StatelessWidget {
+class _Board extends StatefulWidget {
   const _Board({
     required this.dashboard,
     required this.data,
@@ -74,6 +78,55 @@ class _Board extends StatelessWidget {
   final DashboardController dashboard;
   final DataSourceClient data;
   final ChatController? chat;
+
+  @override
+  State<_Board> createState() => _BoardState();
+}
+
+class _BoardState extends State<_Board> {
+  final _pdf = DashboardPdfExport();
+  bool _exporting = false;
+
+  DashboardController get dashboard => widget.dashboard;
+  DataSourceClient get data => widget.data;
+  ChatController? get chat => widget.chat;
+
+  /// Capture les widgets affichés et ouvre le partage du PDF (téléchargement
+  /// sur le web).
+  Future<void> _exportPdf(BuildContext context, Dashboard current) async {
+    final l10n = AssistantUiLocalizations.of(context);
+    final labels = DashboardLabels.of(context);
+    final language = Localizations.localeOf(context).languageCode;
+    final now = DateTime.now();
+    final filters = current.filters;
+    final subtitle = [
+      l10n.exportedOn(DateFormat.yMMMd(language).add_Hm().format(now)),
+      labels.range(filters.range),
+      if (filters.mode != null) labels.value('mode', filters.mode),
+      if (filters.opponentLabel != null) filters.opponentLabel!,
+    ].join(' · ');
+    setState(() => _exporting = true);
+    try {
+      final bytes = await _pdf.build(
+        title: l10n.exportTitle,
+        subtitle: subtitle,
+        widgets: current.stacked,
+      );
+      await Printing.sharePdf(
+        bytes: bytes,
+        filename:
+            'puissance4-dashboard-${now.toIso8601String().substring(0, 10)}.pdf',
+      );
+    } on Object {
+      if (context.mounted) {
+        ScaffoldMessenger.maybeOf(
+          context,
+        )?.showSnackBar(SnackBar(content: Text(l10n.exportFailed)));
+      }
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
 
   Future<void> _guard(
     BuildContext context,
@@ -281,6 +334,13 @@ class _Board extends StatelessWidget {
                       icon: const Icon(Icons.undo),
                     ),
                     IconButton(
+                      tooltip: l10n.exportPdf,
+                      onPressed: current.widgets.isEmpty || _exporting
+                          ? null
+                          : () => _exportPdf(context, current),
+                      icon: const Icon(Icons.picture_as_pdf_outlined),
+                    ),
+                    IconButton(
                       tooltip: l10n.addWidget,
                       onPressed: () => ChartEditor.show(
                         context,
@@ -322,17 +382,20 @@ class _Board extends StatelessWidget {
                 else
                   DashboardGrid(
                     dashboard: current,
-                    itemBuilder: (context, widget) => LiveWidget(
-                      key: ValueKey(widget.id),
-                      definition: widget,
-                      filters: current.filters,
-                      client: data,
-                      onSelect: (field, value, source) =>
-                          _onSelect(context, widget, field, value, source),
-                      builder: (context, body) => WidgetFrame(
-                        title: widget.title,
-                        onMenu: (action) => _onMenu(context, widget, action),
-                        child: body,
+                    itemBuilder: (context, widget) => _pdf.capture(
+                      widget.id!,
+                      LiveWidget(
+                        key: ValueKey(widget.id),
+                        definition: widget,
+                        filters: current.filters,
+                        client: data,
+                        onSelect: (field, value, source) =>
+                            _onSelect(context, widget, field, value, source),
+                        builder: (context, body) => WidgetFrame(
+                          title: widget.title,
+                          onMenu: (action) => _onMenu(context, widget, action),
+                          child: body,
+                        ),
                       ),
                     ),
                   ),

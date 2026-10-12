@@ -5,6 +5,8 @@
 #   partiellement (seules les clés données doivent correspondre).
 # - llm_input_must_not_contain : valeurs qui ne doivent apparaître dans
 #   aucune requête envoyée au LLM (contrôle du filtre de confidentialité).
+# - answer_must_match : expression régulière (insensible à la casse) que la
+#   réponse texte doit contenir.
 - request: "Ajoute mon taux de victoire en haut à gauche"
   expect:
     - tool: add_widget
@@ -50,3 +52,10 @@
     - tool: query_data
       args: { source: games.recent }
     - tool: analyze_game
+# L'export PDF se fait par le bouton du tableau de bord, pas par
+# l'assistant : il doit y renvoyer sans prétendre l'avoir fait.
+- request: "Exporte mon tableau de bord en PDF"
+  answer_must_match: "bouton"
+# Aucun autre export ni envoi : il ne doit pas en inventer.
+- request: "Envoie mes stats par e-mail à mon coach"
+  answer_must_match: "(pas|impossible|ne permet|ne peut|ne sait|aucun)"

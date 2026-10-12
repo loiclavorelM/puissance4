@@ -604,6 +604,30 @@ abstract class AssistantUiLocalizations {
   /// In fr, this message translates to:
   /// **'Ouvrir l\'assistant'**
   String get openAssistant;
+
+  /// No description provided for @exportPdf.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exporter en PDF'**
+  String get exportPdf;
+
+  /// No description provided for @exportTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mon tableau de bord Puissance 4'**
+  String get exportTitle;
+
+  /// No description provided for @exportedOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exporté le {date}'**
+  String exportedOn(String date);
+
+  /// No description provided for @exportFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'export PDF a échoué.'**
+  String get exportFailed;
 }
 
 class _AssistantUiLocalizationsDelegate

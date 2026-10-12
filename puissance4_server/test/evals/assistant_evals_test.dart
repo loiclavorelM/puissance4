@@ -126,6 +126,17 @@ void main() {
             reason: 'leaked $value',
           );
         }
+        if (evalCase['answer_must_match'] case final String pattern) {
+          final answer = events
+              .whereType<TextEvent>()
+              .map((e) => e.text)
+              .join();
+          expect(
+            answer,
+            matches(RegExp(pattern, caseSensitive: false)),
+            reason: 'answer: $answer',
+          );
+        }
         expect(events.whereType<ErrorEvent>(), isEmpty);
         expect(
           ok,

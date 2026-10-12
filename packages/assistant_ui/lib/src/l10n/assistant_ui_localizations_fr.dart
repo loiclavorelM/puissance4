@@ -278,4 +278,18 @@ class AssistantUiLocalizationsFr extends AssistantUiLocalizations {
 
   @override
   String get openAssistant => 'Ouvrir l\'assistant';
+
+  @override
+  String get exportPdf => 'Exporter en PDF';
+
+  @override
+  String get exportTitle => 'Mon tableau de bord Puissance 4';
+
+  @override
+  String exportedOn(String date) {
+    return 'Exporté le $date';
+  }
+
+  @override
+  String get exportFailed => 'L\'export PDF a échoué.';
 }

@@ -9,6 +9,7 @@ export 'src/charts/chart_series.dart';
 export 'src/controllers/chat_controller.dart';
 export 'src/controllers/dashboard_controller.dart';
 export 'src/controllers/widget_data_controller.dart';
+export 'src/export/dashboard_pdf_export.dart';
 export 'src/l10n/assistant_ui_localizations.dart';
 export 'src/labels.dart';
 export 'src/ports/ports.dart';

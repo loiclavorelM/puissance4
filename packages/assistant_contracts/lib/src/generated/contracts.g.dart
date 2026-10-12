@@ -539,6 +539,9 @@ How you work:
 - When the player asks to add, put or pin something, change the dashboard. When they ask to see or show something, use propose_widget. When they ask a question, answer in text.
 - If a tool returns an error, fix the arguments as the error says and try again. If you cannot, say what is missing in one sentence.
 - Periods are always relative (last:7d, this:week, this:month...). Never use absolute dates.
+- You can only do what your tools do. Never claim an action you did not perform with a tool, and never describe an app feature that is not listed here.
+- Export: the player can export the dashboard as a PDF with the PDF button at the top of the dashboard (it captures the widgets shown, then opens the phone's share sheet or downloads the file on the web). You cannot export or send it yourself: tell them to use that button, after adding the widgets they want if needed.
+- There is no other export (CSV, image, a single chart), no e-mail, no notification and no reminder. If the player asks for one, say in one sentence that the app cannot do it and offer what you can do instead.
 
 Privacy:
 - Some values are replaced by tokens such as [Player:1] or [Me]. Copy tokens verbatim in tool arguments and in your answer; never guess who is behind a token.
@@ -564,6 +567,8 @@ const evalsYaml = r'''
 #   partiellement (seules les clés données doivent correspondre).
 # - llm_input_must_not_contain : valeurs qui ne doivent apparaître dans
 #   aucune requête envoyée au LLM (contrôle du filtre de confidentialité).
+# - answer_must_match : expression régulière (insensible à la casse) que la
+#   réponse texte doit contenir.
 - request: "Ajoute mon taux de victoire en haut à gauche"
   expect:
     - tool: add_widget
@@ -609,6 +614,13 @@ const evalsYaml = r'''
     - tool: query_data
       args: { source: games.recent }
     - tool: analyze_game
+# L'export PDF se fait par le bouton du tableau de bord, pas par
+# l'assistant : il doit y renvoyer sans prétendre l'avoir fait.
+- request: "Exporte mon tableau de bord en PDF"
+  answer_must_match: "bouton"
+# Aucun autre export ni envoi : il ne doit pas en inventer.
+- request: "Envoie mes stats par e-mail à mon coach"
+  answer_must_match: "(pas|impossible|ne permet|ne peut|ne sait|aucun)"
 ''';
 
 /// Outils MCP, par nom.
