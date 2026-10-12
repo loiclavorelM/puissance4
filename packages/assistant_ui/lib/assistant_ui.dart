@@ -21,4 +21,5 @@ export 'src/view/dashboard_grid.dart';
 export 'src/view/filter_bar.dart';
 export 'src/view/mini_markdown.dart';
 export 'src/view/widget_frame.dart';
+export 'src/widgets/cross_table.dart';
 export 'src/widgets/widget_bodies.dart';

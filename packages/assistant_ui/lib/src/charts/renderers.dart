@@ -35,6 +35,30 @@ int _labelStep(int count, double width, double labelWidth) =>
 TextStyle _axisStyle(DashboardTokens tokens) =>
     TextStyle(fontSize: 10, color: tokens.textMuted);
 
+/// Étiquettes de l'axe des valeurs. fl_chart en ajoute toujours une au
+/// minimum et au maximum de l'axe, même hors graduation (110 au-dessus de
+/// 100 quand l'axe est rallongé de 10 %) : on les masque pour ne pas
+/// chevaucher la graduation voisine.
+SideTitles _valueTitles(
+  RenderInput input,
+  DashboardTokens tokens, {
+  required double reservedSize,
+}) => SideTitles(
+  showTitles: true,
+  reservedSize: reservedSize,
+  getTitlesWidget: (value, meta) {
+    final edge = value == meta.max || value == meta.min;
+    final remainder = (value / meta.appliedInterval).remainder(1).abs();
+    if (edge && remainder > 1e-6 && remainder < 1 - 1e-6) {
+      return const SizedBox.shrink();
+    }
+    return SideTitleWidget(
+      meta: meta,
+      child: Text(input.valueLabel(value), style: _axisStyle(tokens)),
+    );
+  },
+);
+
 FlGridData _grid(DashboardTokens tokens) => FlGridData(
   drawVerticalLine: false,
   getDrawingHorizontalLine: (_) => FlLine(color: tokens.grid, strokeWidth: 0.5),
@@ -81,17 +105,7 @@ class BarRenderer extends StatelessWidget {
               topTitles: const AxisTitles(),
               rightTitles: const AxisTitles(),
               leftTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  reservedSize: 32,
-                  getTitlesWidget: (value, meta) => SideTitleWidget(
-                    meta: meta,
-                    child: Text(
-                      input.valueLabel(value),
-                      style: _axisStyle(tokens),
-                    ),
-                  ),
-                ),
+                sideTitles: _valueTitles(input, tokens, reservedSize: 32),
               ),
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(
@@ -243,17 +257,7 @@ class LineRenderer extends StatelessWidget {
               topTitles: const AxisTitles(),
               rightTitles: const AxisTitles(),
               leftTitles: AxisTitles(
-                sideTitles: SideTitles(
-                  showTitles: true,
-                  reservedSize: 36,
-                  getTitlesWidget: (value, meta) => SideTitleWidget(
-                    meta: meta,
-                    child: Text(
-                      input.valueLabel(value),
-                      style: _axisStyle(tokens),
-                    ),
-                  ),
-                ),
+                sideTitles: _valueTitles(input, tokens, reservedSize: 36),
               ),
               bottomTitles: AxisTitles(
                 sideTitles: SideTitles(

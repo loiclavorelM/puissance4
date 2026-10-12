@@ -18,7 +18,7 @@
           "table",
           "chart"
         ],
-        "description": "kpi for a kpi source (one number); table or chart for a rows source."
+        "description": "kpi for a kpi source (one number); table or chart for a rows source. games.pivot with both groupBy and splitBy (a measure by two dimensions) is a table, shown crossed, unless the player asks for a chart or a graph."
       },
       "title": {
         "type": "string",
