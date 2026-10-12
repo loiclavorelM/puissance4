@@ -128,6 +128,24 @@ final class ChartRules {
       );
     }
 
+    if (definition.display.columns case final columns?) {
+      if (definition.type != WidgetType.table) {
+        errors.add('Only a table widget has columns.');
+      } else {
+        final output = catalog.outputFields(source, definition.query.params);
+        for (final column in columns) {
+          if (!output.contains(column) || catalog.fields[column]!.internal) {
+            errors.add(
+              '${source.key} has no column $column '
+              '(columns: ${_visibleFields(output, catalog)}).',
+            );
+          }
+        }
+        if (columns.isEmpty || columns.toSet().length != columns.length) {
+          errors.add('columns must be non-empty and without duplicates.');
+        }
+      }
+    }
     if (definition.display.color case final color?
         when !displayColors.contains(color)) {
       errors.add('displayColor must be one of ${displayColors.join(', ')}.');

@@ -292,4 +292,7 @@ class AssistantUiLocalizationsEn extends AssistantUiLocalizations {
 
   @override
   String get exportFailed => 'The PDF export failed.';
+
+  @override
+  String get editorColumns => 'Columns';
 }

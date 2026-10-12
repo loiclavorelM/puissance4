@@ -87,5 +87,6 @@
   "exportPdf": "Export as PDF",
   "exportTitle": "My Connect Four dashboard",
   "exportedOn": "Exported on {date}",
-  "exportFailed": "The PDF export failed."
+  "exportFailed": "The PDF export failed.",
+  "editorColumns": "Columns"
 }

@@ -383,6 +383,13 @@
         "fr": "Coups (moyenne)",
         "en": "Moves (average)"
       }
+    },
+    "moveList": {
+      "type": "category",
+      "label": {
+        "fr": "Suite des coups",
+        "en": "Moves played"
+      }
     }
   },
   "sources": [
@@ -545,7 +552,7 @@
         "fr": "Dernières parties",
         "en": "Recent games"
       },
-      "description": "Most recent finished games, newest first. gameId can be passed to analyze_game.",
+      "description": "Most recent finished games, newest first. moveList = the columns played in order (1 = left, 7 = right). gameId can be passed to analyze_game.",
       "fields": [
         "playedAt",
         "mode",
@@ -553,6 +560,7 @@
         "opponentKind",
         "result",
         "moveCount",
+        "moveList",
         "eloDelta",
         "gameId",
         "opponentRef"

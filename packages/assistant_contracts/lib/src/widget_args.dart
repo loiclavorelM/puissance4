@@ -82,6 +82,10 @@ final class WidgetArgs {
         null => RefreshPolicy.live,
       },
       display: WidgetDisplay(
+        columns: switch (args['columns']) {
+          final List<Object?> columns => columns.cast<String>(),
+          _ => null,
+        },
         color: args.stringOrNull('displayColor'),
         cell:
             args.stringOrNull('cellShape') ??
@@ -124,6 +128,8 @@ final class WidgetArgs {
     if (sourceChanged || markChanged || fieldsChanged) {
       merged.removeWhere((key, _) => _chartArgs.contains(key) && key != 'mark');
     }
+    // Les colonnes choisies n'existent plus forcément.
+    if (sourceChanged || fieldsChanged) merged.remove('columns');
     if (sourceChanged) {
       final source = catalog[args.string('source')];
       merged.removeWhere(
@@ -173,6 +179,7 @@ final class WidgetArgs {
       'colorLimit': chart?.color?.limit,
       if (chart?.stack ?? false) 'stack': true,
       if (chart?.horizontal ?? false) 'horizontal': true,
+      'columns': definition.display.columns,
       'displayColor': definition.display.color,
       'cellShape': definition.display.cell,
       if (definition.refresh.mode != RefreshMode.live)

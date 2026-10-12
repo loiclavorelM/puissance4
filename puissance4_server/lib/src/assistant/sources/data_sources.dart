@@ -202,6 +202,7 @@ abstract final class DataSources {
       'opponentKind',
       'result',
       'moveCount',
+      'moveList',
       'eloDelta',
       'gameId',
       'opponentRef',
@@ -215,6 +216,8 @@ abstract final class DataSources {
           game.opponentKind.name,
           game.result.name,
           game.moves.length,
+          // Colonnes jouées, 1 = gauche, comme les autres sources.
+          game.moves.map((c) => c + 1).join(' '),
           game.eloDelta,
           game.id.uuid,
           game.opponentRef,

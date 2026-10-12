@@ -70,6 +70,15 @@ class _ChartEditorState extends State<ChartEditor> {
     }
   });
 
+  /// Colonnes qu'un tableau de cette source peut montrer.
+  static List<String> _readableColumns(
+    WidgetDefinition definition,
+    SourceSpec source,
+  ) => [
+    for (final name in _catalog.outputFields(source, definition.query.params))
+      if (!_catalog.fields[name]!.internal && name != 'opponentKind') name,
+  ];
+
   @override
   void dispose() {
     _title.dispose();
@@ -315,6 +324,39 @@ class _ChartEditorState extends State<ChartEditor> {
                   value: chart.horizontal,
                   onChanged: (v) => _set('horizontal', v ? true : null),
                 ),
+            ],
+            // Tableau : colonnes montrées, dans l'ordre de la source. Tout
+            // cocher revient à ne rien choisir (toutes les colonnes).
+            if (definition.type == WidgetType.table) ...[
+              const SizedBox(height: 4),
+              Text(
+                l10n.editorColumns,
+                style: TextStyle(color: tokens.textMuted),
+              ),
+              Wrap(
+                spacing: 6,
+                children: [
+                  for (final name in _readableColumns(definition, source))
+                    FilterChip(
+                      label: Text(labels.field(name)),
+                      selected:
+                          definition.display.columns?.contains(name) ?? true,
+                      onSelected: (selected) {
+                        final all = _readableColumns(definition, source);
+                        final current = definition.display.columns ?? all;
+                        final next = [
+                          for (final c in all)
+                            if (c == name ? selected : current.contains(c)) c,
+                        ];
+                        if (next.isEmpty) return;
+                        _set(
+                          'columns',
+                          next.length == all.length ? null : next,
+                        );
+                      },
+                    ),
+                ],
+              ),
             ],
             if (source.params.contains('range'))
               _Row(

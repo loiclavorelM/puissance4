@@ -203,6 +203,20 @@ void main() {
       },
     );
 
+    test('when listing recent games then the moves played come back', () async {
+      final data = await query('games.recent') as Map;
+      final names = [
+        for (final f in data['fields'] as List) (f as Map)['name'],
+      ];
+      final rows = (data['rows'] as List).cast<List>();
+      // La partie Normal : [2, 3] en index 0, soit colonnes 3 puis 4.
+      final normal = rows.firstWhere(
+        (r) => r[names.indexOf('mode')] == 'normal',
+      );
+      expect(normal[names.indexOf('moveList')], '3 4');
+      expect(normal[names.indexOf('moveCount')], 2);
+    });
+
     test(
       'when pivoting by opponent and result then each pair is counted',
       () async {

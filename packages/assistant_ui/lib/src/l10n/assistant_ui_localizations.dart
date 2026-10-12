@@ -628,6 +628,12 @@ abstract class AssistantUiLocalizations {
   /// In fr, this message translates to:
   /// **'L\'export PDF a échoué.'**
   String get exportFailed;
+
+  /// No description provided for @editorColumns.
+  ///
+  /// In fr, this message translates to:
+  /// **'Colonnes'**
+  String get editorColumns;
 }
 
 class _AssistantUiLocalizationsDelegate
