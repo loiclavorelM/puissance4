@@ -158,8 +158,15 @@ bool _matches(List<ToolCall> calls, List<YamlMap> expected) {
     final want = expected[i];
     if (call.name != want['tool']) continue;
     final args = (want['args'] as YamlMap?) ?? YamlMap();
+    // Une liste attendue (columns) doit être contenue, dans n'importe quel
+    // ordre ; le reste est comparé tel quel.
     final fits = args.entries.every(
-      (e) => '${call.arguments[e.key]}' == '${e.value}',
+      (e) => switch ((e.value, call.arguments[e.key])) {
+        (final YamlList want, final List<Object?> got) => want.every(
+          (item) => got.map((g) => '$g').contains('$item'),
+        ),
+        (final want, final got) => '$got' == '$want',
+      },
     );
     if (fits) i++;
   }

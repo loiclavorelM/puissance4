@@ -155,11 +155,14 @@ final class Drilldown {
 
 /// Rendu : des jetons du thème, jamais de couleur en dur.
 final class WidgetDisplay {
-  const WidgetDisplay({this.cell, this.color});
+  const WidgetDisplay({this.cell, this.color, this.columns});
 
   factory WidgetDisplay.fromJson(Json json) => WidgetDisplay(
     cell: json.stringOrNull('cell'),
     color: json.stringOrNull('color'),
+    columns: json['columns'] == null
+        ? null
+        : json.list('columns').cast<String>(),
   );
 
   /// `square` ou `circle` (cases du plateau).
@@ -168,9 +171,12 @@ final class WidgetDisplay {
   /// `accent`, `success`, `warn`, `danger`, `neutral`, `rouge`, `jaune`.
   final String? color;
 
-  bool get isEmpty => cell == null && color == null;
+  /// Tableau : les colonnes montrées, dans cet ordre (`null` : toutes).
+  final List<String>? columns;
 
-  Json toJson() => compact({'cell': cell, 'color': color});
+  bool get isEmpty => cell == null && color == null && columns == null;
+
+  Json toJson() => compact({'cell': cell, 'color': color, 'columns': columns});
 }
 
 /// Place sur une grille de 12 colonnes.

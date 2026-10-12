@@ -2,7 +2,8 @@
 # des appels Ollama). Chaque cas part d'une conversation vide.
 #
 # - expect : appels d'outils attendus, dans l'ordre. args est comparé
-#   partiellement (seules les clés données doivent correspondre).
+#   partiellement (seules les clés données doivent correspondre ; une liste
+#   doit être contenue, dans n'importe quel ordre).
 # - llm_input_must_not_contain : valeurs qui ne doivent apparaître dans
 #   aucune requête envoyée au LLM (contrôle du filtre de confidentialité).
 # - answer_must_match : expression régulière (insensible à la casse) que la
@@ -74,3 +75,9 @@
   expect:
     - tool: query_data
       args: { source: games.pivot }
+# Choix des colonnes d'un tableau : « les coups » peut être le nombre
+# (moveCount) ou la suite (moveList).
+- request: "Montre-moi mes parties avec le nom de l'adversaire, les coups et victoire ou défaite, mais rien de plus"
+  expect:
+    - tool: propose_widget
+      args: { type: table, source: games.recent, columns: [opponent, result] }

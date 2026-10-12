@@ -387,6 +387,13 @@ const sourcesJson = r'''
         "fr": "Coups (moyenne)",
         "en": "Moves (average)"
       }
+    },
+    "moveList": {
+      "type": "category",
+      "label": {
+        "fr": "Suite des coups",
+        "en": "Moves played"
+      }
     }
   },
   "sources": [
@@ -549,7 +556,7 @@ const sourcesJson = r'''
         "fr": "Dernières parties",
         "en": "Recent games"
       },
-      "description": "Most recent finished games, newest first. gameId can be passed to analyze_game.",
+      "description": "Most recent finished games, newest first. moveList = the columns played in order (1 = left, 7 = right). gameId can be passed to analyze_game.",
       "fields": [
         "playedAt",
         "mode",
@@ -557,6 +564,7 @@ const sourcesJson = r'''
         "opponentKind",
         "result",
         "moveCount",
+        "moveList",
         "eloDelta",
         "gameId",
         "opponentRef"
@@ -704,6 +712,7 @@ const aiExposureJson = r'''
       "unless": { "field": "opponentKind", "equals": "bot" }
     },
     "opponentRef": { "exposure": "hidden" },
+    "moveList": { "exposure": "hidden" },
     "username": { "exposure": "pseudonymized", "kind": "Player" },
     "friendCode": { "exposure": "pseudonymized", "kind": "FriendCode" },
     "thumbnailPath": { "exposure": "hidden" },
@@ -759,7 +768,8 @@ const evalsYaml = r'''
 # des appels Ollama). Chaque cas part d'une conversation vide.
 #
 # - expect : appels d'outils attendus, dans l'ordre. args est comparé
-#   partiellement (seules les clés données doivent correspondre).
+#   partiellement (seules les clés données doivent correspondre ; une liste
+#   doit être contenue, dans n'importe quel ordre).
 # - llm_input_must_not_contain : valeurs qui ne doivent apparaître dans
 #   aucune requête envoyée au LLM (contrôle du filtre de confidentialité).
 # - answer_must_match : expression régulière (insensible à la casse) que la
@@ -831,6 +841,12 @@ const evalsYaml = r'''
   expect:
     - tool: query_data
       args: { source: games.pivot }
+# Choix des colonnes d'un tableau : « les coups » peut être le nombre
+# (moveCount) ou la suite (moveList).
+- request: "Montre-moi mes parties avec le nom de l'adversaire, les coups et victoire ou défaite, mais rien de plus"
+  expect:
+    - tool: propose_widget
+      args: { type: table, source: games.recent, columns: [opponent, result] }
 ''';
 
 /// Outils MCP, par nom.
@@ -1124,6 +1140,14 @@ const toolsJson = <String, String>{
           "circle"
         ],
         "description": "Heatmap cells; circle draws the board like the game."
+      },
+      "columns": {
+        "description": "Only for type table: the columns to show, in this order (field names of the source, see list_data_sources). Omit to show every column.",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "minItems": 1
       },
       "refresh": {
         "type": "string",
@@ -1581,6 +1605,14 @@ const toolsJson = <String, String>{
           "circle"
         ],
         "description": "Heatmap cells; circle draws the board like the game."
+      },
+      "columns": {
+        "description": "Only for type table: the columns to show, in this order (field names of the source, see list_data_sources). Omit to show every column.",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "minItems": 1
       },
       "refresh": {
         "type": "string",
@@ -2125,6 +2157,14 @@ const toolsJson = <String, String>{
         ],
         "description": "Heatmap cells; circle draws the board like the game."
       },
+      "columns": {
+        "description": "Only for type table: the columns to show, in this order (field names of the source, see list_data_sources). Omit to show every column.",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "minItems": 1
+      },
       "refresh": {
         "type": "string",
         "enum": [
@@ -2270,6 +2310,13 @@ const schemasJson = <String, String>{
             "rouge",
             "jaune"
           ]
+        },
+        "columns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
@@ -3195,6 +3242,10 @@ const fixturesJson = <String, String>{
       "type": "number"
     },
     {
+      "name": "moveList",
+      "type": "category"
+    },
+    {
       "name": "eloDelta",
       "type": "number"
     },
@@ -3215,6 +3266,7 @@ const fixturesJson = <String, String>{
       "bot",
       "draw",
       18,
+      "1 4 7 3 6 2 5 1 4 7 3 6 2 5 1 4 7 3",
       null,
       "0192f000-0000-7000-8000-000000000000",
       "bot:00000000-0000-7000-8000-000000000001"
@@ -3226,6 +3278,7 @@ const fixturesJson = <String, String>{
       "bot",
       "draw",
       19,
+      "1 4 7 3 6 2 5 1 4 7 3 6 2 5 1 4 7 3 6",
       null,
       "0192f000-0000-7000-8000-000000000001",
       "bot:00000000-0000-7000-8000-000000000001"
@@ -3237,6 +3290,7 @@ const fixturesJson = <String, String>{
       "bot",
       "draw",
       13,
+      "1 4 7 3 6 2 5 1 4 7 3 6 2",
       -8,
       "0192f000-0000-7000-8000-000000000002",
       "bot:00000000-0000-7000-8000-000000000001"
@@ -3248,6 +3302,7 @@ const fixturesJson = <String, String>{
       "human",
       "win",
       18,
+      "1 4 7 3 6 2 5 1 4 7 3 6 2 5 1 4 7 3",
       null,
       "0192f000-0000-7000-8000-000000000003",
       "user:00000000-0000-7000-8000-000000000001"
@@ -3259,6 +3314,7 @@ const fixturesJson = <String, String>{
       "human",
       "loss",
       23,
+      "1 4 7 3 6 2 5 1 4 7 3 6 2 5 1 4 7 3 6 2 5 1 4",
       null,
       "0192f000-0000-7000-8000-000000000004",
       "user:00000000-0000-7000-8000-000000000001"
@@ -3270,6 +3326,7 @@ const fixturesJson = <String, String>{
       "bot",
       "draw",
       17,
+      "1 4 7 3 6 2 5 1 4 7 3 6 2 5 1 4 7",
       null,
       "0192f000-0000-7000-8000-000000000005",
       "bot:00000000-0000-7000-8000-000000000001"
@@ -3281,6 +3338,7 @@ const fixturesJson = <String, String>{
       "bot",
       "win",
       19,
+      "1 4 7 3 6 2 5 1 4 7 3 6 2 5 1 4 7 3 6",
       null,
       "0192f000-0000-7000-8000-000000000006",
       "bot:00000000-0000-7000-8000-000000000001"
@@ -3292,6 +3350,7 @@ const fixturesJson = <String, String>{
       "bot",
       "win",
       10,
+      "1 4 7 3 6 2 5 1 4 7",
       -8,
       "0192f000-0000-7000-8000-000000000007",
       "bot:00000000-0000-7000-8000-000000000001"

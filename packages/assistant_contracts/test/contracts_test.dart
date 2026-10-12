@@ -154,6 +154,69 @@ void main() {
     });
   });
 
+  group('Given table columns', () {
+    Json recent([Json extra = const {}]) => {
+      'type': 'table',
+      'title': 'Mes parties',
+      'source': 'games.recent',
+      ...extra,
+    };
+
+    test('when columns are chosen then only they are kept, in order', () {
+      final widget = build(
+        recent({
+          'columns': ['opponent', 'moveList', 'result'],
+        }),
+      );
+      expect(widget.display.columns, ['opponent', 'moveList', 'result']);
+      expect(rules.validate(widget, catalog), isEmpty);
+      expect(
+        args.toArgs(widget)['columns'],
+        ['opponent', 'moveList', 'result'],
+      );
+    });
+
+    test(
+      'when a column does not exist then the error lists the valid ones',
+      () {
+        final errors = rules.validate(
+          build(
+            recent({
+              'columns': ['opponent', 'gameId'],
+            }),
+          ),
+          catalog,
+        );
+        expect(errors.single, startsWith('games.recent has no column gameId'));
+        expect(errors.single, contains('moveList'));
+      },
+    );
+
+    test('when a chart gets columns then it is an error', () {
+      final widget = build({
+        'type': 'chart',
+        'title': 'Parties',
+        'source': 'games.byDay',
+        'columns': ['day'],
+      });
+      expect(
+        rules.validate(widget, catalog),
+        contains('Only a table widget has columns.'),
+      );
+    });
+
+    test('when the source changes then the columns are dropped', () {
+      final base = build(
+        recent({
+          'columns': ['opponent', 'result'],
+        }),
+      );
+      final (updated, _) = args.update(base, {'source': 'results.byOpponent'});
+      expect(updated.display.columns, isNull);
+      expect(rules.validate(updated, catalog), isEmpty);
+    });
+  });
+
   group('Given ChartRules.validate', () {
     test('when a line has a category x then the error names the fix', () {
       final errors = rules.validate(

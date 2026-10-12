@@ -287,6 +287,14 @@
         ],
         "description": "Heatmap cells; circle draws the board like the game."
       },
+      "columns": {
+        "description": "Only for type table: the columns to show, in this order (field names of the source, see list_data_sources). Omit to show every column.",
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "minItems": 1
+      },
       "refresh": {
         "type": "string",
         "enum": [
