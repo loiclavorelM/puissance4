@@ -109,6 +109,56 @@ void main() {
     );
   });
 
+  testWidgets('in a pivot table, choosing a dimension moves the chart axis', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(420, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    WidgetDefinition? saved;
+    final initial = WidgetArgs(
+      AssistantContracts.catalog,
+      AssistantContracts.chartRules,
+    ).build({'type': 'chart', 'title': 'Croisé', 'source': 'games.pivot'}).$1;
+    await tester.pumpWidget(
+      harness(
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () => ChartEditor.show(
+              context,
+              initial: initial,
+              onSave: (w) => saved = w,
+            ),
+            child: const Text('open'),
+          ),
+        ),
+        size: const Size(420, 1600),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    // « Regrouper par » vaut Mode par défaut : on passe à Qui commence.
+    await tester.tap(find.text('Mode').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Qui commence').last);
+    await tester.pumpAndSettle();
+    final save = find.widgetWithText(FilledButton, 'Enregistrer');
+    await tester.ensureVisible(save);
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+
+    expect(saved?.query.params['groupBy'], 'starter');
+    expect(saved?.chart?.x?.field, 'starter');
+    expect(
+      AssistantContracts.chartRules.validate(
+        saved!,
+        AssistantContracts.catalog,
+      ),
+      isEmpty,
+    );
+  });
+
   testWidgets('a failing widget shows a retry button', (tester) async {
     final failing = _FailingDataClient();
     await tester.pumpWidget(

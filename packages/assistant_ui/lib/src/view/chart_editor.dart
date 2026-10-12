@@ -36,6 +36,9 @@ class _ChartEditorState extends State<ChartEditor> {
   static final _rules = AssistantContracts.chartRules;
   static final _args = WidgetArgs(_catalog, _rules);
 
+  /// Paramètres du tableau croisé proposés dans le panneau.
+  static const _pivotParams = ['groupBy', 'splitBy', 'measure', 'starter'];
+
   late Json _state = widget.initial == null
       ? {'type': 'chart', 'title': '', 'source': 'games.byDay'}
       : _args.toArgs(widget.initial!);
@@ -98,6 +101,7 @@ class _ChartEditorState extends State<ChartEditor> {
           channel,
           source,
           _catalog,
+          params: definition.query.params,
         ))
           DropdownMenuItem(
             value: field.name,
@@ -169,6 +173,40 @@ class _ChartEditorState extends State<ChartEditor> {
                   onSelectionChanged: (s) => _set('type', s.single.name),
                 ),
               ),
+            // Tableau croisé : dimensions, mesure et filtre propres à la
+            // source. Changer une dimension recalcule les axes.
+            for (final name in _pivotParams)
+              if (source.params.contains(name))
+                _Row(
+                  label: _catalog.params[name]!.label.of(labels.language),
+                  child: DropdownButton<String?>(
+                    isExpanded: true,
+                    value: _catalog.paramValue(
+                      name,
+                      definition.query.params,
+                    ),
+                    items: [
+                      if (_catalog.params[name]!.defaultValue == null)
+                        DropdownMenuItem(
+                          value: null,
+                          child: Text(l10n.editorColorNone),
+                        ),
+                      for (final value in _catalog.params[name]!.values)
+                        DropdownMenuItem(
+                          value: value,
+                          // Une dimension ou une mesure est un champ.
+                          child: Text(
+                            source.fieldParams.contains(name)
+                                ? labels.field(value)
+                                : labels.value(name, value),
+                          ),
+                        ),
+                    ],
+                    onChanged: (value) => value == null
+                        ? _change(const {}, clear: [name])
+                        : _change({name: value}),
+                  ),
+                ),
             if (chart != null) ...[
               _Row(
                 label: l10n.editorMark,

@@ -59,3 +59,18 @@
 # Aucun autre export ni envoi : il ne doit pas en inventer.
 - request: "Envoie mes stats par e-mail à mon coach"
   answer_must_match: "(pas|impossible|ne permet|ne peut|ne sait|aucun)"
+# Tableau croisé : aucune autre source ne croise ces dimensions.
+- request: "Montre mon taux de victoire par mode et par mois, seulement quand je commence"
+  expect:
+    - tool: propose_widget
+      args: { source: games.pivot, measure: winRate, starter: me }
+- request: "Ajoute un tableau de la durée moyenne de mes parties par adversaire"
+  expect:
+    - tool: add_widget
+      args: { type: table, source: games.pivot, groupBy: opponent, measure: avgMoves }
+# Seul le tableau croisé sait qui commence ; filtrer (starter) ou regrouper
+# (groupBy starter, mesure wins ou count × result) répondent tous.
+- request: "Combien de victoires j'ai quand c'est l'adversaire qui commence ?"
+  expect:
+    - tool: query_data
+      args: { source: games.pivot }

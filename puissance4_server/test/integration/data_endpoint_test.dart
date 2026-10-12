@@ -204,6 +204,51 @@ void main() {
     );
 
     test(
+      'when pivoting by opponent and result then each pair is counted',
+      () async {
+        final data =
+            await query('games.pivot', {
+                  'groupBy': 'opponent',
+                  'splitBy': 'result',
+                })
+                as Map;
+        expect(
+          (data['fields'] as List).map((f) => (f as Map)['name']),
+          ['opponent', 'opponentKind', 'result', 'count', 'opponentRef'],
+        );
+        final rows = (data['rows'] as List).cast<List>();
+        expect(
+          rows.map((r) => (r[0], r[1], r[2], r[3])),
+          unorderedEquals([
+            ('Kevin42', 'human', 'win', 1),
+            ('Kevin42', 'human', 'loss', 1),
+            ('Expert', 'bot', 'win', 1),
+            ('Expert', 'bot', 'draw', 1),
+          ]),
+        );
+        expect(rows.firstWhere((r) => r[0] == 'Expert')[4], 'bot:${bot.id}');
+      },
+    );
+
+    test(
+      'when pivoting the win rate by mode when I start then Normal drops out',
+      () async {
+        // alice commence (rouge) en Multi et en Classé, pas en Normal.
+        final data =
+            await query('games.pivot', {
+                  'groupBy': 'mode',
+                  'measure': 'winRate',
+                  'starter': 'me',
+                })
+                as Map;
+        expect(data['rows'], [
+          ['multi', 50],
+          ['classe', 100],
+        ]);
+      },
+    );
+
+    test(
       'when counting cells then the board has 42 cells and only my discs',
       () async {
         final data = await query('moves.byCell', {'who': 'me'}) as Map;

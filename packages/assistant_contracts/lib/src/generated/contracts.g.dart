@@ -86,6 +86,77 @@ const sourcesJson = r'''
         "fr": "Nombre",
         "en": "Count"
       }
+    },
+    "groupBy": {
+      "type": "enum",
+      "values": [
+        "mode",
+        "opponent",
+        "opponentKind",
+        "result",
+        "starter",
+        "day",
+        "week",
+        "month",
+        "column",
+        "moves"
+      ],
+      "default": "mode",
+      "description": "Only for games.pivot: dimension of the rows (one row or bar per value). column = column of the player's first disc, moves = game length, starter = who played first, week/month = calendar period.",
+      "label": {
+        "fr": "Regrouper par",
+        "en": "Group by"
+      }
+    },
+    "splitBy": {
+      "type": "enum",
+      "values": [
+        "mode",
+        "opponent",
+        "opponentKind",
+        "result",
+        "starter",
+        "day",
+        "week",
+        "month",
+        "column",
+        "moves"
+      ],
+      "description": "Only for games.pivot: optional second dimension, one series per value (chart color). Must differ from groupBy.",
+      "label": {
+        "fr": "Détailler par",
+        "en": "Split by"
+      }
+    },
+    "measure": {
+      "type": "enum",
+      "values": [
+        "count",
+        "wins",
+        "losses",
+        "draws",
+        "winRate",
+        "avgMoves",
+        "eloDelta"
+      ],
+      "default": "count",
+      "description": "Only for games.pivot: value computed for each group. winRate in %, avgMoves = average number of moves, eloDelta = sum of Elo changes (ranked only).",
+      "label": {
+        "fr": "Mesure",
+        "en": "Measure"
+      }
+    },
+    "starter": {
+      "type": "enum",
+      "values": [
+        "me",
+        "opponent"
+      ],
+      "description": "Only for games.pivot: keep only the games where this side played first.",
+      "label": {
+        "fr": "Qui commence",
+        "en": "Who starts"
+      }
     }
   },
   "dashboardParams": [
@@ -250,6 +321,72 @@ const sourcesJson = r'''
         "en": "Game"
       },
       "internal": true
+    },
+    "week": {
+      "type": "temporal",
+      "label": {
+        "fr": "Semaine",
+        "en": "Week"
+      }
+    },
+    "month": {
+      "type": "category",
+      "label": {
+        "fr": "Mois",
+        "en": "Month"
+      }
+    },
+    "starter": {
+      "type": "category",
+      "label": {
+        "fr": "Qui commence",
+        "en": "Who starts"
+      },
+      "values": {
+        "me": {
+          "fr": "Je commence",
+          "en": "I start"
+        },
+        "opponent": {
+          "fr": "L'adversaire commence",
+          "en": "Opponent starts"
+        }
+      }
+    },
+    "wins": {
+      "type": "number",
+      "label": {
+        "fr": "Victoires",
+        "en": "Wins"
+      }
+    },
+    "losses": {
+      "type": "number",
+      "label": {
+        "fr": "Défaites",
+        "en": "Losses"
+      }
+    },
+    "draws": {
+      "type": "number",
+      "label": {
+        "fr": "Nuls",
+        "en": "Draws"
+      }
+    },
+    "winRate": {
+      "type": "number",
+      "label": {
+        "fr": "Taux de victoire (%)",
+        "en": "Win rate (%)"
+      }
+    },
+    "avgMoves": {
+      "type": "number",
+      "label": {
+        "fr": "Coups (moyenne)",
+        "en": "Moves (average)"
+      }
     }
   },
   "sources": [
@@ -466,6 +603,63 @@ const sourcesJson = r'''
         "opponent"
       ],
       "live": true
+    },
+    {
+      "key": "games.pivot",
+      "kind": "rows",
+      "label": {
+        "fr": "Tableau croisé",
+        "en": "Pivot table"
+      },
+      "description": "Free cross-tab of the player's games, for any question no other source answers: one row per value of groupBy (and of splitBy if given) with the chosen measure. The data fields are [groupBy, splitBy, measure] (plus opponentKind with opponent). For a chart: x = groupBy, color = splitBy, y = measure (the default).",
+      "fields": [
+        "mode",
+        "opponent",
+        "opponentKind",
+        "result",
+        "starter",
+        "day",
+        "week",
+        "month",
+        "column",
+        "moves",
+        "count",
+        "wins",
+        "losses",
+        "draws",
+        "winRate",
+        "avgMoves",
+        "eloDelta",
+        "opponentRef"
+      ],
+      "fieldParams": [
+        "groupBy",
+        "splitBy",
+        "measure"
+      ],
+      "companions": {
+        "opponent": [
+          "opponentKind",
+          "opponentRef"
+        ]
+      },
+      "params": [
+        "range",
+        "lastGames",
+        "mode",
+        "opponent",
+        "starter",
+        "groupBy",
+        "splitBy",
+        "measure"
+      ],
+      "defaultChart": {
+        "mark": "bar",
+        "x": "$groupBy",
+        "y": "$measure",
+        "color": "$splitBy"
+      },
+      "live": true
     }
   ]
 }
@@ -537,6 +731,7 @@ How you work:
 - You never see raw game data. Use the tools: query_data to answer questions, add_widget / update_widget / remove_widget / arrange_widgets / set_dashboard_filters / undo_dashboard to change the dashboard, propose_widget to show a chart in the chat without adding it.
 - Never guess a number: every figure you give comes from a tool result in this conversation.
 - When the player asks to add, put or pin something, change the dashboard. When they ask to see or show something, use propose_widget. When they ask a question, answer in text.
+- A "tableau" / "table" (not "tableau de bord") is a widget of type table; use a chart only when they ask for a chart, a curve or a graph, or say nothing about the form.
 - If a tool returns an error, fix the arguments as the error says and try again. If you cannot, say what is missing in one sentence.
 - Periods are always relative (last:7d, this:week, this:month...). Never use absolute dates.
 - You can only do what your tools do. Never claim an action you did not perform with a tool, and never describe an app feature that is not listed here.
@@ -621,6 +816,21 @@ const evalsYaml = r'''
 # Aucun autre export ni envoi : il ne doit pas en inventer.
 - request: "Envoie mes stats par e-mail à mon coach"
   answer_must_match: "(pas|impossible|ne permet|ne peut|ne sait|aucun)"
+# Tableau croisé : aucune autre source ne croise ces dimensions.
+- request: "Montre mon taux de victoire par mode et par mois, seulement quand je commence"
+  expect:
+    - tool: propose_widget
+      args: { source: games.pivot, measure: winRate, starter: me }
+- request: "Ajoute un tableau de la durée moyenne de mes parties par adversaire"
+  expect:
+    - tool: add_widget
+      args: { type: table, source: games.pivot, groupBy: opponent, measure: avgMoves }
+# Seul le tableau croisé sait qui commence ; filtrer (starter) ou regrouper
+# (groupBy starter, mesure wins ou count × result) répondent tous.
+- request: "Combien de victoires j'ai quand c'est l'adversaire qui commence ?"
+  expect:
+    - tool: query_data
+      args: { source: games.pivot }
 ''';
 
 /// Outils MCP, par nom.
@@ -665,7 +875,8 @@ const toolsJson = <String, String>{
           "results.byOpponent",
           "games.recent",
           "elo.history",
-          "streaks"
+          "streaks",
+          "games.pivot"
         ],
         "description": "Data source, see list_data_sources."
       },
@@ -723,6 +934,59 @@ const toolsJson = <String, String>{
         "type": "integer",
         "minimum": 1,
         "maximum": 20
+      },
+      "starter": {
+        "description": "Only for games.pivot: keep only the games where this side played first.",
+        "type": "string",
+        "enum": [
+          "me",
+          "opponent"
+        ]
+      },
+      "groupBy": {
+        "description": "Only for games.pivot: dimension of the rows (one row or bar per value). column = column of the player's first disc, moves = game length, starter = who played first, week/month = calendar period.",
+        "type": "string",
+        "enum": [
+          "mode",
+          "opponent",
+          "opponentKind",
+          "result",
+          "starter",
+          "day",
+          "week",
+          "month",
+          "column",
+          "moves"
+        ]
+      },
+      "splitBy": {
+        "description": "Only for games.pivot: optional second dimension, one series per value (chart color). Must differ from groupBy.",
+        "type": "string",
+        "enum": [
+          "mode",
+          "opponent",
+          "opponentKind",
+          "result",
+          "starter",
+          "day",
+          "week",
+          "month",
+          "column",
+          "moves"
+        ]
+      },
+      "measure": {
+        "description": "Only for games.pivot: value computed for each group. winRate in %, avgMoves = average number of moves, eloDelta = sum of Elo changes (ranked only).",
+        "type": "string",
+        "enum": [
+          "count",
+          "wins",
+          "losses",
+          "draws",
+          "winRate",
+          "avgMoves",
+          "eloDelta"
+        ]
       },
       "mark": {
         "type": "string",
@@ -1068,7 +1332,8 @@ const toolsJson = <String, String>{
           "results.byOpponent",
           "games.recent",
           "elo.history",
-          "streaks"
+          "streaks",
+          "games.pivot"
         ],
         "description": "Data source, see list_data_sources."
       },
@@ -1126,6 +1391,59 @@ const toolsJson = <String, String>{
         "type": "integer",
         "minimum": 1,
         "maximum": 20
+      },
+      "starter": {
+        "description": "Only for games.pivot: keep only the games where this side played first.",
+        "type": "string",
+        "enum": [
+          "me",
+          "opponent"
+        ]
+      },
+      "groupBy": {
+        "description": "Only for games.pivot: dimension of the rows (one row or bar per value). column = column of the player's first disc, moves = game length, starter = who played first, week/month = calendar period.",
+        "type": "string",
+        "enum": [
+          "mode",
+          "opponent",
+          "opponentKind",
+          "result",
+          "starter",
+          "day",
+          "week",
+          "month",
+          "column",
+          "moves"
+        ]
+      },
+      "splitBy": {
+        "description": "Only for games.pivot: optional second dimension, one series per value (chart color). Must differ from groupBy.",
+        "type": "string",
+        "enum": [
+          "mode",
+          "opponent",
+          "opponentKind",
+          "result",
+          "starter",
+          "day",
+          "week",
+          "month",
+          "column",
+          "moves"
+        ]
+      },
+      "measure": {
+        "description": "Only for games.pivot: value computed for each group. winRate in %, avgMoves = average number of moves, eloDelta = sum of Elo changes (ranked only).",
+        "type": "string",
+        "enum": [
+          "count",
+          "wins",
+          "losses",
+          "draws",
+          "winRate",
+          "avgMoves",
+          "eloDelta"
+        ]
       },
       "mark": {
         "type": "string",
@@ -1308,7 +1626,8 @@ const toolsJson = <String, String>{
           "results.byOpponent",
           "games.recent",
           "elo.history",
-          "streaks"
+          "streaks",
+          "games.pivot"
         ],
         "description": "Data source, see list_data_sources."
       },
@@ -1366,6 +1685,59 @@ const toolsJson = <String, String>{
         "type": "integer",
         "minimum": 1,
         "maximum": 20
+      },
+      "starter": {
+        "description": "Only for games.pivot: keep only the games where this side played first.",
+        "type": "string",
+        "enum": [
+          "me",
+          "opponent"
+        ]
+      },
+      "groupBy": {
+        "description": "Only for games.pivot: dimension of the rows (one row or bar per value). column = column of the player's first disc, moves = game length, starter = who played first, week/month = calendar period.",
+        "type": "string",
+        "enum": [
+          "mode",
+          "opponent",
+          "opponentKind",
+          "result",
+          "starter",
+          "day",
+          "week",
+          "month",
+          "column",
+          "moves"
+        ]
+      },
+      "splitBy": {
+        "description": "Only for games.pivot: optional second dimension, one series per value (chart color). Must differ from groupBy.",
+        "type": "string",
+        "enum": [
+          "mode",
+          "opponent",
+          "opponentKind",
+          "result",
+          "starter",
+          "day",
+          "week",
+          "month",
+          "column",
+          "moves"
+        ]
+      },
+      "measure": {
+        "description": "Only for games.pivot: value computed for each group. winRate in %, avgMoves = average number of moves, eloDelta = sum of Elo changes (ranked only).",
+        "type": "string",
+        "enum": [
+          "count",
+          "wins",
+          "losses",
+          "draws",
+          "winRate",
+          "avgMoves",
+          "eloDelta"
+        ]
       }
     },
     "required": [
@@ -1503,7 +1875,8 @@ const toolsJson = <String, String>{
           "results.byOpponent",
           "games.recent",
           "elo.history",
-          "streaks"
+          "streaks",
+          "games.pivot"
         ],
         "description": "Data source, see list_data_sources."
       },
@@ -1561,6 +1934,59 @@ const toolsJson = <String, String>{
         "type": "integer",
         "minimum": 1,
         "maximum": 20
+      },
+      "starter": {
+        "description": "Only for games.pivot: keep only the games where this side played first.",
+        "type": "string",
+        "enum": [
+          "me",
+          "opponent"
+        ]
+      },
+      "groupBy": {
+        "description": "Only for games.pivot: dimension of the rows (one row or bar per value). column = column of the player's first disc, moves = game length, starter = who played first, week/month = calendar period.",
+        "type": "string",
+        "enum": [
+          "mode",
+          "opponent",
+          "opponentKind",
+          "result",
+          "starter",
+          "day",
+          "week",
+          "month",
+          "column",
+          "moves"
+        ]
+      },
+      "splitBy": {
+        "description": "Only for games.pivot: optional second dimension, one series per value (chart color). Must differ from groupBy.",
+        "type": "string",
+        "enum": [
+          "mode",
+          "opponent",
+          "opponentKind",
+          "result",
+          "starter",
+          "day",
+          "week",
+          "month",
+          "column",
+          "moves"
+        ]
+      },
+      "measure": {
+        "description": "Only for games.pivot: value computed for each group. winRate in %, avgMoves = average number of moves, eloDelta = sum of Elo changes (ranked only).",
+        "type": "string",
+        "enum": [
+          "count",
+          "wins",
+          "losses",
+          "draws",
+          "winRate",
+          "avgMoves",
+          "eloDelta"
+        ]
       },
       "mark": {
         "type": "string",
@@ -2707,6 +3133,35 @@ const fixturesJson = <String, String>{
     [
       "42",
       1
+    ]
+  ]
+}
+''',
+  'data.games.pivot': r'''
+{
+  "kind": "rows",
+  "fields": [
+    {
+      "name": "mode",
+      "type": "category"
+    },
+    {
+      "name": "count",
+      "type": "number"
+    }
+  ],
+  "rows": [
+    [
+      "normal",
+      14
+    ],
+    [
+      "classe",
+      9
+    ],
+    [
+      "multi",
+      5
     ]
   ]
 }
