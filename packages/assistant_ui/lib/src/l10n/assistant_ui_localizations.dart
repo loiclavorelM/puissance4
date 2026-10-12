@@ -605,28 +605,10 @@ abstract class AssistantUiLocalizations {
   /// **'Ouvrir l\'assistant'**
   String get openAssistant;
 
-  /// No description provided for @exportPdf.
-  ///
-  /// In fr, this message translates to:
-  /// **'Exporter en PDF'**
-  String get exportPdf;
-
-  /// No description provided for @exportTitle.
-  ///
-  /// In fr, this message translates to:
-  /// **'Mon tableau de bord Puissance 4'**
-  String get exportTitle;
-
-  /// No description provided for @exportedOn.
-  ///
-  /// In fr, this message translates to:
-  /// **'Exporté le {date}'**
-  String exportedOn(String date);
-
   /// No description provided for @exportFailed.
   ///
   /// In fr, this message translates to:
-  /// **'L\'export PDF a échoué.'**
+  /// **'L\'export a échoué.'**
   String get exportFailed;
 
   /// No description provided for @editorColumns.
@@ -634,6 +616,66 @@ abstract class AssistantUiLocalizations {
   /// In fr, this message translates to:
   /// **'Colonnes'**
   String get editorColumns;
+
+  /// No description provided for @widgetExportPdf.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exporter en PDF'**
+  String get widgetExportPdf;
+
+  /// No description provided for @widgetExportCsv.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exporter en CSV'**
+  String get widgetExportCsv;
+
+  /// No description provided for @exportIndicator.
+  ///
+  /// In fr, this message translates to:
+  /// **'Indicateur'**
+  String get exportIndicator;
+
+  /// No description provided for @exportValue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Valeur'**
+  String get exportValue;
+
+  /// No description provided for @exportDelta.
+  ///
+  /// In fr, this message translates to:
+  /// **'Variation'**
+  String get exportDelta;
+
+  /// No description provided for @exportGames.
+  ///
+  /// In fr, this message translates to:
+  /// **'Parties'**
+  String get exportGames;
+
+  /// No description provided for @exportDeltaCaption.
+  ///
+  /// In fr, this message translates to:
+  /// **'par rapport à la période précédente'**
+  String get exportDeltaCaption;
+
+  /// No description provided for @exportData.
+  ///
+  /// In fr, this message translates to:
+  /// **'Données'**
+  String get exportData;
+
+  /// No description provided for @exportFooter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exporté le {date} depuis Puissance 4'**
+  String exportFooter(String date);
+
+  /// No description provided for @exportLastGames.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} dernières parties'**
+  String exportLastGames(int count);
 }
 
 class _AssistantUiLocalizationsDelegate

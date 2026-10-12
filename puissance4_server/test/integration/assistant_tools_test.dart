@@ -229,6 +229,20 @@ void main() {
     });
 
     test(
+      'when listing recent games then the query and a table succeed',
+      () async {
+        final data = await ok('query_data', {'source': 'games.recent'});
+        expect(data['rows'], hasLength(2));
+        await ok('propose_widget', {
+          'type': 'table',
+          'title': 'Mes parties',
+          'source': 'games.recent',
+          'columns': ['opponent', 'result'],
+        });
+      },
+    );
+
+    test(
       'when analyzing a game then turning points refer to the player moves',
       () async {
         final analysis = await ok('analyze_game', {

@@ -32,7 +32,7 @@ need a connection for everything, and never tell you *why* you lost. We wanted:
 | **Face to face** | Two players on one phone, offered only when the phone **lies flat** on the table. |
 | **Replay & review** | Every game is stored move by move; replay it, see the best move at each position and ask the LLM *why*. |
 | **Friends** | Add by username, friend code, **QR code** or by **shaking both phones** at the same time; presence and head-to-head rivalries. |
-| **Assistant & dashboard** | Ask "add a chart of my win rate against Expert": an LLM calls MCP tools to answer or to edit your dashboard. Free **pivot tables** (any whitelisted dimensions × measure) and a **PDF export** of the dashboard. |
+| **Assistant & dashboard** | Ask "add a chart of my win rate against Expert": an LLM calls MCP tools to answer or to edit your dashboard. Free **pivot tables** (any whitelisted dimensions × measure), tables with the columns you pick, and **PDF / CSV export** of any widget. |
 | **Everywhere** | Leaderboard, profile photo, guest mode, French/English, light/dark theme, shake to restart a game. |
 
 ## Technical highlights

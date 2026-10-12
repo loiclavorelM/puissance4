@@ -84,9 +84,16 @@
   "undo": "Undo last change",
   "addWidget": "Add widget",
   "openAssistant": "Open assistant",
-  "exportPdf": "Export as PDF",
-  "exportTitle": "My Connect Four dashboard",
-  "exportedOn": "Exported on {date}",
-  "exportFailed": "The PDF export failed.",
-  "editorColumns": "Columns"
+  "exportFailed": "The export failed.",
+  "editorColumns": "Columns",
+  "widgetExportPdf": "Export as PDF",
+  "widgetExportCsv": "Export as CSV",
+  "exportIndicator": "Indicator",
+  "exportValue": "Value",
+  "exportDelta": "Change",
+  "exportGames": "Games",
+  "exportDeltaCaption": "vs the previous period",
+  "exportData": "Data",
+  "exportFooter": "Exported on {date} from Connect Four",
+  "exportLastGames": "last {count} games"
 }

@@ -2,12 +2,11 @@ import 'dart:async';
 
 import 'package:assistant_contracts/assistant_contracts.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:printing/printing.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../controllers/chat_controller.dart';
 import '../controllers/dashboard_controller.dart';
-import '../export/dashboard_pdf_export.dart';
+import '../export/widget_export.dart';
 import '../l10n/assistant_ui_localizations.dart';
 import '../labels.dart';
 import '../ports/ports.dart';
@@ -18,9 +17,10 @@ import 'dashboard_grid.dart';
 import 'filter_bar.dart';
 import 'widget_frame.dart';
 
-/// Le tableau de bord complet : filtres, grille, actions (annuler, exporter
-/// en PDF, ajouter) et chat de l'assistant — en feuille sur téléphone, en
-/// panneau à droite au-delà de [sidePanelFrom] de large.
+/// Le tableau de bord complet : filtres, grille, actions (annuler, ajouter ;
+/// modifier, exporter en PDF ou CSV par widget) et chat de l'assistant — en
+/// feuille sur téléphone, en panneau à droite au-delà de [sidePanelFrom] de
+/// large.
 class AssistantDashboardView extends StatelessWidget {
   const AssistantDashboardView({
     super.key,
@@ -84,47 +84,55 @@ class _Board extends StatefulWidget {
 }
 
 class _BoardState extends State<_Board> {
-  final _pdf = DashboardPdfExport();
-  bool _exporting = false;
+  final _captures = WidgetCaptures();
 
   DashboardController get dashboard => widget.dashboard;
   DataSourceClient get data => widget.data;
   ChatController? get chat => widget.chat;
 
-  /// Capture les widgets affichés et ouvre le partage du PDF (téléchargement
-  /// sur le web).
-  Future<void> _exportPdf(BuildContext context, Dashboard current) async {
+  /// Exporte un seul widget, avec ses données du moment (mêmes filtres qu'à
+  /// l'écran) : PDF mis en page ou CSV, puis feuille de partage
+  /// (téléchargement sur le web).
+  Future<void> _export(
+    BuildContext context,
+    WidgetDefinition definition, {
+    required bool pdf,
+  }) async {
     final l10n = AssistantUiLocalizations.of(context);
     final labels = DashboardLabels.of(context);
-    final language = Localizations.localeOf(context).languageCode;
-    final now = DateTime.now();
-    final filters = current.filters;
-    final subtitle = [
-      l10n.exportedOn(DateFormat.yMMMd(language).add_Hm().format(now)),
-      labels.range(filters.range),
-      if (filters.mode != null) labels.value('mode', filters.mode),
-      if (filters.opponentLabel != null) filters.opponentLabel!,
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final filters = dashboard.dashboard!.filters;
+    final params = filters.resolve(definition.query.params);
+    final scope = [
+      labels.range(params['range'] as String?),
+      if (params['lastGames'] case final int last) l10n.exportLastGames(last),
+      if (params['mode'] case final String mode) labels.value('mode', mode),
+      if (filters.opponentLabel case final opponent?
+          when params['opponent'] != null)
+        opponent,
     ].join(' · ');
-    setState(() => _exporting = true);
     try {
-      final bytes = await _pdf.build(
-        title: l10n.exportTitle,
-        subtitle: subtitle,
-        widgets: current.stacked,
+      final export = WidgetExport(
+        definition: definition,
+        data: await data.query(definition.query.source, params),
+        labels: labels,
+        scope: scope,
+        chartImage: pdf && definition.type == WidgetType.chart
+            ? await _captures.png(definition.id!)
+            : null,
       );
-      await Printing.sharePdf(
-        bytes: bytes,
-        filename:
-            'puissance4-dashboard-${now.toIso8601String().substring(0, 10)}.pdf',
+      final (bytes, mime, name) = pdf
+          ? (await export.pdf(), 'application/pdf', export.fileName('pdf'))
+          : (export.csv(), 'text/csv', export.fileName('csv'));
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile.fromData(bytes, mimeType: mime, name: name)],
+          fileNameOverrides: [name],
+          downloadFallbackEnabled: true,
+        ),
       );
     } on Object {
-      if (context.mounted) {
-        ScaffoldMessenger.maybeOf(
-          context,
-        )?.showSnackBar(SnackBar(content: Text(l10n.exportFailed)));
-      }
-    } finally {
-      if (mounted) setState(() => _exporting = false);
+      messenger?.showSnackBar(SnackBar(content: Text(l10n.exportFailed)));
     }
   }
 
@@ -194,6 +202,10 @@ class _BoardState extends State<_Board> {
         unawaited(_rename(context, widget));
       case WidgetMenuAction.remove:
         unawaited(_guard(context, () => dashboard.removeWidget(widget.id!)));
+      case WidgetMenuAction.exportPdf:
+        unawaited(_export(context, widget, pdf: true));
+      case WidgetMenuAction.exportCsv:
+        unawaited(_export(context, widget, pdf: false));
     }
   }
 
@@ -334,13 +346,6 @@ class _BoardState extends State<_Board> {
                       icon: const Icon(Icons.undo),
                     ),
                     IconButton(
-                      tooltip: l10n.exportPdf,
-                      onPressed: current.widgets.isEmpty || _exporting
-                          ? null
-                          : () => _exportPdf(context, current),
-                      icon: const Icon(Icons.picture_as_pdf_outlined),
-                    ),
-                    IconButton(
                       tooltip: l10n.addWidget,
                       onPressed: () => ChartEditor.show(
                         context,
@@ -382,19 +387,21 @@ class _BoardState extends State<_Board> {
                 else
                   DashboardGrid(
                     dashboard: current,
-                    itemBuilder: (context, widget) => _pdf.capture(
-                      widget.id!,
-                      LiveWidget(
-                        key: ValueKey(widget.id),
-                        definition: widget,
-                        filters: current.filters,
-                        client: data,
-                        onSelect: (field, value, source) =>
-                            _onSelect(context, widget, field, value, source),
-                        builder: (context, body) => WidgetFrame(
-                          title: widget.title,
-                          onMenu: (action) => _onMenu(context, widget, action),
-                          child: body,
+                    itemBuilder: (context, widget) => LiveWidget(
+                      key: ValueKey(widget.id),
+                      definition: widget,
+                      filters: current.filters,
+                      client: data,
+                      onSelect: (field, value, source) =>
+                          _onSelect(context, widget, field, value, source),
+                      builder: (context, body) => WidgetFrame(
+                        title: widget.title,
+                        onMenu: (action) => _onMenu(context, widget, action),
+                        // Fond plein : l'image du graphique exporté reste
+                        // lisible sur une page blanche.
+                        child: _captures.capture(
+                          widget.id!,
+                          ColoredBox(color: tokens.surface, child: body),
                         ),
                       ),
                     ),

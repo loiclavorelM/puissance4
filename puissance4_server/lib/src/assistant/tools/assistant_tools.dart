@@ -1,5 +1,6 @@
 import 'package:assistant_contracts/assistant_contracts.dart';
 import 'package:puissance4_rules/puissance4_rules.dart';
+import 'package:serverpod/serverpod.dart';
 
 import '../../generated/protocol.dart';
 import '../dashboard/dashboard_store.dart';
@@ -51,6 +52,19 @@ abstract final class AssistantTools {
       return ToolOutcome.error(e.message);
     } on SourceQueryException catch (e) {
       return ToolOutcome.error(e.message);
+    } on Object catch (e, stackTrace) {
+      // Un bug, pas une erreur d'arguments : sans ce log, mcp_dart ne
+      // renvoie que « Tool execution failed. » et la cause se perd.
+      context.session.log(
+        'Assistant tool $name failed with $args',
+        level: LogLevel.error,
+        exception: e,
+        stackTrace: stackTrace,
+      );
+      return ToolOutcome.error(
+        'Internal error in $name. Do not retry the same call; tell the '
+        'player it failed.',
+      );
     }
   }
 
