@@ -1,0 +1,5 @@
+# Qui a produit une version du tableau de bord.
+enum: EnumDashboardAuthor
+values:
+  - assistant
+  - player

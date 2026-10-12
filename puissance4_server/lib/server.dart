@@ -5,6 +5,7 @@ import 'package:serverpod_auth_idp_server/providers/anonymous.dart';
 import 'package:serverpod_auth_idp_server/providers/email.dart';
 import 'package:serverpod_cloud_storage/serverpod_cloud_storage.dart';
 
+import 'src/assistant/mcp/mcp_dev_server.dart';
 import 'src/auth/guest_upgrade.dart';
 import 'src/bot/bot_seed.dart';
 import 'src/cache_busting.dart';
@@ -125,6 +126,20 @@ void run(List<String> args) async {
 
   // Start the server.
   await pod.start();
+
+  // Serveur MCP de l'assistant pour tester ses outils sans LLM (Claude Code,
+  // MCP Inspector) : développement seulement, sur 127.0.0.1 (E16).
+  if (pod.runMode == 'development') {
+    final port =
+        int.tryParse(Platform.environment['ASSISTANT_MCP_DEV_PORT'] ?? '') ??
+        McpDevServer.defaultPort;
+    try {
+      await McpDevServer.start(pod, port: port);
+      stdout.writeln('Assistant MCP dev server on http://127.0.0.1:$port/mcp');
+    } on SocketException catch (error) {
+      stderr.writeln('Assistant MCP dev server not started: $error');
+    }
+  }
 
   // Chaque étape à part : l'échec de l'une ne doit pas priver le serveur de
   // l'autre (des bots pour le Classé, des parties reprises).

@@ -1,0 +1,392 @@
+import 'dart:async';
+
+import 'package:assistant_contracts/assistant_contracts.dart';
+import 'package:flutter/material.dart';
+
+import '../controllers/chat_controller.dart';
+import '../controllers/dashboard_controller.dart';
+import '../l10n/assistant_ui_localizations.dart';
+import '../ports/ports.dart';
+import '../theme/dashboard_tokens.dart';
+import 'chart_editor.dart';
+import 'chat_panel.dart';
+import 'dashboard_grid.dart';
+import 'filter_bar.dart';
+import 'widget_frame.dart';
+
+/// Le tableau de bord complet : filtres, grille, actions (annuler, ajouter)
+/// et chat de l'assistant — en feuille sur téléphone, en panneau à droite
+/// au-delà de [sidePanelFrom] de large.
+class AssistantDashboardView extends StatelessWidget {
+  const AssistantDashboardView({
+    super.key,
+    required this.dashboard,
+    required this.data,
+    this.chat,
+    this.sidePanelFrom = 1000,
+  });
+
+  final DashboardController dashboard;
+  final DataSourceClient data;
+
+  /// `null` : pas d'assistant (tableau de bord seul).
+  final ChatController? chat;
+  final double sidePanelFrom;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final side = chat != null && constraints.maxWidth >= sidePanelFrom;
+      final board = _Board(
+        dashboard: dashboard,
+        data: data,
+        chat: side ? null : chat,
+      );
+      if (!side) return board;
+      return Row(
+        children: [
+          Expanded(child: board),
+          VerticalDivider(width: 1, color: context.dashboardTokens.grid),
+          SizedBox(
+            width: 380,
+            child: ListenableBuilder(
+              listenable: dashboard,
+              builder: (context, _) => _ChatSheet(
+                chat: chat!,
+                data: data,
+                dashboard: dashboard,
+              ),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+class _Board extends StatelessWidget {
+  const _Board({
+    required this.dashboard,
+    required this.data,
+    required this.chat,
+  });
+
+  final DashboardController dashboard;
+  final DataSourceClient data;
+  final ChatController? chat;
+
+  Future<void> _guard(
+    BuildContext context,
+    Future<void> Function() action,
+  ) async {
+    try {
+      await action();
+    } on Object {
+      if (context.mounted) {
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+          SnackBar(
+            content: Text(AssistantUiLocalizations.of(context).widgetLoadError),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _rename(BuildContext context, WidgetDefinition widget) async {
+    final l10n = AssistantUiLocalizations.of(context);
+    final controller = TextEditingController(text: widget.title);
+    final title = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.renameTitle),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLength: 60,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            child: Text(l10n.save),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (title != null && title.isNotEmpty && context.mounted) {
+      await _guard(context, () => dashboard.rename(widget, title));
+    }
+  }
+
+  void _onMenu(
+    BuildContext context,
+    WidgetDefinition widget,
+    WidgetMenuAction action,
+  ) {
+    switch (action) {
+      case WidgetMenuAction.edit:
+        unawaited(
+          ChartEditor.show(
+            context,
+            initial: widget,
+            onSave: (edited) =>
+                _guard(context, () => dashboard.saveWidget(edited)),
+          ),
+        );
+      case WidgetMenuAction.rename:
+        unawaited(_rename(context, widget));
+      case WidgetMenuAction.remove:
+        unawaited(_guard(context, () => dashboard.removeWidget(widget.id!)));
+    }
+  }
+
+  /// Clic sur une valeur : le drilldown du widget s'il en a un, sinon un
+  /// adversaire filtre tout le tableau de bord.
+  void _onSelect(
+    BuildContext context,
+    WidgetDefinition widget,
+    String field,
+    Object? value,
+    SourceData source,
+  ) {
+    final ref = _opponentRef(field, value, source);
+    if (ref == null) return;
+    final drilldown = widget.drilldown;
+    if (drilldown != null) {
+      unawaited(
+        showModalBottomSheet<void>(
+          context: context,
+          useSafeArea: true,
+          builder: (_) => SizedBox(
+            height: 360,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: LiveWidget(
+                definition: WidgetDefinition(
+                  type: WidgetType.table,
+                  title: '${value ?? ''}',
+                  query: DataQuery(drilldown.source, {'opponent': ref.ref}),
+                ),
+                filters: DashboardFilters.none,
+                client: data,
+                builder: (context, body) =>
+                    WidgetFrame(title: ref.label, child: body),
+              ),
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+    final filters = dashboard.dashboard!.filters;
+    unawaited(
+      _guard(
+        context,
+        () => dashboard.setFilters(
+          filters.copyWith(
+            opponent: () => ref.ref,
+            opponentLabel: () => ref.label,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// La référence de l'adversaire cliqué : la ligne porte `opponentRef`.
+  ({String ref, String label})? _opponentRef(
+    String field,
+    Object? value,
+    SourceData source,
+  ) {
+    if (source is! DataSet) return null;
+    final refIndex = source.indexOf('opponentRef');
+    final nameIndex = source.indexOf('opponent');
+    if (refIndex < 0 || nameIndex < 0) return null;
+    final row = source.rows
+        .where(
+          (r) => field == 'opponentRef'
+              ? r[refIndex] == value
+              : r[nameIndex] == value,
+        )
+        .firstOrNull;
+    return row == null
+        ? null
+        : (ref: row[refIndex] as String, label: '${row[nameIndex]}');
+  }
+
+  void _openChat(BuildContext context) => unawaited(
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => FractionallySizedBox(
+        heightFactor: 0.9,
+        child: _ChatSheet(chat: chat!, data: data, dashboard: dashboard),
+      ),
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AssistantUiLocalizations.of(context);
+    final tokens = context.dashboardTokens;
+    return ListenableBuilder(
+      listenable: dashboard,
+      builder: (context, _) {
+        final current = dashboard.dashboard;
+        if (current == null) {
+          return Center(
+            child: dashboard.error == null
+                ? const CircularProgressIndicator()
+                : TextButton(
+                    onPressed: dashboard.reload,
+                    child: Text(l10n.retry),
+                  ),
+          );
+        }
+        return Scaffold(
+          backgroundColor: Colors.transparent,
+          floatingActionButton: chat == null
+              ? null
+              : FloatingActionButton.extended(
+                  onPressed: () => _openChat(context),
+                  icon: const Icon(Icons.auto_awesome),
+                  label: Text(l10n.chatTitle),
+                ),
+          body: RefreshIndicator(
+            onRefresh: dashboard.reload,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 96),
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: DashboardFilterBar(
+                        filters: current.filters,
+                        onChanged: (filters) => _guard(
+                          context,
+                          () => dashboard.setFilters(filters),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: l10n.undo,
+                      onPressed: current.version == 0
+                          ? null
+                          : () => _guard(context, () => dashboard.undo()),
+                      icon: const Icon(Icons.undo),
+                    ),
+                    IconButton(
+                      tooltip: l10n.addWidget,
+                      onPressed: () => ChartEditor.show(
+                        context,
+                        onSave: (widget) =>
+                            _guard(context, () => dashboard.saveWidget(widget)),
+                      ),
+                      icon: const Icon(Icons.add_chart),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                if (current.widgets.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 48,
+                      horizontal: 24,
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.dashboard_customize_outlined,
+                          size: 48,
+                          color: tokens.textMuted,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          l10n.dashboardEmptyTitle,
+                          style: TextStyle(fontSize: 16, color: tokens.text),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          l10n.dashboardEmptyBody,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: tokens.textMuted),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  DashboardGrid(
+                    dashboard: current,
+                    itemBuilder: (context, widget) => LiveWidget(
+                      key: ValueKey(widget.id),
+                      definition: widget,
+                      filters: current.filters,
+                      client: data,
+                      onSelect: (field, value, source) =>
+                          _onSelect(context, widget, field, value, source),
+                      builder: (context, body) => WidgetFrame(
+                        title: widget.title,
+                        onMenu: (action) => _onMenu(context, widget, action),
+                        child: body,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ChatSheet extends StatelessWidget {
+  const _ChatSheet({
+    required this.chat,
+    required this.data,
+    required this.dashboard,
+  });
+
+  final ChatController chat;
+  final DataSourceClient data;
+  final DashboardController dashboard;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AssistantUiLocalizations.of(context);
+    return Column(
+      children: [
+        ListTile(
+          leading: const Icon(Icons.auto_awesome),
+          title: Text(l10n.chatTitle),
+          trailing: IconButton(
+            tooltip: l10n.chatNewConversation,
+            icon: const Icon(Icons.add_comment_outlined),
+            onPressed: chat.reset,
+          ),
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: ChatPanel(
+            controller: chat,
+            data: data,
+            filters: dashboard.dashboard?.filters ?? DashboardFilters.none,
+            onPin: (definition) async {
+              await dashboard.saveWidget(definition);
+              if (context.mounted) {
+                ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+                  SnackBar(content: Text(l10n.widgetPinned)),
+                );
+              }
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}

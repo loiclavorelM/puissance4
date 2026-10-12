@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "assistant-input.schema.json",
+  "title": "ChatInput",
+  "type": "object",
+  "required": ["text"],
+  "additionalProperties": false,
+  "properties": {
+    "text": { "type": "string", "minLength": 1, "maxLength": 1000 },
+    "language": { "enum": ["fr", "en"] },
+    "mentions": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["ref", "label"],
+        "additionalProperties": false,
+        "properties": {
+          "ref": { "type": "string", "description": "user:<uuid> ou bot:<uuid>, choisi dans l'autocomplétion." },
+          "label": { "type": "string", "description": "Texte de la pastille, tel qu'il apparaît dans text." }
+        }
+      }
+    }
+  }
+}

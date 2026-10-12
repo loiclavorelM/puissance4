@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:puissance4_rules/puissance4_rules.dart';
 
 /// Avis de l'Expert sur un coup d'une partie terminée (E14, T14.2.2).
-/// Aujourd'hui la recherche de `HeuristicBot` ; demain le modèle RL Expert
-/// embarqué (E5) derrière la même interface.
+/// Une recherche exacte (`MoveAnalysis`), pas un réseau : elle seule peut
+/// affirmer qu'une victoire ou une défaite est forcée.
 abstract interface class MoveAdvisor {
   /// Analyse le coup d'indice [index] de [moves].
   Future<MoveAnalysis> analyze(List<int> moves, int index);
@@ -12,7 +12,7 @@ abstract interface class MoveAdvisor {
 class ExpertMoveAdvisor implements MoveAdvisor {
   const ExpertMoveAdvisor();
 
-  /// Hors du thread UI, comme le bot Expert (`HeuristicBotBrain`).
+  /// Hors du thread UI : la recherche explore des milliers de positions.
   @override
   Future<MoveAnalysis> analyze(List<int> moves, int index) =>
       compute(_analyze, (List<int>.of(moves), index));

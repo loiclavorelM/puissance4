@@ -1,0 +1,24 @@
+{
+  "name": "remove_widget",
+  "title": "Remove widget",
+  "description": "Removes a widget from the dashboard (undoable with undo_dashboard).",
+  "annotations": {
+    "readOnlyHint": false,
+    "destructiveHint": true,
+    "idempotentHint": false,
+    "openWorldHint": false
+  },
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Widget id."
+      }
+    },
+    "required": [
+      "id"
+    ],
+    "additionalProperties": false
+  }
+}

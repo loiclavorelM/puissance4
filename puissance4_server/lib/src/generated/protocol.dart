@@ -11,7 +11,6 @@
 // ignore_for_file: dead_code, unnecessary_type_check
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:puissance4_server/src/generated/bot/bot.dart' as _iyz5ninx;
 import 'package:puissance4_server/src/generated/friends/friend_activity_dto.dart'
     as _io800lu2;
 import 'package:puissance4_server/src/generated/friends/friend_challenge_dto.dart'
@@ -32,6 +31,15 @@ import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _iais;
 import 'package:serverpod_offline_sync_server/serverpod_offline_sync_server.dart'
     as _izehhkf5;
+import 'assistant/assistant_conversation.dart' as _ikd6xdrt;
+import 'assistant/assistant_exception.dart' as _ixtf2j4x;
+import 'assistant/assistant_message.dart' as _ix3wp1gt;
+import 'assistant/assistant_request_log.dart' as _i3uav29g;
+import 'assistant/assistant_token.dart' as _ictlaa9l;
+import 'assistant/enum_assistant_error.dart' as _itiz3l16;
+import 'assistant/enum_dashboard_author.dart' as _iv4kpqf4;
+import 'assistant/user_dashboard.dart' as _ieb6zq8b;
+import 'assistant/user_dashboard_version.dart' as _if7oging;
 import 'bot/bot.dart' as _iij7x2jd;
 import 'bot/enum_bot_level.dart' as _i65o1ott;
 import 'friends/enum_friend_presence.dart' as _ifm42sdi;
@@ -77,6 +85,15 @@ import 'ranked/elo_history.dart' as _i8na2re5;
 import 'review/enum_review_error.dart' as _ialq3a2v;
 import 'review/move_explanation.dart' as _i0n08bga;
 import 'review/review_exception.dart' as _i7k2kt7u;
+export 'assistant/assistant_conversation.dart';
+export 'assistant/assistant_exception.dart';
+export 'assistant/assistant_message.dart';
+export 'assistant/assistant_request_log.dart';
+export 'assistant/assistant_token.dart';
+export 'assistant/enum_assistant_error.dart';
+export 'assistant/enum_dashboard_author.dart';
+export 'assistant/user_dashboard.dart';
+export 'assistant/user_dashboard_version.dart';
 export 'bot/bot.dart';
 export 'bot/enum_bot_level.dart';
 export 'friends/enum_friend_presence.dart';
@@ -132,6 +149,341 @@ class Protocol extends _is.DatabaseSerializationManager {
   static final Protocol _instance = Protocol._().._registerHostProtocols();
 
   static List<_isp.TableDefinition> get targetTableDefinitions => [
+    _isp.TableDefinition(
+      name: 'assistant_conversation',
+      dartName: 'AssistantConversation',
+      schema: 'public',
+      module: 'puissance4',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'random_v7',
+        ),
+        _isp.ColumnDefinition(
+          name: 'userId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'now',
+        ),
+        _isp.ColumnDefinition(
+          name: 'updatedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'now',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'assistant_conversation_fk_0',
+          columns: ['userId'],
+          referenceTable: 'user',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'assistant_conversation_user_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'userId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'updatedAt',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'assistant_message',
+      dartName: 'AssistantMessage',
+      schema: 'public',
+      module: 'puissance4',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'random_v7',
+        ),
+        _isp.ColumnDefinition(
+          name: 'conversationId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'position',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'contentJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'now',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'assistant_message_fk_0',
+          columns: ['conversationId'],
+          referenceTable: 'assistant_conversation',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'assistant_message_position_unique_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'conversationId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'position',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'assistant_request_log',
+      dartName: 'AssistantRequestLog',
+      schema: 'public',
+      module: 'puissance4',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'random_v7',
+        ),
+        _isp.ColumnDefinition(
+          name: 'userId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'conversationId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: true,
+          dartType: 'UuidValue?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'model',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'inputTokens',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'outputTokens',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'toolsJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'turns',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'durationMs',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'errorCode',
+          columnType: _isp.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'now',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'assistant_request_log_fk_0',
+          columns: ['userId'],
+          referenceTable: 'user',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'assistant_request_log_user_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'userId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'createdAt',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'assistant_token',
+      dartName: 'AssistantToken',
+      schema: 'public',
+      module: 'puissance4',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'random_v7',
+        ),
+        _isp.ColumnDefinition(
+          name: 'conversationId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'token',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'kind',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'ref',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'assistant_token_fk_0',
+          columns: ['conversationId'],
+          referenceTable: 'assistant_conversation',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'assistant_token_token_unique_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'conversationId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'token',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+        _isp.IndexDefinition(
+          indexName: 'assistant_token_ref_unique_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'conversationId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'ref',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
     _isp.TableDefinition(
       name: 'bot',
       dartName: 'Bot',
@@ -841,6 +1193,152 @@ class Protocol extends _is.DatabaseSerializationManager {
       ],
       managed: true,
     ),
+    _isp.TableDefinition(
+      name: 'user_dashboard',
+      dartName: 'UserDashboard',
+      schema: 'public',
+      module: 'puissance4',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'random_v7',
+        ),
+        _isp.ColumnDefinition(
+          name: 'userId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'version',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'definitionJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'updatedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'now',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'user_dashboard_fk_0',
+          columns: ['userId'],
+          referenceTable: 'user',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'user_dashboard_user_unique_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'userId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'user_dashboard_version',
+      dartName: 'UserDashboardVersion',
+      schema: 'public',
+      module: 'puissance4',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue?',
+          columnDefault: 'random_v7',
+        ),
+        _isp.ColumnDefinition(
+          name: 'dashboardId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'version',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'definitionJson',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'author',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'protocol:EnumDashboardAuthor',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'now',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'user_dashboard_version_fk_0',
+          columns: ['dashboardId'],
+          referenceTable: 'user_dashboard',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'user_dashboard_version_unique_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'dashboardId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'version',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
     ..._iacs.Protocol.targetTableDefinitions,
     ..._iais.Protocol.targetTableDefinitions,
     ..._izehhkf5.Protocol.targetTableDefinitions,
@@ -874,6 +1372,33 @@ class Protocol extends _is.DatabaseSerializationManager {
       }
     }
 
+    if (t == _ikd6xdrt.AssistantConversation) {
+      return _ikd6xdrt.AssistantConversation.fromJson(data) as T;
+    }
+    if (t == _ixtf2j4x.AssistantException) {
+      return _ixtf2j4x.AssistantException.fromJson(data) as T;
+    }
+    if (t == _ix3wp1gt.AssistantMessage) {
+      return _ix3wp1gt.AssistantMessage.fromJson(data) as T;
+    }
+    if (t == _i3uav29g.AssistantRequestLog) {
+      return _i3uav29g.AssistantRequestLog.fromJson(data) as T;
+    }
+    if (t == _ictlaa9l.AssistantToken) {
+      return _ictlaa9l.AssistantToken.fromJson(data) as T;
+    }
+    if (t == _itiz3l16.EnumAssistantError) {
+      return _itiz3l16.EnumAssistantError.fromJson(data) as T;
+    }
+    if (t == _iv4kpqf4.EnumDashboardAuthor) {
+      return _iv4kpqf4.EnumDashboardAuthor.fromJson(data) as T;
+    }
+    if (t == _ieb6zq8b.UserDashboard) {
+      return _ieb6zq8b.UserDashboard.fromJson(data) as T;
+    }
+    if (t == _if7oging.UserDashboardVersion) {
+      return _if7oging.UserDashboardVersion.fromJson(data) as T;
+    }
     if (t == _iij7x2jd.Bot) {
       return _iij7x2jd.Bot.fromJson(data) as T;
     }
@@ -1008,6 +1533,50 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _i7k2kt7u.ReviewException) {
       return _i7k2kt7u.ReviewException.fromJson(data) as T;
+    }
+    if (t == _is.getType<_ikd6xdrt.AssistantConversation?>()) {
+      return (data != null
+              ? _ikd6xdrt.AssistantConversation.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _is.getType<_ixtf2j4x.AssistantException?>()) {
+      return (data != null ? _ixtf2j4x.AssistantException.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_ix3wp1gt.AssistantMessage?>()) {
+      return (data != null ? _ix3wp1gt.AssistantMessage.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_i3uav29g.AssistantRequestLog?>()) {
+      return (data != null
+              ? _i3uav29g.AssistantRequestLog.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _is.getType<_ictlaa9l.AssistantToken?>()) {
+      return (data != null ? _ictlaa9l.AssistantToken.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_itiz3l16.EnumAssistantError?>()) {
+      return (data != null ? _itiz3l16.EnumAssistantError.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_iv4kpqf4.EnumDashboardAuthor?>()) {
+      return (data != null
+              ? _iv4kpqf4.EnumDashboardAuthor.fromJson(data)
+              : null)
+          as T;
+    }
+    if (t == _is.getType<_ieb6zq8b.UserDashboard?>()) {
+      return (data != null ? _ieb6zq8b.UserDashboard.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_if7oging.UserDashboardVersion?>()) {
+      return (data != null
+              ? _if7oging.UserDashboardVersion.fromJson(data)
+              : null)
+          as T;
     }
     if (t == _is.getType<_iij7x2jd.Bot?>()) {
       return (data != null ? _iij7x2jd.Bot.fromJson(data) : null) as T;
@@ -1206,10 +1775,6 @@ class Protocol extends _is.DatabaseSerializationManager {
               .toList()
           as T;
     }
-    if (t == List<_iyz5ninx.Bot>) {
-      return (data as List).map((e) => deserialize<_iyz5ninx.Bot>(e)).toList()
-          as T;
-    }
     if (t == List<_i259h1cp.PlayerSearchResultDto>) {
       return (data as List)
               .map((e) => deserialize<_i259h1cp.PlayerSearchResultDto>(e))
@@ -1266,6 +1831,15 @@ class Protocol extends _is.DatabaseSerializationManager {
 
   static String? getClassNameForType(Type type) {
     return switch (type) {
+      _ikd6xdrt.AssistantConversation => 'AssistantConversation',
+      _ixtf2j4x.AssistantException => 'AssistantException',
+      _ix3wp1gt.AssistantMessage => 'AssistantMessage',
+      _i3uav29g.AssistantRequestLog => 'AssistantRequestLog',
+      _ictlaa9l.AssistantToken => 'AssistantToken',
+      _itiz3l16.EnumAssistantError => 'EnumAssistantError',
+      _iv4kpqf4.EnumDashboardAuthor => 'EnumDashboardAuthor',
+      _ieb6zq8b.UserDashboard => 'UserDashboard',
+      _if7oging.UserDashboardVersion => 'UserDashboardVersion',
       _iij7x2jd.Bot => 'Bot',
       _i65o1ott.EnumBotLevel => 'EnumBotLevel',
       _ifm42sdi.EnumFriendPresence => 'EnumFriendPresence',
@@ -1325,6 +1899,24 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
 
     switch (data) {
+      case _ikd6xdrt.AssistantConversation():
+        return 'AssistantConversation';
+      case _ixtf2j4x.AssistantException():
+        return 'AssistantException';
+      case _ix3wp1gt.AssistantMessage():
+        return 'AssistantMessage';
+      case _i3uav29g.AssistantRequestLog():
+        return 'AssistantRequestLog';
+      case _ictlaa9l.AssistantToken():
+        return 'AssistantToken';
+      case _itiz3l16.EnumAssistantError():
+        return 'EnumAssistantError';
+      case _iv4kpqf4.EnumDashboardAuthor():
+        return 'EnumDashboardAuthor';
+      case _ieb6zq8b.UserDashboard():
+        return 'UserDashboard';
+      case _if7oging.UserDashboardVersion():
+        return 'UserDashboardVersion';
       case _iij7x2jd.Bot():
         return 'Bot';
       case _i65o1ott.EnumBotLevel():
@@ -1446,6 +2038,33 @@ class Protocol extends _is.DatabaseSerializationManager {
     var dataClassName = data['className'];
     if (dataClassName is! String) {
       return super.deserializeByClassName(data);
+    }
+    if (dataClassName == 'AssistantConversation') {
+      return deserialize<_ikd6xdrt.AssistantConversation>(data['data']);
+    }
+    if (dataClassName == 'AssistantException') {
+      return deserialize<_ixtf2j4x.AssistantException>(data['data']);
+    }
+    if (dataClassName == 'AssistantMessage') {
+      return deserialize<_ix3wp1gt.AssistantMessage>(data['data']);
+    }
+    if (dataClassName == 'AssistantRequestLog') {
+      return deserialize<_i3uav29g.AssistantRequestLog>(data['data']);
+    }
+    if (dataClassName == 'AssistantToken') {
+      return deserialize<_ictlaa9l.AssistantToken>(data['data']);
+    }
+    if (dataClassName == 'EnumAssistantError') {
+      return deserialize<_itiz3l16.EnumAssistantError>(data['data']);
+    }
+    if (dataClassName == 'EnumDashboardAuthor') {
+      return deserialize<_iv4kpqf4.EnumDashboardAuthor>(data['data']);
+    }
+    if (dataClassName == 'UserDashboard') {
+      return deserialize<_ieb6zq8b.UserDashboard>(data['data']);
+    }
+    if (dataClassName == 'UserDashboardVersion') {
+      return deserialize<_if7oging.UserDashboardVersion>(data['data']);
     }
     if (dataClassName == 'Bot') {
       return deserialize<_iij7x2jd.Bot>(data['data']);
@@ -1634,6 +2253,18 @@ class Protocol extends _is.DatabaseSerializationManager {
       }
     }
     switch (t) {
+      case _ikd6xdrt.AssistantConversation:
+        return _ikd6xdrt.AssistantConversation.t;
+      case _ix3wp1gt.AssistantMessage:
+        return _ix3wp1gt.AssistantMessage.t;
+      case _i3uav29g.AssistantRequestLog:
+        return _i3uav29g.AssistantRequestLog.t;
+      case _ictlaa9l.AssistantToken:
+        return _ictlaa9l.AssistantToken.t;
+      case _ieb6zq8b.UserDashboard:
+        return _ieb6zq8b.UserDashboard.t;
+      case _if7oging.UserDashboardVersion:
+        return _if7oging.UserDashboardVersion.t;
       case _iij7x2jd.Bot:
         return _iij7x2jd.Bot.t;
       case _ix1l50pg.Friendship:

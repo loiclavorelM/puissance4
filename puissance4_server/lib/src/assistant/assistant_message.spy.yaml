@@ -1,0 +1,15 @@
+# Message d'une conversation, tel qu'envoyé au LLM : **pseudonymisé**
+# (jetons [Player:n]), jamais les vraies valeurs. `contentJson` est le
+# message au format de `ChatMessage` (rôle, texte, appels d'outils).
+class: AssistantMessage
+table: assistant_message
+fields:
+  id: UuidValue?, defaultPersist=random_v7
+  conversationId: UuidValue, relation(parent=assistant_conversation, onDelete=Cascade)
+  position: int
+  contentJson: String
+  createdAt: DateTime, default=now
+indexes:
+  assistant_message_position_unique_idx:
+    fields: conversationId, position
+    unique: true

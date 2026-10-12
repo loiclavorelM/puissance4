@@ -16,6 +16,23 @@ final liveUpdatesRepositoryProvider = Provider<LiveUpdatesRepository>(
   (ref) => LiveUpdatesRepository(),
 );
 
+/// Signal « les données de jeu ont changé » (partie finie, côté serveur ou
+/// Normal synchronisée) : les widgets « live » du tableau de bord (E16)
+/// s'y abonnent.
+final gameDataChangesProvider = Provider<StreamController<void>>((ref) {
+  final controller = StreamController<void>.broadcast();
+  ref.onDispose(controller.close);
+  return controller;
+});
+
+/// Signal « le tableau de bord de l'assistant a une nouvelle version »
+/// (écrite par l'assistant ou depuis un autre appareil, E16).
+final dashboardChangesProvider = Provider<StreamController<void>>((ref) {
+  final controller = StreamController<void>.broadcast();
+  ref.onDispose(controller.close);
+  return controller;
+});
+
 /// Garde un abonnement au stream temps réel du serveur tant qu'on a une
 /// session serveur, et recharge (cache puis réseau) le profil, l'historique,
 /// le classement ou les amis dès que le serveur annonce qu'ils ont changé —
@@ -46,6 +63,8 @@ final liveUpdatesProvider = Provider<void>((ref) {
     ref.invalidate(recentOpponentsProvider);
     ref.invalidate(rivalriesProvider);
     ref.invalidate(friendsActivityProvider);
+    ref.read(gameDataChangesProvider).add(null);
+    ref.read(dashboardChangesProvider).add(null);
   }
 
   void onEvent(LiveEvent event) {
@@ -60,6 +79,7 @@ final liveUpdatesProvider = Provider<void>((ref) {
         // change le tête-à-tête.
         ref.invalidate(recentOpponentsProvider);
         ref.invalidate(rivalriesProvider);
+        ref.read(gameDataChangesProvider).add(null);
       case EnumLiveEventType.leaderboardChanged:
         ref.invalidate(leaderboardProvider);
       case EnumLiveEventType.friendsChanged:
@@ -72,6 +92,8 @@ final liveUpdatesProvider = Provider<void>((ref) {
       case EnumLiveEventType.lobbyChanged:
         // Propre au lobby Multi, qui a son stream (`lobbyRoomsProvider`).
         break;
+      case EnumLiveEventType.dashboardChanged:
+        ref.read(dashboardChangesProvider).add(null);
     }
   }
 

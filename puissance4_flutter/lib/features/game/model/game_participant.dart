@@ -33,8 +33,6 @@ class HumanParticipant extends GameParticipant {
 class BotParticipant extends GameParticipant {
   const BotParticipant({required this.name, this.elo});
 
-  BotParticipant.fromBot(Bot bot) : this(name: bot.botName, elo: bot.elo);
-
   final String name;
 
   @override

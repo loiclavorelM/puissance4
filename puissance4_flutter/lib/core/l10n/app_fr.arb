@@ -95,7 +95,6 @@
   "back": "Retour",
   "bestMove": "Meilleur coup selon l'Expert",
   "botBeginner": "Débutant",
-  "botBeginnerDescription": "Un bot qui débute au Puissance 4.",
   "botDisplayName": "Bot {name}",
   "@botDisplayName": {
     "placeholders": {
@@ -104,10 +103,15 @@
       }
     }
   },
+  "botEasy": "Facile",
+  "botEasyDescription": "Un réseau en tout début d'entraînement, encore plein d'erreurs.",
   "botExpert": "Expert",
-  "botExpertDescription": "Le bot le plus fort, entraîné par apprentissage par renforcement.",
+  "botExpertDescription": "Le plus fort : entièrement entraîné, il réfléchit longuement (800 simulations).",
+  "botHard": "Difficile",
+  "botHardDescription": "Réfléchit avant chaque coup (100 simulations).",
   "botMedium": "Medium",
-  "botMediumDescription": "Un bot de niveau intermédiaire.",
+  "botModerate": "Moyen",
+  "botModerateDescription": "Ne rate ni une victoire ni un blocage, mais ne calcule pas loin.",
   "botThinking": "{name} réfléchit…",
   "@botThinking": {
     "placeholders": {
@@ -116,7 +120,8 @@
       }
     }
   },
-  "botsLoadError": "Impossible de charger les bots.",
+  "botVeryEasy": "Très facile",
+  "botVeryEasyDescription": "Un réseau qui n'a encore rien appris : il joue presque au hasard.",
   "cameraUnavailable": "Caméra indisponible : vérifie l'autorisation d'accès.",
   "cancel": "Annuler",
   "challengeDeclined": "{name} a refusé ton défi.",
@@ -184,7 +189,6 @@
   },
   "defaultPlayerName": "Joueur",
   "disconnected": "Déconnecté",
-  "download": "Télécharger",
   "edit": "Modifier",
   "editNeedsServer": "Connexion au serveur requise pour modifier",
   "editProfileTitle": "Modifier le profil",
@@ -465,7 +469,6 @@
       }
     }
   },
-  "rankedOpponentByElo": "Adversaire choisi selon ton Elo",
   "rankedRules": "Chaque coup est validé par le serveur. Victoire, défaite ou nul font varier ton Elo ; quitter la partie compte comme une défaite (sauf si tu n'as joué aucun coup). 60 s par coup.",
   "recentOpponents": "RENCONTRÉS RÉCEMMENT",
   "recentOpponentsEmpty": "Tes adversaires en Multi apparaîtront ici, pour les ajouter en un tap.",
@@ -575,6 +578,8 @@
   "statGames": "Parties",
   "statWins": "Victoires",
   "statsLoadError": "Impossible de charger tes stats à jour — valeurs par défaut affichées.",
+  "statsServerRequired": "Le tableau de bord et l'assistant ont besoin d'une connexion au serveur. Connecte-toi pour les utiliser.",
+  "statsTitle": "Mes stats",
   "statusConnected": "Connecté",
   "statusOffline": "Hors ligne",
   "statusUnknown": "Statut inconnu",
@@ -587,6 +592,7 @@
   "tabHistory": "Historique",
   "tabLeaderboard": "Classement",
   "tabPlay": "Jouer",
+  "tabStats": "Stats",
   "theme": "Thème",
   "themeDark": "Sombre",
   "themeLight": "Clair",

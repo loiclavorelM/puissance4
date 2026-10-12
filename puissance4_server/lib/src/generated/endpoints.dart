@@ -20,10 +20,12 @@ import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _iais;
 import 'package:serverpod_offline_sync_server/serverpod_offline_sync_server.dart'
     as _izehhkf5;
+import '../assistant/assistant_endpoint.dart' as _i1zejsgk;
+import '../assistant/dashboard_endpoint.dart' as _imdg5yo8;
+import '../assistant/data_endpoint.dart' as _ihk12ms4;
 import '../auth/anonymous_idp_endpoint.dart' as _in0zita6;
 import '../auth/email_idp_endpoint.dart' as _iuc1hd5t;
 import '../auth/jwt_refresh_endpoint.dart' as _inwq3ztq;
-import '../bot/bot_endpoint.dart' as _i8l8pxdo;
 import '../connection/connection_endpoint.dart' as _in8dx5ef;
 import '../friends/friends_endpoint.dart' as _ikhcdsyv;
 import '../game/game_endpoint.dart' as _im5t12sm;
@@ -40,6 +42,24 @@ class Endpoints extends _is.EndpointDispatch {
   @override
   void initializeEndpoints(_is.Server server) {
     var endpoints = <String, _is.Endpoint>{
+      'assistant': _i1zejsgk.AssistantEndpoint()
+        ..initialize(
+          server,
+          'assistant',
+          null,
+        ),
+      'dashboard': _imdg5yo8.DashboardEndpoint()
+        ..initialize(
+          server,
+          'dashboard',
+          null,
+        ),
+      'data': _ihk12ms4.DataEndpoint()
+        ..initialize(
+          server,
+          'data',
+          null,
+        ),
       'anonymousIdp': _in0zita6.AnonymousIdpEndpoint()
         ..initialize(
           server,
@@ -56,12 +76,6 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'jwtRefresh',
-          null,
-        ),
-      'bot': _i8l8pxdo.BotEndpoint()
-        ..initialize(
-          server,
-          'bot',
           null,
         ),
       'connection': _in8dx5ef.ConnectionEndpoint()
@@ -131,6 +145,171 @@ class Endpoints extends _is.EndpointDispatch {
           null,
         ),
     };
+    connectors['assistant'] = _is.EndpointConnector(
+      name: 'assistant',
+      endpoint: endpoints['assistant']!,
+      methodConnectors: {
+        'chat': _is.MethodStreamConnector(
+          name: 'chat',
+          params: {
+            'conversationId': _is.ParameterDescription(
+              name: 'conversationId',
+              type: _is.getType<String?>(),
+              nullable: true,
+            ),
+            'inputJson': _is.ParameterDescription(
+              name: 'inputJson',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          streamParams: {},
+          returnType: _is.MethodStreamReturnType.streamType,
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+                Map<String, Stream> streamParams,
+              ) => (endpoints['assistant'] as _i1zejsgk.AssistantEndpoint).chat(
+                session,
+                params['conversationId'],
+                params['inputJson'],
+              ),
+        ),
+      },
+    );
+    connectors['dashboard'] = _is.EndpointConnector(
+      name: 'dashboard',
+      endpoint: endpoints['dashboard']!,
+      methodConnectors: {
+        'get': _is.MethodConnector(
+          name: 'get',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['dashboard'] as _imdg5yo8.DashboardEndpoint)
+                  .get(session),
+        ),
+        'saveWidget': _is.MethodConnector(
+          name: 'saveWidget',
+          params: {
+            'definitionJson': _is.ParameterDescription(
+              name: 'definitionJson',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['dashboard'] as _imdg5yo8.DashboardEndpoint)
+                  .saveWidget(
+                    session,
+                    params['definitionJson'],
+                  ),
+        ),
+        'removeWidget': _is.MethodConnector(
+          name: 'removeWidget',
+          params: {
+            'id': _is.ParameterDescription(
+              name: 'id',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['dashboard'] as _imdg5yo8.DashboardEndpoint)
+                  .removeWidget(
+                    session,
+                    params['id'],
+                  ),
+        ),
+        'undo': _is.MethodConnector(
+          name: 'undo',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['dashboard'] as _imdg5yo8.DashboardEndpoint)
+                  .undo(session),
+        ),
+        'setFilters': _is.MethodConnector(
+          name: 'setFilters',
+          params: {
+            'filtersJson': _is.ParameterDescription(
+              name: 'filtersJson',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['dashboard'] as _imdg5yo8.DashboardEndpoint)
+                  .setFilters(
+                    session,
+                    params['filtersJson'],
+                  ),
+        ),
+      },
+    );
+    connectors['data'] = _is.EndpointConnector(
+      name: 'data',
+      endpoint: endpoints['data']!,
+      methodConnectors: {
+        'query': _is.MethodConnector(
+          name: 'query',
+          params: {
+            'source': _is.ParameterDescription(
+              name: 'source',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'paramsJson': _is.ParameterDescription(
+              name: 'paramsJson',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['data'] as _ihk12ms4.DataEndpoint).query(
+                session,
+                params['source'],
+                params['paramsJson'],
+              ),
+        ),
+        'searchMentions': _is.MethodConnector(
+          name: 'searchMentions',
+          params: {
+            'text': _is.ParameterDescription(
+              name: 'text',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['data'] as _ihk12ms4.DataEndpoint).searchMentions(
+                    session,
+                    params['text'],
+                  ),
+        ),
+      },
+    );
     connectors['anonymousIdp'] = _is.EndpointConnector(
       name: 'anonymousIdp',
       endpoint: endpoints['anonymousIdp']!,
@@ -360,22 +539,6 @@ class Endpoints extends _is.EndpointDispatch {
                         session,
                         refreshToken: params['refreshToken'],
                       ),
-        ),
-      },
-    );
-    connectors['bot'] = _is.EndpointConnector(
-      name: 'bot',
-      endpoint: endpoints['bot']!,
-      methodConnectors: {
-        'getBots': _is.MethodConnector(
-          name: 'getBots',
-          params: {},
-          call:
-              (
-                _is.Session session,
-                Map<String, dynamic> params,
-              ) async =>
-                  (endpoints['bot'] as _i8l8pxdo.BotEndpoint).getBots(session),
         ),
       },
     );

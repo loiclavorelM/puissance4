@@ -1,0 +1,30 @@
+name: assistant_ui
+description: >-
+  Tableau de bord modulable et chat de l'assistant, en Flutter. Transposable :
+  aucune dépendance à Serverpod ni à un gestionnaire d'état ; l'app branche
+  ses ports (DashboardRepository, DataSourceClient, AssistantClient).
+publish_to: none
+
+environment:
+  sdk: '^3.12.2'
+  flutter: '^3.44.4'
+
+resolution: workspace
+
+dependencies:
+  assistant_contracts:
+    path: ../assistant_contracts
+  fl_chart: ^1.2.0
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
+
+dev_dependencies:
+  flutter_lints: '>=3.0.0 <7.0.0'
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  generate: true

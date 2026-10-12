@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "data.schema.json",
+  "title": "SourceData",
+  "description": "Réponse d'une source : un chiffre clé ou des lignes typées (2 000 au plus).",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": ["kind", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "const": "kpi" },
+        "value": { "type": ["number", "null"], "description": "null quand il n'y a aucune partie." },
+        "unit": { "type": "string" },
+        "delta": { "type": "number" },
+        "secondary": { "type": "number" }
+      }
+    },
+    {
+      "type": "object",
+      "required": ["kind", "fields", "rows"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "const": "rows" },
+        "fields": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "type"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string" },
+              "type": { "enum": ["temporal", "category", "number"] }
+            }
+          }
+        },
+        "rows": { "type": "array", "maxItems": 2000, "items": { "type": "array" } },
+        "truncated": { "type": "integer", "description": "Nombre total de lignes quand le résultat a été tronqué (query_data)." }
+      }
+    }
+  ]
+}

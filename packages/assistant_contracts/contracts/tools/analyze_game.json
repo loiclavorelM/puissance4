@@ -1,0 +1,24 @@
+{
+  "name": "analyze_game",
+  "title": "Analyze game",
+  "description": "Runs a finished game through the game's engine and returns up to 3 turning-point moves of the player: move number, column played, column recommended, verdict. Get gameId from games.recent.",
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "gameId": {
+        "type": "string",
+        "description": "gameId from games.recent."
+      }
+    },
+    "required": [
+      "gameId"
+    ],
+    "additionalProperties": false
+  }
+}

@@ -168,26 +168,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get botBeginner => 'Beginner';
 
   @override
-  String get botBeginnerDescription =>
-      'A bot just getting started at Connect Four.';
-
-  @override
   String botDisplayName(String name) {
     return '$name bot';
   }
+
+  @override
+  String get botEasy => 'Easy';
+
+  @override
+  String get botEasyDescription =>
+      'A network at the very start of its training, still full of mistakes.';
 
   @override
   String get botExpert => 'Expert';
 
   @override
   String get botExpertDescription =>
-      'The strongest bot, trained with reinforcement learning.';
+      'The strongest: fully trained, it thinks long and hard (800 simulations).';
+
+  @override
+  String get botHard => 'Hard';
+
+  @override
+  String get botHardDescription =>
+      'Thinks before every move (100 simulations).';
 
   @override
   String get botMedium => 'Medium';
 
   @override
-  String get botMediumDescription => 'An intermediate-level bot.';
+  String get botModerate => 'Intermediate';
+
+  @override
+  String get botModerateDescription =>
+      'Never misses a win or a block, but doesn\'t look far ahead.';
 
   @override
   String botThinking(String name) {
@@ -195,7 +209,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get botsLoadError => 'Couldn\'t load the bots.';
+  String get botVeryEasy => 'Very easy';
+
+  @override
+  String get botVeryEasyDescription =>
+      'A network that hasn\'t learned anything yet: it plays almost at random.';
 
   @override
   String get cameraUnavailable => 'Camera unavailable: check the permission.';
@@ -285,9 +303,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get disconnected => 'Disconnected';
-
-  @override
-  String get download => 'Download';
 
   @override
   String get edit => 'Edit';
@@ -793,9 +808,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get rankedOpponentByElo => 'Opponent picked from your Elo';
-
-  @override
   String get rankedRules =>
       'Every move is checked by the server. Wins, losses and draws change your Elo; leaving counts as a loss (unless you haven\'t played a move). 60 s per move.';
 
@@ -980,6 +992,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t load your latest stats — showing defaults.';
 
   @override
+  String get statsServerRequired =>
+      'The dashboard and the assistant need a server connection. Sign in to use them.';
+
+  @override
+  String get statsTitle => 'My stats';
+
+  @override
   String get statusConnected => 'Connected';
 
   @override
@@ -1017,6 +1036,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tabPlay => 'Play';
+
+  @override
+  String get tabStats => 'Stats';
 
   @override
   String get theme => 'Theme';

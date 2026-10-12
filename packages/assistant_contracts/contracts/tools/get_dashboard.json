@@ -1,0 +1,17 @@
+{
+  "name": "get_dashboard",
+  "title": "Get dashboard",
+  "description": "Returns the player's dashboard: version, filters and widget definitions with their id and layout.",
+  "annotations": {
+    "readOnlyHint": true,
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false
+  },
+  "inputSchema": {
+    "type": "object",
+    "properties": {},
+    "required": [],
+    "additionalProperties": false
+  }
+}
