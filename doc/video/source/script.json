@@ -1,7 +1,7 @@
 [
   {
     "id": "intro",
-    "vo": "This is Connect Four, powered by AI. Every bot is a neural network we trained ourselves, AlphaZero style, and its inference runs on the phone, on the web, and on the server. An LLM coaches you and builds your stats. Built with Flutter and Serverpod."
+    "vo": "This is Connect Four, powered by AI. Every bot is a neural network we trained ourselves, AlphaZero style, and its inference runs on the phone, and on the server. An LLM coaches you and builds your stats. Built with Flutter and Serverpod."
   },
   {
     "id": "guest",

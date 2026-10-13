@@ -1775,6 +1775,9 @@ class Protocol extends _is.DatabaseSerializationManager {
               .toList()
           as T;
     }
+    if (t == List<int>) {
+      return (data as List).map((e) => deserialize<int>(e)).toList() as T;
+    }
     if (t == List<_i259h1cp.PlayerSearchResultDto>) {
       return (data as List)
               .map((e) => deserialize<_i259h1cp.PlayerSearchResultDto>(e))
@@ -1810,9 +1813,6 @@ class Protocol extends _is.DatabaseSerializationManager {
               .map((e) => deserialize<_i5549tex.LeaderboardEntryDto>(e))
               .toList()
           as T;
-    }
-    if (t == List<int>) {
-      return (data as List).map((e) => deserialize<int>(e)).toList() as T;
     }
     try {
       return _iacs.Protocol().deserialize<T>(data, t);

@@ -7,7 +7,9 @@ friends in real time, and explains your mistakes with an LLM coach.
 
 - **Web app:** https://puissance4.serverpod.space/
 - **Android APK:** [latest release](https://github.com/loiclavorelM/puissance4/releases/latest)
-- **Demo video:** _(link to add)_
+- **Demo video:** https://youtu.be/ldzXRch4qyI
+
+[![Watch the 2-minute demo](doc/video/thumbnail.png)](https://youtu.be/ldzXRch4qyI)
 
 <!-- Screenshots: add a few phone captures here (game, Normal level picker, ranked, review, dashboard). -->
 
@@ -51,7 +53,8 @@ need a connection for everything, and never tell you *why* you lost. We wanted:
 - **Same network in pure Dart:** `ConnectFourNet` reads the weights **directly
   from the `.tflite` flatbuffer** and recomputes the network with SIMD
   (`Float32x4`) — no native library. It matches TFLite to 1e-5 and is what the
-  **Serverpod server** uses to play Ranked, and what the web build uses.
+  **Serverpod server** uses to play Ranked, and to play Normal for the web
+  app (the browser asks the server for each bot move).
 - **One shared brain:** rules, bot levels, MCTS and a tactical guard (win /
   block / never hand over a win) live in the pure-Dart package
   `puissance4_rules`, imported by both the app and the server.

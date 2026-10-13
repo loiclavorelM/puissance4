@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:puissance4_client/puissance4_client.dart';
 import 'package:puissance4_rules/puissance4_rules.dart';
@@ -12,6 +13,7 @@ import '../../game/viewmodel/game_home_viewmodel.dart';
 import '../../offline/viewmodel/offline_sync_provider.dart';
 import '../model/bot_brain.dart';
 import '../model/normal_game_recorder.dart';
+import '../model/server_bot_brain.dart';
 import '../../settings/viewmodel/locale_provider.dart';
 
 /// La partie est enregistrée dans la session de synchro hors-ligne, qui
@@ -82,7 +84,8 @@ Future<GameLaunch> createNormalLaunch(Ref ref, BotLevel bot) async {
   final repository = ref.read(offlineGameRepositoryProvider);
   final partieId = await repository.createGame(bot: bot, playedAs: userColor);
   final home = ref.read(gameHomeViewModelProvider);
-  final brain = NetworkBotBrain(bot);
+  // Sur le web, le serveur joue le bot ; sur le téléphone, son réseau.
+  final BotBrain brain = kIsWeb ? ServerBotBrain(bot) : NetworkBotBrain(bot);
   return GameLaunch(
     title: (l10n) => l10n.modeNormal,
     createEngine: (gameRef) => LocalGameEngine(

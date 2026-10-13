@@ -22,6 +22,8 @@ emailIdp:
   - hasAccount:
 jwtRefresh:
   - refreshAccessToken:
+bot:
+  - chooseColumn:
 connection:
   - ping:
 friends:
