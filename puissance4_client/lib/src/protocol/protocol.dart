@@ -678,6 +678,9 @@ class Protocol extends _isd.DatabaseSerializationManager {
               .toList()
           as T;
     }
+    if (t == List<int>) {
+      return (data as List).map((e) => deserialize<int>(e)).toList() as T;
+    }
     if (t == List<_ionzpnek.PlayerSearchResultDto>) {
       return (data as List)
               .map((e) => deserialize<_ionzpnek.PlayerSearchResultDto>(e))
@@ -713,9 +716,6 @@ class Protocol extends _isd.DatabaseSerializationManager {
               .map((e) => deserialize<_ihkbd7x6.LeaderboardEntryDto>(e))
               .toList()
           as T;
-    }
-    if (t == List<int>) {
-      return (data as List).map((e) => deserialize<int>(e)).toList() as T;
     }
     try {
       return _iacc.Protocol().deserialize<T>(data, t);
