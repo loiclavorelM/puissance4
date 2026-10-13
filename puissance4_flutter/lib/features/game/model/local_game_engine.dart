@@ -18,7 +18,7 @@ class HumanSeat extends LocalSeat {
   const HumanSeat();
 }
 
-/// Une IA qui tourne sur le téléphone.
+/// Une IA : sur le téléphone, ou sur le serveur pour l'app web.
 class BotSeat extends LocalSeat {
   const BotSeat(
     this.chooseColumn, {
@@ -129,10 +129,23 @@ class LocalGameEngine extends GameEngineBase {
     final snapshot = current;
     final seat = _seat(snapshot.colorToPlay);
     if (snapshot.isOver || seat is! BotSeat) return;
-    final (column, _) = await (
-      seat.chooseColumn(snapshot.moves),
-      Future<void>.delayed(seat.thinkingTime),
-    ).wait;
+    final int column;
+    try {
+      (column, _) = await (
+        seat.chooseColumn(snapshot.moves),
+        Future<void>.delayed(seat.thinkingTime),
+      ).wait;
+    } catch (_) {
+      // Bot joué par le serveur (web) injoignable : on réessaie tant que la
+      // partie est ouverte, plutôt que de la laisser bloquée.
+      if (isDisposed || current.isOver) return;
+      notice(GameNotice.connectionLost);
+      await Future<void>.delayed(const Duration(seconds: 3));
+      if (isDisposed || current.isOver || current.moves != snapshot.moves) {
+        return;
+      }
+      return _playBotIfItsTurn();
+    }
     // Partie abandonnée ou écran fermé pendant la réflexion.
     if (isDisposed || current.isOver || current.moves != snapshot.moves) {
       return;

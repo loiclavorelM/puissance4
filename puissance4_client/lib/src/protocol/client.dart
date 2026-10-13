@@ -419,6 +419,31 @@ class EndpointJwtRefresh extends _iacc.EndpointRefreshJwtTokens {
       );
 }
 
+/// Coup d'un bot du mode Normal calculé par le serveur, pour l'app web : le
+/// navigateur n'a ni TFLite ni isolate, et y recalculer le réseau figerait
+/// l'interface. Sur Android et iOS, le bot reste joué sur le téléphone.
+/// Rien n'est enregistré ici : la partie Normal reste celle de l'app.
+/// {@category Endpoint}
+class EndpointBot extends _isc.EndpointRef {
+  EndpointBot(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'bot';
+
+  /// Colonne jouée par le niveau [botId] (`BotLevel.id`) après [moves].
+  _ida.Future<int> chooseColumn(
+    String botId,
+    List<int> moves,
+  ) => caller.callServerEndpoint<int>(
+    'bot',
+    'chooseColumn',
+    {
+      'botId': botId,
+      'moves': moves,
+    },
+  );
+}
+
 /// Endpoint volontairement vide : sert uniquement de sonde de joignabilité
 /// pour `ServerConnectionTracker` côté client. Le simple fait que l'appel
 /// réussisse ou échoue passe par les hooks globaux
@@ -967,6 +992,7 @@ class Client extends _isc.ServerpodClientShared {
     anonymousIdp = EndpointAnonymousIdp(this);
     emailIdp = EndpointEmailIdp(this);
     jwtRefresh = EndpointJwtRefresh(this);
+    bot = EndpointBot(this);
     connection = EndpointConnection(this);
     friends = EndpointFriends(this);
     game = EndpointGame(this);
@@ -992,6 +1018,8 @@ class Client extends _isc.ServerpodClientShared {
   late final EndpointEmailIdp emailIdp;
 
   late final EndpointJwtRefresh jwtRefresh;
+
+  late final EndpointBot bot;
 
   late final EndpointConnection connection;
 
@@ -1025,6 +1053,7 @@ class Client extends _isc.ServerpodClientShared {
     'anonymousIdp': anonymousIdp,
     'emailIdp': emailIdp,
     'jwtRefresh': jwtRefresh,
+    'bot': bot,
     'connection': connection,
     'friends': friends,
     'game': game,
